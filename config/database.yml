@@ -1,0 +1,29 @@
+acao_sqlserver:
+  adapter: sqlserver
+  mode: dblib
+  dataserver: acao_sql_server
+  database:
+  username: lino
+  password: PMXNbfJP4QbfXpv5
+
+production:
+  adapter: postgresql
+  encoding: unicode
+  database: acao
+  username:
+  password:
+
+development:
+  adapter: postgresql
+  encoding: unicode
+  database: acao
+  username:
+  password:
+
+assets:
+  adapter: postgresql
+  encoding: unicode
+  database: acao
+  username:
+  password:
+

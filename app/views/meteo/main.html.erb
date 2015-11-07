@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ACAO Meteo Dashboard</title>
+    <meta name="description" content="ACAO Meteo Dashboard" />
+    <meta name="keywords" content="" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <%= favicon_link_tag Rails.application.config.extgui.favicon %>
+    <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      div.data span { font-size: 130%; font-weight: bold }
+    </style>
+
+  </head>
+  <body>
+    <div class="data">
+    <div>Instantaneous Wind: <span id="wind_speed"></span> km/h from <span id="wind_dir"></span>°</div>
+    <div>2-min average Wind Speed: <span id="wind_2m_avg"></span> km/h</div>
+    <div>2-min average Wind Vector: <span id="wind_2m_vec_mag"></span> km/h from <span id="wind_2m_vec_dir"></span>°</div>
+    <div>2-min average gust: <span id="wind_2m_gst"></span> km/h from <span id="wind_2m_gst_dir"></span>° at <span id="wind_2m_gst_ts"></span></div>
+    <div>10-min average Wind Speed: <span id="wind_10m_avg"></span> km/h</div>
+    <div>10-min average Wind Vector: <span id="wind_10m_vec_mag"></span> km/h from <span id="wind_10m_vec_dir"></span>°</div>
+    <div>10-min average gust: <span id="wind_10m_gst"></span> km/h from <span id="wind_10m_gst_dir"></span>° at <span id="wind_10m_gst_ts"></span></div>
+    <div>QFE: <span id="qfe"></span> hPa measured at <span id="qfe_h"></span> m</div>
+    <div>QNH: <span id="qnh"></span> hPa (ISA height <span id="isa_h"></span> m)</div>
+    <div>Temperature: <span id="temperature"></span> °C</div>
+    <div>Humidity <span id="humidity"></span>%</div>
+    </div>
+
+    <%= javascript_include_tag @faye_source_uri if @faye_source_uri %>
+
+    <script type="text/javascript">
+      var app = {
+        faye_interface_uri: '<%= @faye_interface_uri %>',
+      };
+    </script>
+
+    <%= javascript_include_tag 'meteo.js' %>
+  </body>
+</html>
