@@ -9,6 +9,20 @@ gem 'pg'
 gem 'tiny_tds'
 gem 'activerecord-sqlserver-adapter'
 
+gem 'puma'
+
+gem 'pry'
+gem 'pry-rails'
+gem 'awesome_print'
+gem 'state_machine'
+gem 'geocoder'
+gem 'net-ldap'
+
+source 'https://gems.sevio.it/' do
+  gem 'vihai-password', '>= 1.2.0'
+  gem 'active_rest', '~> 6.10.0'
+end
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
@@ -20,24 +34,8 @@ group :development, :test do
   gem 'spring'
 end
 
-gem 'puma'
-
-gem 'pry'
-gem 'pry-rails'
-gem 'awesome_print'
-
-gem 'curb'
-gem 'state_machine'
-
-gem 'geocoder'
-
 gem 'json_exceptions', :path => '../../yggdra/plugins/json_exceptions'
 gem 'vihai-password-rails', :path => '../../yggdra/plugins/vihai_password_rails'
-
-source 'https://gems.sevio.it/' do
-  gem 'vihai-password', '>= 1.2.0'
-  gem 'active_rest', '~> 6.10.0'
-end
 
 gem 'yggdra_plugins', :path => '../../yggdra/plugins/yggdra_plugins'
 gem 'hel', :path => '../../yggdra/plugins/hel'
@@ -47,4 +45,3 @@ gem 'core_hel', :path => '../../yggdra/plugins/core_hel'
 
 gem 'shop_models', :path => '../../yggdra/plugins/shop_models'
 gem 'shop_hel', :path => '../../yggdra/plugins/shop_hel'
-

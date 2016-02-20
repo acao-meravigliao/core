@@ -6,7 +6,7 @@ module Ygg
 module Acao
 
 class Plane < Ygg::PublicModel
-  self.table_name = :planes
+  self.table_name = 'acao_planes'
 
   interface :rest do
     capability :simple_interface do
