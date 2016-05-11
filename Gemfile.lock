@@ -8,6 +8,30 @@ GIT
       polyamorous (~> 1.1.0)
 
 PATH
+  remote: ../../acao_plugins/acao_hel
+  specs:
+    acao_hel (1.0.0)
+      yggdra_plugins
+
+PATH
+  remote: ../../acao_plugins/acao_models
+  specs:
+    acao_models (1.0.0)
+      yggdra_plugins
+
+PATH
+  remote: ../../acao_plugins/trk_hel
+  specs:
+    trk_hel (1.0.0)
+      yggdra_plugins
+
+PATH
+  remote: ../../acao_plugins/trk_models
+  specs:
+    trk_models (1.0.0)
+      yggdra_plugins
+
+PATH
   remote: ../../yggdra/plugins/core_hel
   specs:
     core_hel (1.0.0)
@@ -97,7 +121,7 @@ GEM
       activemodel (= 4.2.6)
       activesupport (= 4.2.6)
       arel (~> 6.0)
-    activerecord-sqlserver-adapter (4.2.10)
+    activerecord-sqlserver-adapter (4.2.12)
       activerecord (~> 4.2.1)
     activesupport (4.2.6)
       i18n (~> 0.7)
@@ -121,9 +145,9 @@ GEM
     binding_of_caller (0.7.2)
       debug_inspector (>= 0.0.1)
     builder (3.2.2)
-    byebug (8.2.4)
+    byebug (9.0.0)
     coderay (1.1.1)
-    concurrent-ruby (1.0.1)
+    concurrent-ruby (1.0.2)
     debug_inspector (0.0.2)
     deep_open_struct (1.0.2)
     erubis (2.7.0)
@@ -143,7 +167,6 @@ GEM
     mime-types (3.0)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2016.0221)
-    mini_portile (0.6.2)
     mini_portile2 (2.0.0)
     minitest (5.8.4)
     net-ldap (0.14.0)
@@ -189,7 +212,7 @@ GEM
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
     rake (11.1.2)
-    responders (2.1.2)
+    responders (2.2.0)
       railties (>= 4.2.0, < 5.1)
     sleepy_penguin (3.4.1)
     slop (3.6.0)
@@ -204,8 +227,8 @@ GEM
     state_machine (1.2.0)
     thor (0.19.1)
     thread_safe (0.3.5)
-    tiny_tds (0.7.0)
-      mini_portile (= 0.6.2)
+    tiny_tds (1.0.2)
+      mini_portile2 (~> 2.0)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
     uber (0.0.15)
@@ -223,6 +246,8 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  acao_hel!
+  acao_models!
   active_rest (~> 6.10.0)!
   activerecord-sqlserver-adapter
   awesome_print
@@ -246,6 +271,8 @@ DEPENDENCIES
   squeel!
   state_machine
   tiny_tds
+  trk_hel!
+  trk_models!
   vihai-password (>= 1.2.0)!
   vihai-password-rails!
   web-console (~> 2.0)

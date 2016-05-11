@@ -45,3 +45,10 @@ gem 'core_hel', :path => '../../yggdra/plugins/core_hel'
 
 gem 'shop_models', :path => '../../yggdra/plugins/shop_models'
 gem 'shop_hel', :path => '../../yggdra/plugins/shop_hel'
+gem 'acao_models', :path => '../../acao_plugins/acao_models'
+gem 'acao_hel', :path => '../../acao_plugins/acao_hel'
+
+gem 'trk_models', :path => '../../acao_plugins/trk_models'
+gem 'trk_hel', :path => '../../acao_plugins/trk_hel'
+
+
