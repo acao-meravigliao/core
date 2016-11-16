@@ -8,9 +8,9 @@ state_path 'log/puma-production.state'
 pidfile 'log/puma-production.pid'
 
 on_worker_boot do
+  Ygg::AmqpWsGw.start
+
   ActiveSupport.on_load(:active_record) do
     ActiveRecord::Base.establish_connection
   end
-
-  Ygg::Core::Amqp.interface_init
 end

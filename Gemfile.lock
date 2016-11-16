@@ -1,16 +1,21 @@
 GIT
-  remote: https://github.com/activerecord-hackery/squeel.git
-  revision: 5542266d502db8022e14105f9dfb455a79d6fc4a
+  remote: https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git
+  revision: bec007eae766cbcab10c7ae4597a8657d96290c2
+  branch: rails5
   specs:
-    squeel (1.2.3)
-      activerecord (>= 3.0)
-      activesupport (>= 3.0)
-      polyamorous (~> 1.1.0)
+    activerecord-sqlserver-adapter (5.0.0)
+      activerecord (~> 5.0.0)
 
 PATH
   remote: ../../acao_plugins/acao_hel
   specs:
     acao_hel (1.0.0)
+      yggdra_plugins
+
+PATH
+  remote: ../../acao_plugins/acao_maindb_models
+  specs:
+    acao_maindb_models (1.0.0)
       yggdra_plugins
 
 PATH
@@ -32,6 +37,14 @@ PATH
       yggdra_plugins
 
 PATH
+  remote: ../../yggdra/plugins/amqp_ws_gw
+  specs:
+    amqp_ws_gw (1.0.0)
+      am-amqp (>= 1.3.0)
+      websocket
+      yggdra_plugins
+
+PATH
   remote: ../../yggdra/plugins/core_hel
   specs:
     core_hel (1.0.0)
@@ -42,11 +55,12 @@ PATH
   remote: ../../yggdra/plugins/core_models
   specs:
     core_models (1.0.0)
-      active_rest (>= 5.1.0)
+      active_rest (>= 7.0.0)
       am-amqp
       deep_open_struct
       geocoder
       hooks
+      pg_search
       uuidtools
       vihai-password-rails
       yggdra_plugins
@@ -57,9 +71,29 @@ PATH
     hel (1.0.0)
 
 PATH
+  remote: ../../yggdra/plugins/i18n_hel
+  specs:
+    i18n_hel (1.0.0)
+      active_rest (>= 6.6.0)
+      yggdra_plugins
+
+PATH
+  remote: ../../yggdra/plugins/i18n_models
+  specs:
+    i18n_models (1.0.0)
+      active_rest (>= 6.6.0)
+      yggdra_plugins
+
+PATH
   remote: ../../yggdra/plugins/json_exceptions
   specs:
     json_exceptions (0.0.1)
+
+PATH
+  remote: ../../yggdra/plugins/rails_amqp
+  specs:
+    rails_amqp (1.0.0)
+      am-amqp (>= 1.3.0)
 
 PATH
   remote: ../../yggdra/plugins/shop_hel
@@ -90,70 +124,71 @@ GEM
   remote: https://rubygems.org/
   remote: https://gems.sevio.it/
   specs:
-    actionmailer (4.2.6)
-      actionpack (= 4.2.6)
-      actionview (= 4.2.6)
-      activejob (= 4.2.6)
+    actioncable (5.0.0.1)
+      actionpack (= 5.0.0.1)
+      nio4r (~> 1.2)
+      websocket-driver (~> 0.6.1)
+    actionmailer (5.0.0.1)
+      actionpack (= 5.0.0.1)
+      actionview (= 5.0.0.1)
+      activejob (= 5.0.0.1)
       mail (~> 2.5, >= 2.5.4)
-      rails-dom-testing (~> 1.0, >= 1.0.5)
-    actionpack (4.2.6)
-      actionview (= 4.2.6)
-      activesupport (= 4.2.6)
-      rack (~> 1.6)
-      rack-test (~> 0.6.2)
-      rails-dom-testing (~> 1.0, >= 1.0.5)
+      rails-dom-testing (~> 2.0)
+    actionpack (5.0.0.1)
+      actionview (= 5.0.0.1)
+      activesupport (= 5.0.0.1)
+      rack (~> 2.0)
+      rack-test (~> 0.6.3)
+      rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
-    actionview (4.2.6)
-      activesupport (= 4.2.6)
+    actionview (5.0.0.1)
+      activesupport (= 5.0.0.1)
       builder (~> 3.1)
       erubis (~> 2.7.0)
-      rails-dom-testing (~> 1.0, >= 1.0.5)
+      rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
-    active_rest (6.10.9)
-      squeel
-    activejob (4.2.6)
-      activesupport (= 4.2.6)
-      globalid (>= 0.3.0)
-    activemodel (4.2.6)
-      activesupport (= 4.2.6)
-      builder (~> 3.1)
-    activerecord (4.2.6)
-      activemodel (= 4.2.6)
-      activesupport (= 4.2.6)
-      arel (~> 6.0)
-    activerecord-sqlserver-adapter (4.2.12)
-      activerecord (~> 4.2.1)
-    activesupport (4.2.6)
+    active_rest (7.0.10)
+      rubytree
+    activejob (5.0.0.1)
+      activesupport (= 5.0.0.1)
+      globalid (>= 0.3.6)
+    activemodel (5.0.0.1)
+      activesupport (= 5.0.0.1)
+    activerecord (5.0.0.1)
+      activemodel (= 5.0.0.1)
+      activesupport (= 5.0.0.1)
+      arel (~> 7.0)
+    activesupport (5.0.0.1)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (~> 0.7)
-      json (~> 1.7, >= 1.7.7)
       minitest (~> 5.1)
-      thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
-    actor_model (1.3.5)
+    actor_model (1.4.27)
       activesupport
       sleepy_penguin
-    address_selector (0.0.1)
-    am-amqp (1.2.3)
-      actor_model
+    address_selector (0.0.7)
+    am-amqp (1.3.14)
+      actor_model (~> 1.4.0)
       address_selector
       amq-protocol
       awesome_print
       vihai_io_buffer
     amq-protocol (2.0.1)
-    arel (6.0.3)
-    awesome_print (1.6.1)
-    binding_of_caller (0.7.2)
-      debug_inspector (>= 0.0.1)
+    arel (7.1.4)
+    awesome_print (1.7.0)
     builder (3.2.2)
-    byebug (9.0.0)
+    byebug (9.0.6)
     coderay (1.1.1)
     concurrent-ruby (1.0.2)
     debug_inspector (0.0.2)
     deep_open_struct (1.0.2)
     erubis (2.7.0)
-    ffi (1.9.10)
-    geocoder (1.3.4)
-    globalid (0.3.6)
+    exception_notification (4.2.1)
+      actionmailer (>= 4.0, < 6)
+      activesupport (>= 4.0, < 6)
+    ffi (1.9.14)
+    geocoder (1.4.0)
+    globalid (0.3.7)
       activesupport (>= 4.1.0)
     hooks (0.4.1)
       uber (~> 0.0.14)
@@ -164,70 +199,72 @@ GEM
     mail (2.6.4)
       mime-types (>= 1.16, < 4)
     method_source (0.8.2)
-    mime-types (3.0)
+    mime-types (3.1)
       mime-types-data (~> 3.2015)
-    mime-types-data (3.2016.0221)
-    mini_portile2 (2.0.0)
-    minitest (5.8.4)
-    net-ldap (0.14.0)
-    nokogiri (1.6.7.2)
-      mini_portile2 (~> 2.0.0.rc2)
-    pg (0.18.4)
-    polyamorous (1.1.0)
-      activerecord (>= 3.0)
-    pry (0.10.3)
+    mime-types-data (3.2016.0521)
+    mini_portile2 (2.1.0)
+    minitest (5.9.1)
+    net-ldap (0.15.0)
+    nio4r (1.2.1)
+    nokogiri (1.6.8.1)
+      mini_portile2 (~> 2.1.0)
+    pg (0.19.0)
+    pg_search (1.0.6)
+      activerecord (>= 3.1)
+      activesupport (>= 3.1)
+      arel
+    pry (0.10.4)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
       slop (~> 3.4)
     pry-rails (0.3.4)
       pry (>= 0.9.10)
-    puma (3.4.0)
-    rack (1.6.4)
+    puma (3.6.0)
+    rack (2.0.1)
     rack-test (0.6.3)
       rack (>= 1.0)
-    rails (4.2.6)
-      actionmailer (= 4.2.6)
-      actionpack (= 4.2.6)
-      actionview (= 4.2.6)
-      activejob (= 4.2.6)
-      activemodel (= 4.2.6)
-      activerecord (= 4.2.6)
-      activesupport (= 4.2.6)
+    rails (5.0.0.1)
+      actioncable (= 5.0.0.1)
+      actionmailer (= 5.0.0.1)
+      actionpack (= 5.0.0.1)
+      actionview (= 5.0.0.1)
+      activejob (= 5.0.0.1)
+      activemodel (= 5.0.0.1)
+      activerecord (= 5.0.0.1)
+      activesupport (= 5.0.0.1)
       bundler (>= 1.3.0, < 2.0)
-      railties (= 4.2.6)
-      sprockets-rails
-    rails-deprecated_sanitizer (1.0.3)
-      activesupport (>= 4.2.0.alpha)
-    rails-dom-testing (1.0.7)
-      activesupport (>= 4.2.0.beta, < 5.0)
+      railties (= 5.0.0.1)
+      sprockets-rails (>= 2.0.0)
+    rails-dom-testing (2.0.1)
+      activesupport (>= 4.2.0, < 6.0)
       nokogiri (~> 1.6.0)
-      rails-deprecated_sanitizer (>= 1.0.1)
     rails-html-sanitizer (1.0.3)
       loofah (~> 2.0)
-    rails-observers (0.1.2)
-      activemodel (~> 4.0)
-    railties (4.2.6)
-      actionpack (= 4.2.6)
-      activesupport (= 4.2.6)
+    railties (5.0.0.1)
+      actionpack (= 5.0.0.1)
+      activesupport (= 5.0.0.1)
+      method_source
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
-    rake (11.1.2)
-    responders (2.2.0)
-      railties (>= 4.2.0, < 5.1)
+    rake (11.3.0)
+    rubytree (0.9.7)
+      json (~> 1.8)
+      structured_warnings (~> 0.2)
     sleepy_penguin (3.4.1)
     slop (3.6.0)
-    spring (1.7.1)
-    sprockets (3.6.0)
+    spring (2.0.0)
+      activesupport (>= 4.2)
+    sprockets (3.7.0)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
-    sprockets-rails (3.0.4)
+    sprockets-rails (3.2.0)
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
-    state_machine (1.2.0)
+    structured_warnings (0.2.0)
     thor (0.19.1)
     thread_safe (0.3.5)
-    tiny_tds (1.0.2)
+    tiny_tds (1.0.5)
       mini_portile2 (~> 2.0)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
@@ -236,47 +273,54 @@ GEM
     vihai-password (1.4.1)
       ffi
     vihai_io_buffer (0.0.1)
-    web-console (2.3.0)
-      activemodel (>= 4.0)
-      binding_of_caller (>= 0.7.2)
-      railties (>= 4.0)
-      sprockets-rails (>= 2.0, < 4.0)
+    web-console (3.4.0)
+      actionview (>= 5.0)
+      activemodel (>= 5.0)
+      debug_inspector
+      railties (>= 5.0)
+    websocket (1.2.3)
+    websocket-driver (0.6.4)
+      websocket-extensions (>= 0.1.0)
+    websocket-extensions (0.1.2)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   acao_hel!
+  acao_maindb_models!
   acao_models!
-  active_rest (~> 6.10.0)!
-  activerecord-sqlserver-adapter
+  active_rest (~> 7.0.0)!
+  activerecord-sqlserver-adapter!
+  amqp_ws_gw!
   awesome_print
   byebug
   core_hel!
   core_models!
+  exception_notification (>= 4.2.0)
   geocoder
   hel!
+  i18n_hel!
+  i18n_models!
   json_exceptions!
   net-ldap
   pg
+  pg_search
   pry
   pry-rails
   puma
-  rails (~> 4.2.0)
-  rails-observers
-  responders
+  rails (~> 5.0.0)
+  rails_amqp!
   shop_hel!
   shop_models!
   spring
-  squeel!
-  state_machine
-  tiny_tds
+  tiny_tds (~> 1.0.0)
   trk_hel!
   trk_models!
   vihai-password (>= 1.2.0)!
   vihai-password-rails!
-  web-console (~> 2.0)
+  web-console (~> 3.3)
   yggdra_plugins!
 
 BUNDLED WITH
-   1.11.2
+   1.13.4

@@ -22,5 +22,9 @@ Rails.application.configure do
   # Raise an error on page load if there are pending migrations.
   config.active_record.migration_error = :page_load
 
-  config.core.amqp_may_fail = true
+  config.amqp_ws_gw.allowed_request_origins = [
+    'http://linobis.acao.it:3330',
+    'http://linobis.acao.it:3331',
+    'http://linobis.acao.it:3332',
+  ]
 end

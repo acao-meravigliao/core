@@ -6,6 +6,9 @@ require 'rails/all'
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+require 'ygg/i18n/backend'
+I18n.backend = Ygg::I18n::Backend.new
+
 module AcaoDashboardBackend
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.
@@ -26,9 +29,93 @@ module AcaoDashboardBackend
     config.assets.paths << File.join(Rails.root, 'app', 'assets', 'js')
     config.assets.paths << File.join(Rails.root, 'app', 'assets', 'css')
 
-    config.core.faye_address = 'http://localhost:8000/faye'
+    config.amqp_ws_gw.allowed_request_origins = [
+      'http://dev.yggdra.it:3000',
+      'http://dev.yggdra.it:3001',
+      'http://62.212.12.194:3001',
+    ]
 
-  # FIXME
-    config.core.amqp_host = 'amqp://agent:Fa2iaPai4cei@lino.acao.it'
+    config.rails_amqp.url = 'amqp://agent@lino.acao.it'
+    config.rails_amqp.debug = 0
+
+    config.amqp_ws_gw.routes = {
+      'ygg.model.events': {
+        handler: :model,
+        exchange_type: :topic,
+        exchange_options: {
+          durable: true,
+          auto_delete: false,
+        },
+        queue_name: 'ygg.hel.model.events.dev',
+        queue_options: {
+          durable: true,
+          auto_delete: false,
+        },
+      },
+      'ygg.asgard.wall': {
+        exchange_type: :topic,
+        exchange_options: {
+          durable: true,
+          auto_delete: false,
+        },
+        queue_name: 'ygg.hel.asgard.wall.dev',
+        queue_options: {
+          durable: true,
+          auto_delete: false,
+        },
+      },
+
+      'ygg.glideradar.processed_traffic': {
+        exchange_type: :topic,
+        exchange_options: {
+          durable: true,
+          auto_delete: false,
+        },
+        routing_key: '#',
+        queue_name: 'ygg.fayeway.bis.glideradar.processed_traffic',
+        queue_options: {
+          durable: false,
+          auto_delete: true,
+          arguments: {
+            'x-message-ttl': 30000,
+          },
+        },
+      },
+
+      'glideradar.events': {
+        exchange_type: :topic,
+        exchange_options: {
+          durable: true,
+          auto_delete: false,
+        },
+        routing_key: '#',
+        queue_name: 'ygg.fayeway.bis.glideradar.events',
+        queue_options: {
+          durable: false,
+          auto_delete: true,
+          arguments: {
+            'x-message-ttl': 30000,
+          },
+        },
+      },
+
+      'ygg.meteo.updates': {
+        exchange_type: :topic,
+        exchange_options: {
+          durable: true,
+          auto_delete: false,
+        },
+        routing_key: '#',
+        queue_name: 'ygg.fayeway.bis.meteo.updates',
+        queue_options: {
+          durable: false,
+          auto_delete: true,
+          arguments: {
+            'x-message-ttl': 30000,
+          },
+        },
+      },
+    }
+
   end
 end

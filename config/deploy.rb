@@ -41,6 +41,7 @@ task :bundler_workaround do
   queue 'echo -----> Applying workaround to bundler bug'
   queue! %[ sed -i 's/\\.\\.\\/\\.\\.\\/yggdra\\/plugins\\//vendor\\/cache\\//g' Gemfile ]
   queue! %[ sed -i 's/\\.\\.\\/\\.\\.\\/yggdra\\/agents\\//vendor\\/cache\\//g' Gemfile ]
+  queue! %[ sed -i 's/\\.\\.\\/\\.\\.\\/acao_plugins\\//vendor\\/cache\\//g' Gemfile ]
 end
 
 desc 'Does local cleanup'
