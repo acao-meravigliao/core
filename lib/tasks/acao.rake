@@ -38,14 +38,17 @@ namespace :acao do
   end
 
   task(:'sync:flights' => :environment) do
-    Ygg::Acao::Flight.sync!
+#    Ygg::Acao::Flight.sync!
   end
 
   task(:'sync:ml:soci' => :environment) do
     r_records = nil
     l_records = nil
 
-    r_emails = { 'adrisand@libero.it' =>  'Don Adriano Sandri' }
+    r_emails = {
+      'adrisand@libero.it' => 'Don Adriano Sandri',
+      'belli.anto@live.it' => 'Antonia Bellini',
+    }
 
     r_results = Ygg::Acao::MainDb::Socio.connection.select_rows("
       SELECT ana.RagioneSociale AS socio, sdg.email
@@ -153,22 +156,22 @@ puts "ADDING SOCIO CODICE=#{r.codice_socio_dati_generale}"
 
           r_email = (r.Email && !r.Email.strip.empty? && r.Email.strip != 'acao@acao.it') ? r.Email.strip : nil
 
-          person.channels << Ygg::Core::Channel.new(:channel_type => 'email', :value => r_email) if r_email
-          person.channels << Ygg::Core::Channel.new(:channel_type => 'phone', :value => r.Telefono_Casa, :descr => 'Casa') if r.Telefono_Casa
-          person.channels << Ygg::Core::Channel.new(:channel_type => 'phone', :value => r.Telefono_Ufficio, :descr => 'Ufficio') if r.Telefono_Ufficio
-          person.channels << Ygg::Core::Channel.new(:channel_type => 'phone', :value => r.Telefono_Altro, :descr => 'Ufficio') if r.Telefono_Altro
-          person.channels << Ygg::Core::Channel.new(:channel_type => 'mobile', :value => r.Telefono_Cellulare) if r.Telefono_Cellulare
-          person.channels << Ygg::Core::Channel.new(:channel_type => 'fax', :value => r.Fax) if r.Fax
-          person.channels << Ygg::Core::Channel.new(:channel_type => 'url', :value => r.Sito_Web) if r.Sito_Web
+          person.contacts << Ygg::Core::Person::Contact.new(:type => 'email', :value => r_email) if r_email
+          person.contacts << Ygg::Core::Person::Contact.new(:type => 'phone', :value => r.Telefono_Casa, :descr => 'Casa') if r.Telefono_Casa
+          person.contacts << Ygg::Core::Person::Contact.new(:type => 'phone', :value => r.Telefono_Ufficio, :descr => 'Ufficio') if r.Telefono_Ufficio
+          person.contacts << Ygg::Core::Person::Contact.new(:type => 'phone', :value => r.Telefono_Altro, :descr => 'Ufficio') if r.Telefono_Altro
+          person.contacts << Ygg::Core::Person::Contact.new(:type => 'mobile', :value => r.Telefono_Cellulare) if r.Telefono_Cellulare
+          person.contacts << Ygg::Core::Person::Contact.new(:type => 'fax', :value => r.Fax) if r.Fax
+          person.contacts << Ygg::Core::Person::Contact.new(:type => 'url', :value => r.Sito_Web) if r.Sito_Web
 
-          person.identities << Ygg::Core::Identity.new({
-            :qualified => r.codice_socio_dati_generale.to_s + '@legacy.acao.it',
-            :credentials => [ Ygg::Core::Identity::Credential::HashedPassword.new(:password => r.Password.strip) ],
+          person.identities << Ygg::Core::Person::Credential::HashedPassword.new({
+            :fqda => r.codice_socio_dati_generale.to_s + '@legacy.acao.it',
+            :password => r.Password.strip,
           })
 
-          person.identities << Ygg::Core::Identity.new({
-            :qualified => r.Email.strip,
-            :credentials => [ Ygg::Core::Identity::Credential::HashedPassword.new(:password => r.Password.strip) ],
+          person.identities << Ygg::Core::Person::Credential::HashedPassword.new({
+            :fqda => r.Email.strip,
+            :password => r.Password.strip,
           })
 
           added_records << r
@@ -186,7 +189,7 @@ puts "REMOVED SOCIO #{l.first_name} #{l.last_name}"
         else
           r_email = (r.Email && !r.Email.strip.empty? && r.Email.strip != 'acao@acao.it') ? r.Email.strip : nil
 
-          echan = l.channels.find_by_channel_type('email')
+          echan = l.contacts.find_by_type('email')
           l_email = echan ? echan.value : nil
 
           updated_records << {
@@ -201,30 +204,28 @@ if l_email != r_email
 end
 
           # We do not remove the old email FIXME
-          l.identities.each do |i|
-            i.credentials.each do |x|
-              if (x.class == Ygg::Core::Identity::Credential::HashedPassword ||
-                 x.class == Ygg::Core::Identity::Credential::ObfuscatedPassword) &&
-                 !x.match_by_password(r.Password.strip)
-                x.password = r.Password.strip
-                x.save!
-              end
+          l.credentials.each do |x|
+            if (x.class == Ygg::Core::Person::Credential::HashedPassword ||
+               x.class == Ygg::Core::Person::Credential::ObfuscatedPassword) &&
+               !x.match_by_password(r.Password.strip)
+              x.password = r.Password.strip
+              x.save!
             end
           end
 
           if r_email && !l.identities.find_by_qualified(r_email)
-            l.identities << Ygg::Core::Identity.new({
-              :qualified => r_email,
-              :credentials => [ Ygg::Core::Identity::Credential::HashedPassword.new(:password => r.Password.strip) ],
+            l.credentials << Ygg::Core::Person::Credential::HashedPassword.new({
+              :fqda => r_email,
+              :password => r.Password.strip,
             })
           elsif r_email && l.identities.find_by_qualified(r_email)
             l.identities.find_by_qualified(r_email).delete
           end
 
           if l_email && !r_email
-            l.channels.where(:channel_type => 'email', :value => l_email).delete_all
+            l.contacts.where(:channel_type => 'email', :value => l_email).delete_all
           elsif !l_email && r_email
-            l.channels << Ygg::Core::Channel.new(:channel_type => 'email', :value => r_email) if r_email
+            l.contacts << Ygg::Core::Person::Contact.new(:type => 'email', :value => r_email) if r_email
           elsif l_email != r_email
             echan.value = r_email
             echan.save!

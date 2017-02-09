@@ -4,8 +4,10 @@ threads 2,8
 workers 2
 preload_app!
 
-state_path 'log/puma.state'
-pidfile 'log/puma.pid'
+require 'actor_model'
+require_relative '../../../yggdra/plugins/amqp_ws_gw/app/lib/ygg/amqp_ws_gw'
+require_relative '../../../yggdra/plugins/amqp_ws_gw/app/lib/ygg/amqp_ws_gw/ws_connection'
+require_relative '../../../yggdra/plugins/amqp_ws_gw/app/lib/ygg/amqp_ws_gw/gateway'
 
 on_worker_boot do
   Ygg::AmqpWsGw.start

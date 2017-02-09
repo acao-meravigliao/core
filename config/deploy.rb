@@ -17,7 +17,7 @@ set :deploy_to, '/opt/acao_dashboard/backend'
 # set :user, 'foobar'    # Username in the server to SSH to.
 # set :port, '30000'     # SSH port number.
 
-set :shared_paths, [ 'config/database.yml', 'log', ]
+set :shared_paths, [ 'config/database.yml', 'config/secrets.yml', 'log', ]
 set :exclude, [ '.git', 'tmp/*', ]
 set :bundle_options, lambda { %{--without "development test assets" --path "#{bundle_path}" --deployment} }
 
@@ -35,6 +35,9 @@ task :setup => :environment do
 
   queue! %[touch "#{deploy_to}/shared/config/database.yml"]
   queue  %[echo "-----> Be sure to edit 'shared/config/database.yml'."]
+
+  queue! %[touch "#{deploy_to}/shared/config/secrets.yml"]
+  queue  %[echo "-----> Be sure to edit 'shared/config/secrets.yml'."]
 end
 
 task :bundler_workaround do
@@ -65,10 +68,10 @@ task :deploy => :environment do
     to :stage do
       invoke :'rails:db_migrate'
     end
-
-    to :launch do
-      queue! '/usr/local/bin/pumactl -S log/puma-production.state restart ; true'
-    end
+#
+#    to :launch do
+#      queue! '/usr/local/bin/pumactl -S log/puma-production.state restart ; true'
+#    end
   end
 
   invoke :local_cleanup

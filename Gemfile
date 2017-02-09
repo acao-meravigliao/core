@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 gem 'rails', '~> 5.0.0'
 
 gem 'pg'
-gem 'tiny_tds', '~> 1.0.0'
+gem 'tiny_tds', '~> 1.1.0'
 gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git', branch: 'rails5'
 
 gem 'puma'
@@ -47,6 +47,12 @@ gem 'amqp_ws_gw', path: '../../yggdra/plugins/amqp_ws_gw'
 gem 'core_models', path: '../../yggdra/plugins/core_models'
 gem 'core_hel', path: '../../yggdra/plugins/core_hel'
 
+gem 'i18n_models', path: '../../yggdra/plugins/i18n_models'
+gem 'i18n_hel', path: '../../yggdra/plugins/i18n_hel'
+
+gem 'ml_models', path: '../../yggdra/plugins/ml_models'
+gem 'ml_hel', path: '../../yggdra/plugins/ml_hel'
+
 gem 'shop_models', path: '../../yggdra/plugins/shop_models'
 gem 'shop_hel', path: '../../yggdra/plugins/shop_hel'
 
@@ -56,7 +62,4 @@ gem 'acao_hel', path: '../../acao_plugins/acao_hel'
 
 gem 'trk_models', path: '../../acao_plugins/trk_models'
 gem 'trk_hel', path: '../../acao_plugins/trk_hel'
-
-gem 'i18n_models', path: '../../yggdra/plugins/i18n_models'
-gem 'i18n_hel', path: '../../yggdra/plugins/i18n_hel'
 
