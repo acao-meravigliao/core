@@ -7,6 +7,7 @@ gem 'tiny_tds', '~> 1.1.0'
 gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git', branch: 'rails5'
 
 gem 'puma'
+gem 'puma-plugin-systemd'
 
 gem 'pry'
 gem 'pry-rails'
@@ -24,7 +25,7 @@ source 'https://gems.sevio.it/' do
   gem 'active_rest', '~> 7.0.0'
 end
 
-group :development, :test do
+group :hel_development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
 
@@ -33,6 +34,12 @@ group :development, :test do
 
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
+end
+
+group :hel_together do
+  gem 'hel_together', '~> 1.3.0'
+  gem 'nisse_hel', path: '../../yggdra/plugins/nisse_hel'
+  gem 'core_nisse_hel', path: '../../yggdra/plugins/core_nisse_hel'
 end
 
 gem 'json_exceptions', path: '../../yggdra/plugins/json_exceptions'
@@ -63,3 +70,5 @@ gem 'acao_hel', path: '../../acao_plugins/acao_hel'
 gem 'trk_models', path: '../../acao_plugins/trk_models'
 gem 'trk_hel', path: '../../acao_plugins/trk_hel'
 
+gem 'streaming_models', path: '../../yggdra/plugins/streaming_models'
+gem 'streaming_hel', path: '../../yggdra/plugins/streaming_hel'

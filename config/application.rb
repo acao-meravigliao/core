@@ -6,6 +6,14 @@ require 'rails/all'
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+if ENV['HEL_TOGETHER_VERSION']
+  Bundler.require('hel_together')
+  Bundler.require('hel_together_' + Rails.env)
+else
+  Bundler.require('hel')
+  Bundler.require('hel_' + Rails.env)
+end
+
 require 'ygg/i18n/backend'
 I18n.backend = Ygg::I18n::Backend.new
 

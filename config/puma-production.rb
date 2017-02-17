@@ -7,6 +7,8 @@ preload_app!
 state_path 'log/puma-production.state'
 pidfile 'log/puma-production.pid'
 
+plugin :systemd
+
 on_worker_boot do
   Ygg::AmqpWsGw.start
 

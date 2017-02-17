@@ -66,6 +66,11 @@ PATH
       yggdra_plugins
 
 PATH
+  remote: ../../yggdra/plugins/core_nisse_hel
+  specs:
+    core_nisse_hel (0.0.1)
+
+PATH
   remote: ../../yggdra/plugins/hel
   specs:
     hel (1.0.0)
@@ -105,6 +110,11 @@ PATH
       yggdra_plugins
 
 PATH
+  remote: ../../yggdra/plugins/nisse_hel
+  specs:
+    nisse_hel (1.0.0)
+
+PATH
   remote: ../../yggdra/plugins/rails_amqp
   specs:
     rails_amqp (1.0.0)
@@ -122,6 +132,18 @@ PATH
   specs:
     shop_models (1.0.0)
       active_rest (>= 6.6.0)
+      yggdra_plugins
+
+PATH
+  remote: ../../yggdra/plugins/streaming_hel
+  specs:
+    streaming_hel (1.0.0)
+      yggdra_plugins
+
+PATH
+  remote: ../../yggdra/plugins/streaming_models
+  specs:
+    streaming_models (1.0.0)
       yggdra_plugins
 
 PATH
@@ -194,6 +216,7 @@ GEM
     builder (3.2.3)
     byebug (9.0.6)
     coderay (1.1.1)
+    colorize (0.7.7)
     concurrent-ruby (1.0.4)
     debug_inspector (0.0.2)
     deep_open_struct (1.0.3)
@@ -206,6 +229,9 @@ GEM
     geocoder (1.4.3)
     globalid (0.3.7)
       activesupport (>= 4.1.0)
+    hel_together (1.3.3)
+      rack (>= 1.5.2)
+      ygg_agent (~> 2.7.0)
     hooks (0.4.1)
       uber (~> 0.0.14)
     i18n (0.8.0)
@@ -233,9 +259,12 @@ GEM
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
       slop (~> 3.4)
-    pry-rails (0.3.4)
+    pry-rails (0.3.5)
       pry (>= 0.9.10)
     puma (3.7.0)
+    puma-plugin-systemd (0.3.0)
+      json
+      puma (~> 3.7.0)
     rack (2.0.1)
     rack-test (0.6.3)
       rack (>= 1.0)
@@ -266,6 +295,7 @@ GEM
     rubytree (0.9.7)
       json (~> 1.8)
       structured_warnings (~> 0.2)
+    rufus-tokyo (11.0.7)
     sleepy_penguin (3.4.1)
     slop (3.6.0)
     spring (2.0.1)
@@ -285,6 +315,7 @@ GEM
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
     uber (0.0.15)
+    unindent (1.0)
     uuidtools (2.1.5)
     vihai-password (1.4.1)
       ffi
@@ -298,6 +329,19 @@ GEM
     websocket-driver (0.6.5)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
+    ygg_agent (2.7.15)
+      am-amqp (~> 1.3.1)
+      rufus-tokyo (~> 11.0.0)
+      ygg_app (~> 1.3.0)
+    ygg_app (1.3.11)
+      actor_model (~> 1.4.0)
+      awesome_print
+      colorize (~> 0.7.3)
+      deep_open_struct
+      ffi (~> 1.9.0)
+      pry
+      unindent
+      vihai_io_buffer
 
 PLATFORMS
   ruby
@@ -313,25 +357,31 @@ DEPENDENCIES
   byebug
   core_hel!
   core_models!
+  core_nisse_hel!
   exception_notification (>= 4.2.0)
   geocoder
   hel!
+  hel_together (~> 1.3.0)
   i18n_hel!
   i18n_models!
   json_exceptions!
   ml_hel!
   ml_models!
   net-ldap
+  nisse_hel!
   pg
   pg_search
   pry
   pry-rails
   puma
+  puma-plugin-systemd
   rails (~> 5.0.0)
   rails_amqp!
   shop_hel!
   shop_models!
   spring
+  streaming_hel!
+  streaming_models!
   tiny_tds (~> 1.1.0)
   trk_hel!
   trk_models!
