@@ -80,4 +80,14 @@ Rails.application.configure do
   config.active_record.dump_schema_after_migration = false
 
   config.amqp_ws_gw.allowed_request_origins = [ 'https://lino.acao.it' ]
+
+  config.amqp_ws_gw.routes.merge!({
+    'ygg.glideradar.processed_traffic': {
+      type: :topic,
+      durable: true,
+      auto_delete: false,
+      anonymous_access: true,
+    }
+  })
+
 end

@@ -1,50 +1,36 @@
-require 'mina/bundler'
 require 'mina/rails'
-require 'mina/simple'
 
-# require 'mina/rbenv'  # for rbenv support. (http://rbenv.org)
-# require 'mina/rvm'    # for rvm support. (http://rvm.io)
-
-# Basic settings:
-#   domain       - The hostname to SSH to.
-#   deploy_to    - Path to deploy into.
-#   repository   - Git repo to clone from. (needed by mina/git)
-#   branch       - Branch name to deploy. (needed by mina/git)
-
+set :application_name, 'acao_dashboard_backend'
 set :user, 'yggdra'
 set :domain, 'lino.acao.it'
 set :deploy_to, '/opt/acao_dashboard/backend'
-# set :user, 'foobar'    # Username in the server to SSH to.
-# set :port, '30000'     # SSH port number.
-
-set :shared_paths, [ 'config/database.yml', 'config/secrets.yml', 'log', ]
-set :exclude, [ '.git', 'tmp/*', ]
-set :bundle_options, lambda { %{--without "development test assets" --path "#{bundle_path}" --deployment} }
+set :shared_dirs, fetch(:shared_dirs, []) + [ ]
+set :shared_files, fetch(:shared_files, []) + [ 'config/database.yml', 'config/secrets.yml', ]
+set :repository, 'foobar'
+set :keep_releases, 20
+set :rsync_exclude, [
+  '.git*',
+  '/config/database.yml',
+  '/config/secrets.yml',
+  '/vendor/bundle',
+  '/tmp/cache',
+  '/log',
+].map { |x| "--exclude \"#{x}\"" }.join(' ')
 
 task :environment do
-  # For those using RVM, use this to load an RVM version@gemset.
-  # invoke :'rvm:use[ruby-1.9.3-p125@default]'
 end
 
-task :setup => :environment do
-  queue! %[mkdir -p "#{deploy_to}/shared/log"]
-  queue! %[chmod g+rx,u+rwx "#{deploy_to}/shared/log"]
+task :setup do
+  command %[touch "#{fetch(:deploy_to)}/shared/config/database.yml"]
+  comment "Be sure to edit 'shared/config/database.yml'."
 
-  queue! %[mkdir -p "#{deploy_to}/shared/config"]
-  queue! %[chmod g+rx,u+rwx "#{deploy_to}/shared/config"]
-
-  queue! %[touch "#{deploy_to}/shared/config/database.yml"]
-  queue  %[echo "-----> Be sure to edit 'shared/config/database.yml'."]
-
-  queue! %[touch "#{deploy_to}/shared/config/secrets.yml"]
-  queue  %[echo "-----> Be sure to edit 'shared/config/secrets.yml'."]
+  command %[touch "#{fetch(:deploy_to)}/shared/config/secrets.yml"]
+  comment "Be sure to edit 'shared/config/secrets.yml'."
 end
 
-task :bundler_workaround do
-  queue 'echo -----> Applying workaround to bundler bug'
-  queue! %[ sed -i 's/\\.\\.\\/\\.\\.\\/yggdra\\/plugins\\//vendor\\/cache\\//g' Gemfile ]
-  queue! %[ sed -i 's/\\.\\.\\/\\.\\.\\/yggdra\\/agents\\//vendor\\/cache\\//g' Gemfile ]
-  queue! %[ sed -i 's/\\.\\.\\/\\.\\.\\/acao_plugins\\//vendor\\/cache\\//g' Gemfile ]
+task :restart do
+  comment 'Restarting server'
+  command "/usr/local/bin/pumactl -F #{fetch(:deploy_to)}/current/config/puma-production.rb -S #{fetch(:deploy_to)}/current/log/puma-production.state restart ; true"
 end
 
 desc 'Does local cleanup'
@@ -53,36 +39,25 @@ task :local_cleanup do
   sh 'bundle install --without ""'
 end
 
-desc 'Deploys the current version to the server.'
-task :deploy => :environment do
-  sh 'bundle install --without "development test assets"'
-  sh 'bundle package --all'
-  sh 'bundle package --all' # Do it twice otherwise Gemfile.lock keeps listing ../../plugins/... bundler bug?
-
+desc "Deploys the current version to the server."
+task :deploy do
   deploy do
-    invoke :'simple:upload_project'
+    sh 'bundle install --quiet --without "development test assets"'
+    sh 'bundle package --all'
+
+    sh "rsync --recursive --delete --delete-excluded #{fetch(:rsync_excludes)} . #{fetch(:domain)}:#{fetch(:deploy_to)}/upload"
+
+    comment 'Moving upload to build path.'
+    command "cp -r #{fetch(:deploy_to)}/upload/{.??,}* ."
+
     invoke :'deploy:link_shared_paths'
-    invoke :'bundler_workaround'
     invoke :'bundle:install'
+    invoke :'rails:db_migrate'
+    invoke :'deploy:cleanup'
+    invoke :local_cleanup
 
-    to :stage do
-      invoke :'rails:db_migrate'
+    on :launch do
+      invoke :restart
     end
-#
-#    to :launch do
-#      queue! '/usr/local/bin/pumactl -S log/puma-production.state restart ; true'
-#    end
   end
-
-  invoke :local_cleanup
-end
-
-desc 'Put the server in maintenance mode'
-task :down do
-  queue! 'touch tmp/maintenance'
-end
-
-desc 'Put the server in production from maintenance'
-task :up do
-  queue! 'rm tmp/maintenance'
 end

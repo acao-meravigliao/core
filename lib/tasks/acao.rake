@@ -3,25 +3,40 @@ require 'securerandom'
 namespace :acao do
   desc 'Sync tables'
 
-  task(:'sync:planes' => :environment) do
+  task(:'sync:aircrafts' => :environment) do
+    desc 'Sync aircrafts'
 
-    Ygg::Acao::MainDb::Mezzo.where('numero_flarm <> \'id\'').all.each do |mezzo|
+    dups = Ygg::Acao::MainDb::Mezzo.select('numero_flarm,count(*)').where("numero_flarm <> 'id'").group(:numero_flarm).having('count(*) > 1')
+    if dups.any?
+      puts "Duplicate aircraft with same flarm identifier!"
+      dups.each { |x| puts x.numero_flarm }
+      fail
+    end
 
-      registration = mezzo.Marche.strip.upcase
-      flarm_id = mezzo.numero_flarm.strip.upcase
+    Ygg::Acao::MainDb::Mezzo.where("numero_flarm <> 'id'").all.each do |mezzo|
 
-      puts "UPD #{flarm_id} = #{registration}"
+      flarm_identifier = mezzo.numero_flarm.strip.upcase
 
-      p = Ygg::Acao::Plane.find_by(flarm_code: 'flarm:' + flarm_id)
+      data = {
+        mdb_id: mezzo.id_mezzi,
+        registration: mezzo.Marche.strip.upcase,
+      }
+
+      race_registration = mezzo.sigla_gara.strip.upcase
+      data[:race_registration] = race_registration if race_registration != 'S'
+
+      p = Ygg::Acao::Aircraft.find_by(flarm_identifier: flarm_identifier)
       if !p
-        Ygg::Acao::Plane.create(
-          registration: registration,
-          flarm_code: 'flarm:' + flarm_id,
-          uuid: SecureRandom.uuid,
-        )
+        data.merge!({ flarm_identifier: flarm_identifier })
+        puts "CRE #{data}"
+        Ygg::Acao::Aircraft.create!(data)
       else
-        p.registration = mezzo.Marche.strip.upcase
-        p.save!
+        p.assign_attributes(data)
+
+        if p.changes.any?
+          puts "UPD #{p.changes}"
+          p.save!
+        end
       end
 
     end
@@ -34,7 +49,7 @@ namespace :acao do
 
 
   task(:'sync:flarmnet' => :environment) do
-    Ygg::Acao::Plane.import_flarmnet_db!
+    Ygg::Acao::Aircraft.import_flarmnet_db!
   end
 
   task(:'sync:flights' => :environment) do

@@ -1,4 +1,4 @@
-acao_sqlserver:
+acao_sql_server:
   adapter: sqlserver
   mode: dblib
   dataserver: acao_sql_server

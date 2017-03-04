@@ -57,4 +57,14 @@ Rails.application.configure do
     'http://linobis.acao.it:3331',
     'http://linobis.acao.it:3332',
   ]
+
+  config.amqp_ws_gw.routes.merge!({
+    'ygg.glideradar.processed_traffic.linobis': {
+      type: :topic,
+      durable: true,
+      auto_delete: false,
+      anonymous_access: true,
+    }
+  })
+
 end
