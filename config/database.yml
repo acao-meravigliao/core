@@ -19,11 +19,3 @@ development:
   database: acao
   username:
   password:
-
-assets:
-  adapter: postgresql
-  encoding: unicode
-  database: acao
-  username:
-  password:
-

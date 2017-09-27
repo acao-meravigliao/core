@@ -1,13 +1,16 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 5.0.0'
+gem 'rails', '~> 5.1.0'
 
 gem 'pg'
-gem 'tiny_tds', '~> 1.1.0'
-gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git', branch: 'rails5'
+gem 'tiny_tds'#, '~> 1.1.0'
+gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git'
 
 gem 'puma'
-gem 'puma-plugin-systemd'
+
+source 'https://gems.sevio.it/' do
+  gem 'puma-plugin-systemd'
+end
 
 gem 'pry'
 gem 'pry-rails'
@@ -15,10 +18,9 @@ gem 'awesome_print'
 #gem 'state_machine'
 gem 'geocoder'
 gem 'net-ldap'
+gem 'mail'
 
-gem 'exception_notification', '>= 4.2.0'
-
-gem 'pg_search'
+gem 'airbrake'
 
 source 'https://gems.sevio.it/' do
   gem 'vihai-password', '>= 1.2.0'
@@ -40,6 +42,7 @@ group :hel_together do
   gem 'hel_together', '~> 1.3.0'
   gem 'nisse_hel', path: '../../yggdra/plugins/nisse_hel'
   gem 'core_nisse_hel', path: '../../yggdra/plugins/core_nisse_hel'
+  gem 'ml_heltog', path: '../../yggdra/plugins/ml_heltog'
 end
 
 gem 'json_exceptions', path: '../../yggdra/plugins/json_exceptions'

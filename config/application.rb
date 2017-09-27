@@ -1,6 +1,10 @@
 require_relative 'boot'
 
-require 'rails/all'
+require 'rails'
+require 'active_model/railtie'
+require 'active_record/railtie'
+require 'action_controller/railtie'
+require 'action_view/railtie'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -25,18 +29,22 @@ module AcaoDashboardBackend
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
 
-    config.assets.paths << File.join(Rails.root, 'app', 'assets', 'js')
-    config.assets.paths << File.join(Rails.root, 'app', 'assets', 'css')
+    config.app_version = /releases\/([0-9]+)/.match(File.expand_path(__dir__)) ? "rel-#{$1}" : (
+                           `git describe --tags --dirty --long` || `git rev-parse HEAD`).chop
 
     config.amqp_ws_gw.debug = 1
     config.amqp_ws_gw.allowed_request_origins = [
-      'http://dev.yggdra.it:3000',
-      'http://dev.yggdra.it:3001',
-      'http://62.212.12.194:3001',
+      'https://lino.acao.it',
+      'http://linobis.acao.it:3331',
+      'http://linobis.acao.it:4200',
     ]
 
     config.rails_amqp.url = 'amqp://agent@lino.acao.it'
     config.rails_amqp.debug = 0
+
+    config.ml.default_sender = 'INFO_ACAO'
+
+    config.amqp_ws_gw.authentication_needed = false
 
     config.amqp_ws_gw.shared_queue = {
       name: 'ygg.acao_dashboard.' + Socket.gethostname,
@@ -60,15 +68,9 @@ module AcaoDashboardBackend
         auto_delete: false,
       },
 
-      'glideradar.events': {
-        type: :topic,
-        durable: true,
-        auto_delete: false,
-      },
-
       'ygg.meteo.updates': {
         type: :topic,
-        anonymous_acces: true,
+        anonymous_access: true,
         durable: true,
         auto_delete: false,
       },

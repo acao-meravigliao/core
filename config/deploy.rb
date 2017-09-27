@@ -8,7 +8,7 @@ set :shared_dirs, fetch(:shared_dirs, []) + [ ]
 set :shared_files, fetch(:shared_files, []) + [ 'config/database.yml', 'config/secrets.yml', ]
 set :repository, 'foobar'
 set :keep_releases, 20
-set :rsync_exclude, [
+set :rsync_excludes, [
   '.git*',
   '/config/database.yml',
   '/config/secrets.yml',
@@ -30,7 +30,7 @@ end
 
 task :restart do
   comment 'Restarting server'
-  command "/usr/local/bin/pumactl -F #{fetch(:deploy_to)}/current/config/puma-production.rb -S #{fetch(:deploy_to)}/current/log/puma-production.state restart ; true"
+  command "kill -TERM `cat #{fetch(:deploy_to)}/shared/log/puma-production.pid` ; true"
 end
 
 desc 'Does local cleanup'
@@ -42,7 +42,7 @@ end
 desc "Deploys the current version to the server."
 task :deploy do
   deploy do
-    sh 'bundle install --quiet --without "development test assets"'
+    sh 'bundle install --quiet --without "development test"'
     sh 'bundle package --all'
 
     sh "rsync --recursive --delete --delete-excluded #{fetch(:rsync_excludes)} . #{fetch(:domain)}:#{fetch(:deploy_to)}/upload"

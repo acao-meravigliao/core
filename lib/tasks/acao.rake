@@ -6,8 +6,8 @@ namespace :acao do
   task(:'sync:aircrafts' => :environment) do
     desc 'Sync aircrafts'
 
-    dups = Ygg::Acao::MainDb::Mezzo.select('numero_flarm,count(*)').where("numero_flarm <> 'id'").group(:numero_flarm).having('count(*) > 1')
-    if dups.any?
+    dups = Ygg::Acao::MainDb::Mezzo.select('numero_flarm,count(*)').where("numero_flarm <> 'id'").where("numero_flarm <> ''").group(:numero_flarm).having('count(*) > 1')
+    if dups.to_a.any?
       puts "Duplicate aircraft with same flarm identifier!"
       dups.each { |x| puts x.numero_flarm }
       fail
@@ -113,8 +113,8 @@ namespace :acao do
       end
     end
 
-    puts "ANNUNCI MEMBERS TO ADD = #{members_to_add.join("\n")}"
-    puts "ANNUNCI MEMBERS TO REMOVE = #{members_to_remove.join("\n")}"
+    puts "SOCI MEMBERS TO ADD = #{members_to_add.join("\n")}" if members_to_add.any?
+    puts "SOCI MEMBERS TO REMOVE = #{members_to_remove.join("\n")}" if members_to_remove.any?
 
     if members_to_add.any?
       io = IO::popen([ '/usr/bin/ssh', '-i', '/var/lib/yggdra/lino', 'root@lists.acao.it', '/usr/sbin/add_members', '-r', '-', '--admin-notify=n', '--welcome-msg=n', 'soci' ], 'w')
