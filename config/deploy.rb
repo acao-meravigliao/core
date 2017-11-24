@@ -1,9 +1,9 @@
 require 'mina/rails'
 
-set :application_name, 'acao_dashboard_backend'
+set :application_name, 'acao-core'
 set :user, 'yggdra'
 set :domain, 'lino.acao.it'
-set :deploy_to, '/opt/acao_dashboard/backend'
+set :deploy_to, '/opt/acao-core'
 set :shared_dirs, fetch(:shared_dirs, []) + [ ]
 set :shared_files, fetch(:shared_files, []) + [ 'config/database.yml', 'config/secrets.yml', ]
 set :repository, 'foobar'

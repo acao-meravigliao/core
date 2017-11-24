@@ -5,9 +5,9 @@ workers 2
 preload_app!
 
 require 'actor_model'
-require_relative '../../../yggdra/plugins/amqp_ws_gw/app/lib/ygg/amqp_ws_gw'
-require_relative '../../../yggdra/plugins/amqp_ws_gw/app/lib/ygg/amqp_ws_gw/ws_connection'
-require_relative '../../../yggdra/plugins/amqp_ws_gw/app/lib/ygg/amqp_ws_gw/gateway'
+require_relative '../../yggdra/plugins/amqp_ws_gw/app/lib/ygg/amqp_ws_gw'
+require_relative '../../yggdra/plugins/amqp_ws_gw/app/lib/ygg/amqp_ws_gw/ws_connection'
+require_relative '../../yggdra/plugins/amqp_ws_gw/app/lib/ygg/amqp_ws_gw/gateway'
 
 on_worker_boot do
   RailsActorModel::Logger.new

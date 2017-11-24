@@ -23,7 +23,7 @@ I18n.backend = Ygg::I18n::Backend.new
 
 require 'socket'
 
-module AcaoDashboardBackend
+module AcaoCore
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
@@ -33,11 +33,6 @@ module AcaoDashboardBackend
                            `git describe --tags --dirty --long` || `git rev-parse HEAD`).chop
 
     config.amqp_ws_gw.debug = 1
-    config.amqp_ws_gw.allowed_request_origins = [
-      'https://lino.acao.it',
-      'http://linobis.acao.it:3331',
-      'http://linobis.acao.it:4200',
-    ]
 
     config.rails_amqp.url = 'amqp://agent@lino.acao.it'
     config.rails_amqp.debug = 0
@@ -47,7 +42,7 @@ module AcaoDashboardBackend
     config.amqp_ws_gw.authentication_needed = false
 
     config.amqp_ws_gw.shared_queue = {
-      name: 'ygg.acao_dashboard.' + Socket.gethostname,
+      name: 'ygg.acao_core.' + Socket.gethostname,
       durable: false,
       auto_delete: true,
       arguments: {

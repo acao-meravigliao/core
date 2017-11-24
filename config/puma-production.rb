@@ -1,6 +1,6 @@
 bind 'tcp://[::]:3000'
 
-directory '/opt/acao_dashboard/backend/current'
+directory '/opt/acao-core/current'
 
 threads 8,32
 workers 3
