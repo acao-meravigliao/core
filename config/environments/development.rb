@@ -18,7 +18,7 @@ Rails.application.configure do
 
     config.cache_store = :memory_store
     config.public_file_server.headers = {
-      'Cache-Control' => 'public, max-age=172800'
+      'Cache-Control' => "public, max-age=#{2.days.seconds.to_i}"
     }
   else
     config.action_controller.perform_caching = false
@@ -38,6 +38,15 @@ Rails.application.configure do
   # Use an evented file watcher to asynchronously detect changes in source code,
   # routes, locales, etc. This feature depends on the listen gem.
   # config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+
+  config.rails_amqp.url = 'amqp://agent@linobis.acao.it'
+  config.rails_amqp.debug = 0
+
+  config.ml.email_disabled = false
+  config.ml.email_redirect_to = 'daniele@orlandi.com'
+  config.ml.sms_disabled = true
+  config.ml.sms_redirect_to = '+393474659309'
+  config.ml.sms_skebby_debug = 2
 
   config.amqp_ws_gw.allowed_request_origins = [
     'http://linobis.acao.it:3330',

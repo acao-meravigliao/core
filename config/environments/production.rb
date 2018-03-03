@@ -27,7 +27,7 @@ Rails.application.configure do
 
   # Use the lowest log level to ensure availability of diagnostic information
   # when problems arise.
-  config.log_level = :debug
+  config.log_level = :info
 
   # Prepend all log lines with the following tags.
   config.log_tags = [ :request_id ]
@@ -58,6 +58,9 @@ Rails.application.configure do
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
+  config.rails_amqp.url = 'amqp://agent@lino.acao.it'
+  config.rails_amqp.debug = 0
+
   config.amqp_ws_gw.allowed_request_origins = [
     'https://lino.acao.it',
     'https://servizi.acao.it',
@@ -72,4 +75,7 @@ Rails.application.configure do
     }
   })
 
+  config.ml.email_also_bcc = 'daniele@orlandi.com'
+
+  config.acao.soci_ml_dry_run = false
 end
