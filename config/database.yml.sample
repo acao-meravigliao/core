@@ -4,7 +4,7 @@ acao_sql_server:
   dataserver: acao_sql_server
   database:
   username: lino
-  password: PMXNbfJP4QbfXpv5
+  password: XXXXXXXXXXXXXXX
 
 acao_onda:
   adapter: sqlserver
@@ -12,7 +12,7 @@ acao_onda:
   dataserver: acao_sql_server
   database: acao
   username: lino
-  password: PMXNbfJP4QbfXpv5
+  password: XXXXXXXXXXXXXXX
 
 production:
   adapter: postgresql
