@@ -25,6 +25,9 @@ require 'socket'
 
 module AcaoCore
   class Application < Rails::Application
+    # Initialize configuration defaults for originally generated Rails version.
+    config.load_defaults 5.1
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
@@ -34,10 +37,16 @@ module AcaoCore
 
     config.amqp_ws_gw.debug = 1
 
-    config.rails_amqp.url = 'amqp://agent@lino.acao.it'
-    config.rails_amqp.debug = 0
-
     config.ml.default_sender = 'INFO_ACAO'
+
+    Geocoder.configure(
+      google: {
+        api_key: Rails.application.secrets.geocoder_api_key,
+        use_https: true,
+        bounds: [[46.529301, 6.563564], [36.827650,18.626552]],
+        language: 'it',
+      }
+    )
 
     config.amqp_ws_gw.authentication_needed = false
 
