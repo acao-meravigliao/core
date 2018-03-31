@@ -80,5 +80,6 @@ module AcaoCore
       },
     }
 
+    config.acao.satispay_callback_url = 'https://servizi.acao.it/ygg/acao/payments/satispay_callback'
   end
 end
