@@ -20,6 +20,7 @@ PATH
   remote: ../acao_plugins/acao_models
   specs:
     acao_models (1.0.0)
+      am-satispay
       roxml
 
 PATH
@@ -40,7 +41,7 @@ PATH
 PATH
   remote: ../active_rest
   specs:
-    active_rest (7.0.17)
+    active_rest (8.0.0)
       rubytree
 
 PATH
@@ -167,41 +168,41 @@ GEM
   remote: https://rubygems.org/
   remote: https://gems.sevio.it/
   specs:
-    actioncable (5.1.5)
-      actionpack (= 5.1.5)
+    actioncable (5.1.6)
+      actionpack (= 5.1.6)
       nio4r (~> 2.0)
       websocket-driver (~> 0.6.1)
-    actionmailer (5.1.5)
-      actionpack (= 5.1.5)
-      actionview (= 5.1.5)
-      activejob (= 5.1.5)
+    actionmailer (5.1.6)
+      actionpack (= 5.1.6)
+      actionview (= 5.1.6)
+      activejob (= 5.1.6)
       mail (~> 2.5, >= 2.5.4)
       rails-dom-testing (~> 2.0)
-    actionpack (5.1.5)
-      actionview (= 5.1.5)
-      activesupport (= 5.1.5)
+    actionpack (5.1.6)
+      actionview (= 5.1.6)
+      activesupport (= 5.1.6)
       rack (~> 2.0)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
-    actionview (5.1.5)
-      activesupport (= 5.1.5)
+    actionview (5.1.6)
+      activesupport (= 5.1.6)
       builder (~> 3.1)
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
-    activejob (5.1.5)
-      activesupport (= 5.1.5)
+    activejob (5.1.6)
+      activesupport (= 5.1.6)
       globalid (>= 0.3.6)
-    activemodel (5.1.5)
-      activesupport (= 5.1.5)
-    activerecord (5.1.5)
-      activemodel (= 5.1.5)
-      activesupport (= 5.1.5)
+    activemodel (5.1.6)
+      activesupport (= 5.1.6)
+    activerecord (5.1.6)
+      activemodel (= 5.1.6)
+      activesupport (= 5.1.6)
       arel (~> 8.0)
-    activesupport (5.1.5)
+    activesupport (5.1.6)
       concurrent-ruby (~> 1.0, >= 1.0.2)
-      i18n (~> 0.7)
+      i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
     actor_model (1.4.57)
@@ -211,7 +212,7 @@ GEM
     aes_key_wrap (1.0.1)
     airbrake (7.2.1)
       airbrake-ruby (~> 2.5)
-    airbrake-ruby (2.8.1)
+    airbrake-ruby (2.8.3)
     am-amqp (1.4.5)
       actor_model (~> 1.4.0)
       address_selector
@@ -224,25 +225,28 @@ GEM
       awesome_print
       sqlite3
       vihai_io_buffer
-    am-smtp (1.0.2)
+    am-satispay (0.0.13)
+      activesupport
+      am-http
+    am-smtp (1.0.3)
       actor_model (~> 1.4.27)
       address_selector
       vihai_io_buffer
     amq-protocol (2.3.0)
     arel (8.0.0)
     awesome_print (1.8.0)
-    bindata (2.4.2)
+    bindata (2.4.3)
     builder (3.2.3)
-    byebug (10.0.0)
+    byebug (10.0.2)
     coderay (1.1.2)
     colorize (0.7.7)
     concurrent-ruby (1.0.5)
-    crass (1.0.3)
+    crass (1.0.4)
     deep_open_struct (1.0.5)
     dkim (1.0.1)
-    erubi (1.7.0)
+    erubi (1.7.1)
     ffi (1.9.23)
-    geocoder (1.4.6)
+    geocoder (1.4.7)
     globalid (0.4.1)
       activesupport (>= 4.2.0)
     hel_together (1.3.3)
@@ -250,7 +254,7 @@ GEM
       ygg_agent (~> 2.7.0)
     hooks (0.4.1)
       uber (~> 0.0.14)
-    i18n (0.9.5)
+    i18n (1.0.0)
       concurrent-ruby (~> 1.0)
     json (2.1.0)
     json-jwt (1.9.2)
@@ -259,7 +263,7 @@ GEM
       bindata
       securecompare
       url_safe_base64
-    loofah (2.2.0)
+    loofah (2.2.2)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mail (2.7.0)
@@ -269,7 +273,7 @@ GEM
     mini_portile2 (2.3.0)
     minitest (5.11.3)
     net-ldap (0.16.1)
-    nio4r (2.2.0)
+    nio4r (2.3.0)
     nokogiri (1.8.2)
       mini_portile2 (~> 2.3.0)
     pg (1.0.0)
@@ -283,37 +287,37 @@ GEM
       method_source (~> 0.9.0)
     pry-rails (0.3.6)
       pry (>= 0.10.4)
-    puma (3.11.2)
+    puma (3.11.3)
     puma-plugin-systemd (0.5.2)
       json
       puma (~> 3.11)
     rack (2.0.4)
-    rack-test (0.8.3)
+    rack-test (1.0.0)
       rack (>= 1.0, < 3)
-    rails (5.1.5)
-      actioncable (= 5.1.5)
-      actionmailer (= 5.1.5)
-      actionpack (= 5.1.5)
-      actionview (= 5.1.5)
-      activejob (= 5.1.5)
-      activemodel (= 5.1.5)
-      activerecord (= 5.1.5)
-      activesupport (= 5.1.5)
+    rails (5.1.6)
+      actioncable (= 5.1.6)
+      actionmailer (= 5.1.6)
+      actionpack (= 5.1.6)
+      actionview (= 5.1.6)
+      activejob (= 5.1.6)
+      activemodel (= 5.1.6)
+      activerecord (= 5.1.6)
+      activesupport (= 5.1.6)
       bundler (>= 1.3.0)
-      railties (= 5.1.5)
+      railties (= 5.1.6)
       sprockets-rails (>= 2.0.0)
     rails-dom-testing (2.0.3)
       activesupport (>= 4.2.0)
       nokogiri (>= 1.6)
-    rails-html-sanitizer (1.0.3)
-      loofah (~> 2.0)
-    railties (5.1.5)
-      actionpack (= 5.1.5)
-      activesupport (= 5.1.5)
+    rails-html-sanitizer (1.0.4)
+      loofah (~> 2.2, >= 2.2.2)
+    railties (5.1.6)
+      actionpack (= 5.1.6)
+      activesupport (= 5.1.6)
       method_source
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
-    rake (12.3.0)
+    rake (12.3.1)
     roxml (4.0.0)
       activesupport (>= 4.0)
       nokogiri (>= 1.3.3)
@@ -354,7 +358,7 @@ GEM
       am-amqp (~> 1.4.0)
       rufus-tokyo (~> 11.0.0)
       ygg_app (~> 1.3.0)
-    ygg_app (1.3.33)
+    ygg_app (1.3.34)
       actor_model (~> 1.4.0)
       airbrake-ruby
       awesome_print
@@ -373,7 +377,7 @@ DEPENDENCIES
   acao_maindb_models!
   acao_models!
   acao_onda_models!
-  active_rest (~> 7.0.0)!
+  active_rest (~> 8.0.0)!
   activerecord-sqlserver-adapter!
   airbrake
   am-http!
@@ -387,7 +391,7 @@ DEPENDENCIES
   core_nisse_hel!
   geocoder
   hel!
-  hel_together (~> 1.3.0)
+  hel_together (= 1.3.3)
   i18n_hel!
   i18n_models!
   json_exceptions!
