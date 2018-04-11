@@ -58,7 +58,7 @@ Rails.application.configure do
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
-  config.rails_amqp.url = 'amqp://agent@lino.acao.it'
+  config.rails_amqp.url = 'amqp://agent@amqp.acao.it'
   config.rails_amqp.debug = 0
 
   config.amqp_ws_gw.allowed_request_origins = [
