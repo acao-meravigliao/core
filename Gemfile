@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 5.1.0'
+gem 'rails', '~> 5.2.0'
 
 gem 'pg'
 gem 'tiny_tds'#, '~> 1.1.0'
@@ -25,7 +25,7 @@ gem 'airbrake'
 
 source 'https://gems.sevio.it/' do
   gem 'vihai-password', '>= 1.2.0'
-  gem 'active_rest', '~> 8.0.0', path: '../active_rest'
+  gem 'active_rest', '~> 9.0.0'#, path: '../active_rest'
   gem 'am-http'
 end
 
@@ -41,7 +41,7 @@ group :hel_development, :test do
 end
 
 group :hel_together do
-  gem 'hel_together', '1.3.3'
+  gem 'hel_together', '~> 1.3'
   gem 'nisse_hel', path: '../yggdra/plugins/nisse_hel'
   gem 'core_nisse_hel', path: '../yggdra/plugins/core_nisse_hel'
   gem 'ml_heltog', path: '../yggdra/plugins/ml_heltog'
