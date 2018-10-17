@@ -186,7 +186,7 @@ GEM
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
-    active_rest (9.0.8)
+    active_rest (9.0.15)
       rubytree
     activejob (5.2.1)
       activesupport (= 5.2.1)
@@ -206,16 +206,16 @@ GEM
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    actor_model (1.5.6)
+    actor_model (1.6.9)
       activesupport
       sleepy_penguin
     address_selector (0.0.7)
     aes_key_wrap (1.0.1)
-    airbrake (7.3.5)
-      airbrake-ruby (~> 2.10)
-    airbrake-ruby (2.11.0)
-    am-amqp (1.4.7)
-      actor_model (~> 1.5)
+    airbrake (7.4.0)
+      airbrake-ruby (~> 2.12)
+    airbrake-ruby (2.12.0)
+    am-amqp (1.5.1)
+      actor_model (~> 1.6)
       address_selector
       amq-protocol
       awesome_print
@@ -230,8 +230,8 @@ GEM
     am-satispay (0.0.13)
       activesupport
       am-http
-    am-smtp (1.0.4)
-      actor_model (~> 1.5)
+    am-smtp (1.1.0)
+      actor_model (~> 1.6)
       address_selector
       vihai_io_buffer
     amq-protocol (2.3.0)
@@ -251,12 +251,12 @@ GEM
     geocoder (1.5.0)
     globalid (0.4.1)
       activesupport (>= 4.2.0)
-    hel_together (1.4.0)
+    hel_together (1.4.1)
       rack (>= 1.5.2)
-      ygg_agent (~> 2.8)
+      ygg_agent (~> 2.9)
     hooks (0.4.1)
       uber (~> 0.0.14)
-    i18n (1.1.0)
+    i18n (1.1.1)
       concurrent-ruby (~> 1.0)
     json (2.1.0)
     json-jwt (1.9.4)
@@ -266,7 +266,7 @@ GEM
     loofah (2.2.2)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
-    mail (2.7.0)
+    mail (2.7.1)
       mini_mime (>= 0.1.1)
     marcel (0.3.3)
       mimemagic (~> 0.3.2)
@@ -356,11 +356,11 @@ GEM
     websocket-driver (0.7.0)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.3)
-    ygg_agent (2.8.1)
+    ygg_agent (2.9.2)
       am-amqp (~> 1.4)
-      ygg_app (~> 1.5)
-    ygg_app (1.6.0)
-      actor_model (~> 1.5)
+      ygg_app (~> 1.7)
+    ygg_app (1.7.3)
+      actor_model (~> 1.6)
       airbrake-ruby
       awesome_print
       colorize (>= 0.7.3)
