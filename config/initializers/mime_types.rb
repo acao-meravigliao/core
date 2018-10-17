@@ -6,3 +6,4 @@
 Mime::Type.register "application/x-igc", :igc
 Mime::Type.register "application/vnd.api+json", :jsonapi
 Mime::Type.register "application/problem+json", :json_problem
+Mime::Type.register 'application/x-mpegURL', :m3u8
