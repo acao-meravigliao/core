@@ -75,7 +75,7 @@ Rails.application.configure do
     }
   })
 
-  config.ml.email_also_bcc = 'daniele@orlandi.com'
+  #config.ml.email_also_bcc = 'daniele@orlandi.com'
 
   config.acao.soci_ml_dry_run = false
 end
