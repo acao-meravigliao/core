@@ -18,9 +18,6 @@ else
   Bundler.require('hel_' + Rails.env)
 end
 
-require 'ygg/i18n/backend'
-I18n.backend = Ygg::I18n::Backend.new
-
 require 'socket'
 
 module AcaoCore
