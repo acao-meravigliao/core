@@ -2,12 +2,14 @@ require 'mina/rails'
 
 set :application_name, 'acao-core'
 set :user, 'yggdra'
-set :domain, 'lino.acao.it'
+set :domain, 'linobis.acao.it'
+set :production_domain, 'lino.acao.it'
 set :deploy_to, '/opt/acao-core'
 set :shared_dirs, fetch(:shared_dirs, []) + [ ]
 set :shared_files, fetch(:shared_files, []) + [ 'config/database.yml', 'config/secrets.yml', ]
 set :repository, 'foobar'
 set :keep_releases, 20
+set :rails_env, 'staging'
 set :rsync_excludes, [
   '.git*',
   '/config/database.yml',
@@ -30,6 +32,7 @@ end
 
 task :restart do
   comment 'Restarting server'
+  command "kill -TERM `cat #{fetch(:deploy_to)}/shared/log/puma-staging.pid` ; true"
   command "kill -TERM `cat #{fetch(:deploy_to)}/shared/log/puma-production.pid` ; true"
 end
 
@@ -37,6 +40,11 @@ desc 'Does local cleanup'
 task :local_cleanup do
   sh 'rm -r vendor/cache'
   sh 'bundle install --without ""'
+end
+
+task :production do
+  set :domain, fetch(:production_domain)
+  set :rails_env, 'production'
 end
 
 desc "Deploys the current version to the server."
@@ -52,7 +60,7 @@ task :deploy do
 
     invoke :'deploy:link_shared_paths'
     invoke :'bundle:install'
-    invoke :'rails:db_migrate'
+#    invoke :'db:porn:migrate'
     invoke :'deploy:cleanup'
     invoke :local_cleanup
 
