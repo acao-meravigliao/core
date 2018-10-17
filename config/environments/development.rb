@@ -40,7 +40,7 @@ Rails.application.configure do
   # config.file_watcher = ActiveSupport::EventedFileUpdateChecker
 
   config.rails_amqp.url = 'amqp://agent@linobis.acao.it'
-  config.rails_amqp.debug = 0
+  config.rails_amqp.debug = 1
 
   config.ml.email_disabled = false
   config.ml.email_redirect_to = 'daniele@orlandi.com'
@@ -64,4 +64,5 @@ Rails.application.configure do
     }
   })
 
+  config.acao.soci_ml_dry_run = true
 end
