@@ -56,7 +56,7 @@ PATH
   specs:
     ca_models (1.0.0)
       active_rest (>= 6.6.0)
-      json-jwt
+      json-jwt (>= 1.9.4)
 
 PATH
   remote: ../yggdra/plugins/core_hel
@@ -186,7 +186,7 @@ GEM
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
-    active_rest (9.0.15)
+    active_rest (9.0.20)
       rubytree
     activejob (5.2.1)
       activesupport (= 5.2.1)
@@ -206,22 +206,23 @@ GEM
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    actor_model (1.6.9)
+    actor_model (1.7.2)
       activesupport
       sleepy_penguin
+      ygg-exception
     address_selector (0.0.7)
     aes_key_wrap (1.0.1)
     airbrake (7.4.0)
       airbrake-ruby (~> 2.12)
     airbrake-ruby (2.12.0)
-    am-amqp (1.5.1)
+    am-amqp (1.5.2)
       actor_model (~> 1.6)
       address_selector
       amq-protocol
       awesome_print
       vihai_io_buffer
-    am-http (0.4.3)
-      actor_model (~> 1.5)
+    am-http (0.5.0)
+      actor_model (~> 1.6)
       address_selector
       awesome_print
       openssl
@@ -279,7 +280,7 @@ GEM
     nio4r (2.3.1)
     nokogiri (1.8.5)
       mini_portile2 (~> 2.3.0)
-    openssl (2.1.1)
+    openssl (2.1.2)
     pg (1.1.3)
     pg_search (2.1.2)
       activerecord (>= 4.2)
@@ -292,9 +293,9 @@ GEM
     pry-rails (0.3.6)
       pry (>= 0.10.4)
     puma (3.12.0)
-    puma-plugin-systemd (0.5.2)
+    puma-plugin-systemd (0.1.3)
       json
-      puma (~> 3.11)
+      puma (~> 3.6)
     rack (2.0.5)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
@@ -356,10 +357,12 @@ GEM
     websocket-driver (0.7.0)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.3)
-    ygg_agent (2.9.2)
+    ygg-exception (0.0.4)
+    ygg_agent (2.10.2)
       am-amqp (~> 1.4)
+      ygg-exception (~> 0.0)
       ygg_app (~> 1.7)
-    ygg_app (1.7.3)
+    ygg_app (1.8.1)
       actor_model (~> 1.6)
       airbrake-ruby
       awesome_print
@@ -369,6 +372,7 @@ GEM
       pry
       unindent
       vihai_io_buffer
+      ygg-exception
 
 PLATFORMS
   ruby
