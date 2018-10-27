@@ -7,34 +7,34 @@ GIT
       tiny_tds
 
 PATH
-  remote: ../acao_plugins/acao_hel
+  remote: ../acao-plugins/acao_hel
   specs:
     acao_hel (1.0.0)
 
 PATH
-  remote: ../acao_plugins/acao_maindb_models
+  remote: ../acao-plugins/acao_maindb_models
   specs:
     acao_maindb_models (1.0.0)
 
 PATH
-  remote: ../acao_plugins/acao_models
+  remote: ../acao-plugins/acao_models
   specs:
     acao_models (1.0.0)
       am-satispay
       roxml
 
 PATH
-  remote: ../acao_plugins/acao_onda_models
+  remote: ../acao-plugins/acao_onda_models
   specs:
     acao_onda_models (1.0.0)
 
 PATH
-  remote: ../acao_plugins/trk_hel
+  remote: ../acao-plugins/trk_hel
   specs:
     trk_hel (1.0.0)
 
 PATH
-  remote: ../acao_plugins/trk_models
+  remote: ../acao-plugins/trk_models
   specs:
     trk_models (1.0.0)
 
@@ -186,8 +186,10 @@ GEM
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
-    active_rest (9.0.20)
+    active_rest (10.0.2)
+      activerecord
       rubytree
+      ygg-exception
     activejob (5.2.1)
       activesupport (= 5.2.1)
       globalid (>= 0.3.6)
@@ -317,6 +319,9 @@ GEM
       nokogiri (>= 1.6)
     rails-html-sanitizer (1.0.4)
       loofah (~> 2.2, >= 2.2.2)
+    rails_active_rest (1.0.0)
+      active_rest
+      ygg-exception
     railties (5.2.1)
       actionpack (= 5.2.1)
       activesupport (= 5.2.1)
@@ -357,7 +362,7 @@ GEM
     websocket-driver (0.7.0)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.3)
-    ygg-exception (0.0.4)
+    ygg-exception (0.0.7)
     ygg_agent (2.10.2)
       am-amqp (~> 1.4)
       ygg-exception (~> 0.0)
@@ -382,7 +387,7 @@ DEPENDENCIES
   acao_maindb_models!
   acao_models!
   acao_onda_models!
-  active_rest (~> 9.0.0)!
+  active_rest (~> 10.0)!
   activerecord-sqlserver-adapter!
   airbrake
   am-http!
@@ -413,6 +418,7 @@ DEPENDENCIES
   puma
   puma-plugin-systemd!
   rails (~> 5.2.0)
+  rails_active_rest (~> 1.0)!
   rails_actor_model!
   rails_amqp!
   spring

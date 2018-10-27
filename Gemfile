@@ -25,7 +25,8 @@ gem 'airbrake'
 
 source 'https://gems.sevio.it/' do
   gem 'vihai-password', '>= 1.2.0'
-  gem 'active_rest', '~> 9.0.0'#, path: '../active_rest'
+  gem 'active_rest', '~> 10.0'#, path: '../active_rest'
+  gem 'rails_active_rest', '~> 1.0'#, path: '../rails_active_rest'
   gem 'am-http'
 end
 
@@ -71,13 +72,13 @@ gem 'ca_hel', path: '../yggdra/plugins/ca_hel'
 #gem 'shop_models', path: '../yggdra/plugins/shop_models'
 #gem 'shop_hel', path: '../yggdra/plugins/shop_hel'
 
-gem 'acao_maindb_models', path: '../acao_plugins/acao_maindb_models'
-gem 'acao_onda_models', path: '../acao_plugins/acao_onda_models'
-gem 'acao_models', path: '../acao_plugins/acao_models'
-gem 'acao_hel', path: '../acao_plugins/acao_hel'
+gem 'acao_maindb_models', path: '../acao-plugins/acao_maindb_models'
+gem 'acao_onda_models', path: '../acao-plugins/acao_onda_models'
+gem 'acao_models', path: '../acao-plugins/acao_models'
+gem 'acao_hel', path: '../acao-plugins/acao_hel'
 
-gem 'trk_models', path: '../acao_plugins/trk_models'
-gem 'trk_hel', path: '../acao_plugins/trk_hel'
+gem 'trk_models', path: '../acao-plugins/trk_models'
+gem 'trk_hel', path: '../acao-plugins/trk_hel'
 
 gem 'streaming_models', path: '../yggdra/plugins/streaming_models'
 gem 'streaming_hel', path: '../yggdra/plugins/streaming_hel'
