@@ -27,6 +27,7 @@ production:
   database: acao
   username:
   password:
+  pool: 30
 
 development:
   adapter: postgresql
