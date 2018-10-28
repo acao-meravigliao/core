@@ -9,7 +9,7 @@ namespace :acao do
       'Ygg::Acao::MainDb::SocioIscritto',
       'Ygg::Acao::MainDb::Mezzo',
       'Ygg::Acao::MainDb::Volo',
-      'Ygg::Acao::MainDb::LogBar',
+      'Ygg::Acao::MainDb::LogBar2',
     ]
 
     models.each do |model_name|
@@ -18,7 +18,7 @@ namespace :acao do
       if model.has_been_updated?
         case model_name
         when 'Ygg::Acao::MainDb::Socio', 'Ygg::Acao::MainDb::SociDatiLicenza', 'Ygg::Acao::MainDb::SociDatiVisita', 'Ygg::Acao::MainDb::SocioIscritto',
-             'Ygg::Acao::MainDb::LogBar'
+             'Ygg::Acao::MainDb::LogBar2'
 
           puts "Updating Ygg::Acao::Pilot"
 
@@ -28,7 +28,7 @@ namespace :acao do
           Ygg::Acao::MainDb::SociDatiLicenza.update_last_update!
           Ygg::Acao::MainDb::SociDatiVisita.update_last_update!
           Ygg::Acao::MainDb::SocioIscritto.update_last_update!
-          Ygg::Acao::MainDb::LogBar.update_last_update!
+          Ygg::Acao::MainDb::LogBar2.update_last_update!
 
         when 'Ygg::Acao::MainDb::Mezzo'
           puts "Updating Ygg::Acao::Aircraft"
@@ -36,7 +36,10 @@ namespace :acao do
 
         when 'Ygg::Acao::MainDb::Volo'
           puts "Updating Ygg::Acao::Flight"
-          Ygg::Acao::Flight.sync_from_maindb!
+
+          start_id = Ygg::Acao::Flight.order(takeoff_time: :asc).where('takeoff_time > ?', Time.now - 30.days).first.source_id
+
+          Ygg::Acao::Flight.sync_from_maindb!(start: start_id, limit: 1000)
 
         else
         end
@@ -62,11 +65,13 @@ namespace :acao do
     end
   end
 
+  namespace :roster do
+    task(:chores => :environment) do
+      Ygg::Acao::RosterDay.find_by(date: Time.now.date).check_and_mark_chief!
 
-
-
-
-
+      # Print roster sheet
+    end
+  end
 
   task(:'aircrafts' => :environment) do
     desc 'Sync aircrafts'
