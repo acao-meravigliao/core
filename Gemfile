@@ -20,6 +20,7 @@ gem 'geocoder'
 gem 'net-ldap'
 gem 'mail'
 gem 'phone'
+gem 'prawn'
 
 gem 'airbrake'
 
