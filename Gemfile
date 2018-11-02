@@ -29,6 +29,10 @@ source 'https://gems.sevio.it/' do
   gem 'active_rest', '~> 10.0'#, path: '../active_rest'
   gem 'rails_active_rest', '~> 1.0'#, path: '../rails_active_rest'
   gem 'am-http'
+  gem 'json_exceptions'
+  gem 'vihai-password-rails'
+  gem 'rails_actor_model'
+  gem 'rails_amqp'
 end
 
 group :hel_development, :test do
@@ -49,13 +53,8 @@ group :hel_together do
   gem 'ml_heltog', path: '../yggdra/plugins/ml_heltog'
 end
 
-gem 'json_exceptions', path: '../yggdra/plugins/json_exceptions'
-gem 'vihai-password-rails', path: '../yggdra/plugins/vihai_password_rails'
-
 gem 'hel', path: '../yggdra/plugins/hel'
 
-gem 'rails_actor_model', path: '../yggdra/plugins/rails_actor_model'
-gem 'rails_amqp', path: '../yggdra/plugins/rails_amqp'
 gem 'amqp_ws_gw', path: '../yggdra/plugins/amqp_ws_gw'
 
 gem 'core_models', path: '../yggdra/plugins/core_models'

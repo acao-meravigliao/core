@@ -101,11 +101,6 @@ PATH
       active_rest (>= 6.6.0)
 
 PATH
-  remote: ../yggdra/plugins/json_exceptions
-  specs:
-    json_exceptions (0.0.1)
-
-PATH
   remote: ../yggdra/plugins/ml_hel
   specs:
     ml_hel (1.0.0)
@@ -132,19 +127,6 @@ PATH
     nisse_hel (1.0.0)
 
 PATH
-  remote: ../yggdra/plugins/rails_actor_model
-  specs:
-    rails_actor_model (1.0.0)
-      actor_model (~> 1.4)
-      colorize
-
-PATH
-  remote: ../yggdra/plugins/rails_amqp
-  specs:
-    rails_amqp (1.0.0)
-      am-amqp (>= 1.3.0)
-
-PATH
   remote: ../yggdra/plugins/streaming_hel
   specs:
     streaming_hel (1.0.0)
@@ -153,12 +135,6 @@ PATH
   remote: ../yggdra/plugins/streaming_models
   specs:
     streaming_models (1.0.0)
-
-PATH
-  remote: ../yggdra/plugins/vihai_password_rails
-  specs:
-    vihai-password-rails (1.0.0)
-      vihai-password
 
 GEM
   remote: https://rubygems.org/
@@ -187,7 +163,7 @@ GEM
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.3)
-    active_rest (10.0.2)
+    active_rest (10.0.4)
       activerecord
       rubytree
       ygg-exception
@@ -209,7 +185,7 @@ GEM
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    actor_model (1.7.2)
+    actor_model (1.7.3)
       activesupport
       sleepy_penguin
       ygg-exception
@@ -224,16 +200,16 @@ GEM
       amq-protocol
       awesome_print
       vihai_io_buffer
-    am-http (0.5.4)
+    am-http (0.7.4)
       actor_model (~> 1.6)
       address_selector
       awesome_print
       openssl
       sqlite3
       vihai_io_buffer
-    am-satispay (0.0.13)
+    am-satispay (0.1.0)
       activesupport
-      am-http
+      am-http (~> 0.7)
     am-smtp (1.1.0)
       actor_model (~> 1.6)
       address_selector
@@ -255,7 +231,7 @@ GEM
     geocoder (1.5.0)
     globalid (0.4.1)
       activesupport (>= 4.2.0)
-    hel_together (1.4.1)
+    hel_together (1.4.2)
       rack (>= 1.5.2)
       ygg_agent (~> 2.9)
     hooks (0.4.1)
@@ -267,14 +243,16 @@ GEM
       activesupport
       aes_key_wrap
       bindata
-    loofah (2.2.2)
+    json_exceptions (0.0.2)
+      ygg-exception
+    loofah (2.2.3)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mail (2.7.1)
       mini_mime (>= 0.1.1)
     marcel (0.3.3)
       mimemagic (~> 0.3.2)
-    method_source (0.9.0)
+    method_source (0.9.1)
     mimemagic (0.3.2)
     mini_mime (1.0.1)
     mini_portile2 (2.3.0)
@@ -327,6 +305,11 @@ GEM
     rails_active_rest (1.0.2)
       active_rest
       ygg-exception
+    rails_actor_model (1.0.0)
+      actor_model (~> 1.4)
+      colorize
+    rails_amqp (1.0.0)
+      am-amqp (>= 1.3)
     railties (5.2.1)
       actionpack (= 5.2.1)
       activesupport (= 5.2.1)
@@ -363,12 +346,14 @@ GEM
     uuidtools (2.1.5)
     vihai-password (1.4.4)
       ffi
+    vihai-password-rails (1.0.0)
+      vihai-password
     vihai_io_buffer (0.0.3)
     websocket (1.2.8)
     websocket-driver (0.7.0)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.3)
-    ygg-exception (0.0.8)
+    ygg-exception (0.0.11)
     ygg_agent (2.10.4)
       am-amqp (~> 1.4)
       ygg-exception (~> 0.0)
