@@ -2,50 +2,42 @@ namespace :acao do
   desc 'Sync stuff'
 
   task(:syncall => :environment) do
-    models = [
-      'Ygg::Acao::MainDb::Socio',
-      'Ygg::Acao::MainDb::SociDatiLicenza',
-      'Ygg::Acao::MainDb::SociDatiVisita',
-      'Ygg::Acao::MainDb::SocioIscritto',
-      'Ygg::Acao::MainDb::Mezzo',
-      'Ygg::Acao::MainDb::Volo',
-      'Ygg::Acao::MainDb::LogBar2',
-    ]
+    if Ygg::Acao::MainDb::Socio.has_been_updated? ||
+       Ygg::Acao::MainDb::SociDatiLicenza.has_been_updated? ||
+       Ygg::Acao::MainDb::SociDatiVisita.has_been_updated? ||
+       Ygg::Acao::MainDb::SocioIscritto.has_been_updated? ||
+       Ygg::Acao::MainDb::Mezzo.has_been_updated? ||
+       Ygg::Acao::MainDb::LogBar2.has_been_updated? ||
+       Ygg::Acao::MainDb::CassettaBarLocale.has_been_updated? ||
+       Ygg::Acao::MainDb::LogBollini.has_been_updated?
 
-    models.each do |model_name|
-      model = model_name.constantize
+      puts "Updating Ygg::Acao::Pilot"
 
-      if model.has_been_updated?
-        case model_name
-        when 'Ygg::Acao::MainDb::Socio', 'Ygg::Acao::MainDb::SociDatiLicenza', 'Ygg::Acao::MainDb::SociDatiVisita', 'Ygg::Acao::MainDb::SocioIscritto',
-             'Ygg::Acao::MainDb::LogBar2'
+      Ygg::Acao::Pilot.sync_from_maindb!(with_logbar: Ygg::Acao::MainDb::LogBar2.has_been_updated? || Ygg::Acao::MainDb::CassettaBarLocale.has_been_updated?, with_logbollini: Ygg::Acao::MainDb::LogBollini.has_been_updated?)
 
-          puts "Updating Ygg::Acao::Pilot"
+      Ygg::Acao::MainDb::Socio.update_last_update!
+      Ygg::Acao::MainDb::SociDatiLicenza.update_last_update!
+      Ygg::Acao::MainDb::SociDatiVisita.update_last_update!
+      Ygg::Acao::MainDb::SocioIscritto.update_last_update!
+      Ygg::Acao::MainDb::LogBar2.update_last_update!
+      Ygg::Acao::MainDb::CassettaBarLocale.update_last_update!
+      Ygg::Acao::MainDb::LogBollini.update_last_update!
+    end
 
-          Ygg::Acao::Pilot.sync_from_maindb!
+    if Ygg::Acao::MainDb::Mezzo.has_been_updated?
+       puts "Updating Ygg::Acao::Aircraft"
+       Ygg::Acao::Aircraft.sync_from_maindb!
+       Ygg::Acao::MainDb::Mezzo.update_last_update!
+    end
 
-          Ygg::Acao::MainDb::Socio.update_last_update!
-          Ygg::Acao::MainDb::SociDatiLicenza.update_last_update!
-          Ygg::Acao::MainDb::SociDatiVisita.update_last_update!
-          Ygg::Acao::MainDb::SocioIscritto.update_last_update!
-          Ygg::Acao::MainDb::LogBar2.update_last_update!
+    if Ygg::Acao::MainDb::Volo.has_been_updated?
+      puts "Updating Ygg::Acao::Flight"
 
-        when 'Ygg::Acao::MainDb::Mezzo'
-          puts "Updating Ygg::Acao::Aircraft"
-          Ygg::Acao::Aircraft.sync_from_maindb!
+      start_id = Ygg::Acao::Flight.order(takeoff_time: :asc).where('takeoff_time > ?', Time.now - 30.days).first.source_id
 
-        when 'Ygg::Acao::MainDb::Volo'
-          puts "Updating Ygg::Acao::Flight"
+      Ygg::Acao::Flight.sync_from_maindb!(start: start_id, limit: 1000)
 
-          start_id = Ygg::Acao::Flight.order(takeoff_time: :asc).where('takeoff_time > ?', Time.now - 30.days).first.source_id
-
-          Ygg::Acao::Flight.sync_from_maindb!(start: start_id, limit: 1000)
-
-        else
-        end
-
-        model.update_last_update!
-      end
+      Ygg::Acao::MainDb::Volo.update_last_update!
     end
   end
 
