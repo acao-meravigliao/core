@@ -53,32 +53,25 @@ group :hel_together do
   gem 'ml_heltog', path: '../yggdra/plugins/ml_heltog'
 end
 
-gem 'hel', path: '../yggdra/plugins/hel'
-
-gem 'amqp_ws_gw', path: '../yggdra/plugins/amqp_ws_gw'
+group :controllers do
+  gem 'hel', path: '../yggdra/plugins/hel'
+  gem 'core_hel', path: '../yggdra/plugins/core_hel'
+  gem 'i18n_hel', path: '../yggdra/plugins/i18n_hel'
+  gem 'ml_hel', path: '../yggdra/plugins/ml_hel'
+  gem 'ca_hel', path: '../yggdra/plugins/ca_hel'
+  gem 'acao_hel', path: '../acao-plugins/acao_hel'
+  gem 'trk_hel', path: '../acao-plugins/trk_hel'
+  gem 'streaming_hel', path: '../yggdra/plugins/streaming_hel'
+  gem 'amqp_ws_gw', path: '../yggdra/plugins/amqp_ws_gw'
+end
 
 gem 'core_models', path: '../yggdra/plugins/core_models'
-gem 'core_hel', path: '../yggdra/plugins/core_hel'
-
 gem 'i18n_models', path: '../yggdra/plugins/i18n_models'
-gem 'i18n_hel', path: '../yggdra/plugins/i18n_hel'
-
 gem 'ml_models', path: '../yggdra/plugins/ml_models'
-gem 'ml_hel', path: '../yggdra/plugins/ml_hel'
-
 gem 'ca_models', path: '../yggdra/plugins/ca_models'
-gem 'ca_hel', path: '../yggdra/plugins/ca_hel'
-
-#gem 'shop_models', path: '../yggdra/plugins/shop_models'
-#gem 'shop_hel', path: '../yggdra/plugins/shop_hel'
-
 gem 'acao_maindb_models', path: '../acao-plugins/acao_maindb_models'
 gem 'acao_onda_models', path: '../acao-plugins/acao_onda_models'
 gem 'acao_models', path: '../acao-plugins/acao_models'
-gem 'acao_hel', path: '../acao-plugins/acao_hel'
-
 gem 'trk_models', path: '../acao-plugins/trk_models'
-gem 'trk_hel', path: '../acao-plugins/trk_hel'
-
 gem 'streaming_models', path: '../yggdra/plugins/streaming_models'
-gem 'streaming_hel', path: '../yggdra/plugins/streaming_hel'
+
