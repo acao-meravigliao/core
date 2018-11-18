@@ -57,6 +57,12 @@ namespace :acao do
     end
   end
 
+  namespace :invoices do
+    task(:chores => :environment) do
+      Ygg::Acao::Invoice.run_chores!
+    end
+  end
+
   namespace :roster do
     task(:chores => :environment) do
       today_roster = Ygg::Acao::RosterDay.find_by(date: Time.now)
