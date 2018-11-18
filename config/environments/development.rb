@@ -48,21 +48,24 @@ Rails.application.configure do
   config.ml.sms_redirect_to = '+393474659309'
   config.ml.sms_skebby_debug = 2
 
-  config.amqp_ws_gw.allowed_request_origins = [
-    'http://linobis.acao.it:3330',
-    'http://linobis.acao.it:3331',
-    'http://linobis.acao.it:3332',
-    'http://linobis.acao.it:4200',
-  ]
-
-  config.amqp_ws_gw.routes.merge!({
-    'ygg.glideradar.processed_traffic.linobis': {
-      type: :topic,
-      durable: true,
-      auto_delete: false,
-      anonymous_access: true,
-    }
-  })
-
   config.acao.soci_ml_dry_run = true
+
+  if config.respond_to?(:amqp_ws_gw)
+    config.amqp_ws_gw.allowed_request_origins = [
+      'http://linobis.acao.it:3330',
+      'http://linobis.acao.it:3331',
+      'http://linobis.acao.it:3332',
+      'http://linobis.acao.it:4200',
+      'http://linobis.acao.it:4201',
+    ]
+
+    config.amqp_ws_gw.routes.merge!({
+      'ygg.glideradar.processed_traffic.linobis': {
+        type: :topic,
+        durable: true,
+        auto_delete: false,
+        anonymous_access: true,
+      }
+    })
+  end
 end

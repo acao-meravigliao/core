@@ -61,21 +61,23 @@ Rails.application.configure do
   config.rails_amqp.url = 'amqp://agent@amqp.acao.it'
   config.rails_amqp.debug = 0
 
-  config.amqp_ws_gw.allowed_request_origins = [
-    'https://lino.acao.it',
-    'https://servizi.acao.it',
-  ]
-
-  config.amqp_ws_gw.routes.merge!({
-    'ygg.glideradar.processed_traffic': {
-      type: :topic,
-      durable: true,
-      auto_delete: false,
-      anonymous_access: true,
-    }
-  })
-
-  #config.ml.email_also_bcc = 'daniele@orlandi.com'
+  config.ml.email_also_bcc = 'daniele@orlandi.com'
 
   config.acao.soci_ml_dry_run = false
+
+  if config.respond_to?(:amqp_ws_gw)
+    config.amqp_ws_gw.allowed_request_origins = [
+      'https://lino.acao.it',
+      'https://servizi.acao.it',
+    ]
+
+    config.amqp_ws_gw.routes.merge!({
+      'ygg.glideradar.processed_traffic': {
+        type: :topic,
+        durable: true,
+        auto_delete: false,
+        anonymous_access: true,
+      }
+    })
+  end
 end
