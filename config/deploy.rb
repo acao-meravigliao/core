@@ -60,7 +60,7 @@ task :deploy do
 
     invoke :'deploy:link_shared_paths'
     invoke :'bundle:install'
-#    invoke :'db:porn:migrate'
+    invoke :'db:porn:migrate'
     invoke :'deploy:cleanup'
     invoke :local_cleanup
 
