@@ -1,0 +1,9 @@
+{
+  "is_ygg_exception":true,
+  "title":"Forbidden",
+  "title_sym":"forbidden",
+  "detail":"The requested resource is not accessibile.",
+  "detail_sym":"forbidden_detail",
+  "type":"Nginx::Error::403",
+  "catcher":"NGINX"
+}

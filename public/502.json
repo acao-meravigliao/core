@@ -1,0 +1,9 @@
+{
+  "is_ygg_exception":true,
+  "title":"Backend not available",
+  "title_sym":"backend_not_available",
+  "detail":"The system is not currently availble, please try again later. If the error persists please contact our staff.",
+  "detail_sym":"the_system_is_not_available",
+  "type":"Nginx::Error::502",
+  "catcher":"NGINX"
+}

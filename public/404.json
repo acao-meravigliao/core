@@ -1,0 +1,9 @@
+{
+  "is_ygg_exception":true,
+  "title":"Not Found",
+  "title_sym":"not_found",
+  "detail":"The requested resource has not been found",
+  "detail_sym":"the_requested_resource_has_not_been_found",
+  "type":"Nginx::Error::404",
+  "catcher":"NGINX"
+}

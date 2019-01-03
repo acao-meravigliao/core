@@ -1,0 +1,9 @@
+{
+  "is_ygg_exception":true,
+  "title":"Backend Timeout",
+  "title_sym":"backend_timeout",
+  "detail":"Service is temporarily not available. Please try again later. If the problem persists please contact our staff.",
+  "detail_sym":"service_is_temporarily_not_available",
+  "type":"Nginx::Error::504",
+  "catcher":"NGINX"
+}

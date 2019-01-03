@@ -1,0 +1,9 @@
+{
+  "is_ygg_exception":true,
+  "title":"Maintenance in progress",
+  "title_sym":"maintenance_in_progress",
+  "detail":"Sorry, maintenance is currently in progress. Please try again later.",
+  "detail_sym":"sorry_maintenance_is_in_progress",
+  "type":"Nginx::Error::503",
+  "catcher":"NGINX"
+}

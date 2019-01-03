@@ -1,0 +1,9 @@
+{
+  "is_ygg_exception":true,
+  "title":"Internal Server Error",
+  "title_sym":"internal_server_error",
+  "detail":"An internal server error has occurred. Please try again later. If the problem persists please contact our staff.",
+  "detail_sym":"internal_server_error_detail",
+  "type":"Nginx::Error::500",
+  "catcher":"NGINX"
+}
