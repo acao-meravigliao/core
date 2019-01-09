@@ -59,6 +59,8 @@ Rails.application.configure do
       'http://linobis.acao.it:4201',
     ]
 
+    config.amqp_ws_gw.safe_receiver = true
+
     config.amqp_ws_gw.routes.merge!({
       'ygg.glideradar.processed_traffic.linobis': {
         type: :topic,
