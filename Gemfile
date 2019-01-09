@@ -49,7 +49,7 @@ end
 group :hel_together do
   gem 'hel_together', '~> 1.3'
   gem 'nisse_hel', path: '../yggdra/plugins/nisse_hel'
-  gem 'core_nisse_hel', path: '../yggdra/plugins/core_nisse_hel'
+  gem 'core_heltog', path: '../yggdra/plugins/core_heltog'
   gem 'ml_heltog', path: '../yggdra/plugins/ml_heltog'
 end
 
