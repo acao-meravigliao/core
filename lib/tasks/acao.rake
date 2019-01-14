@@ -64,11 +64,12 @@ namespace :acao do
   end
 
   namespace :roster do
-    task(:chores => :environment) do
+    task(print_daily_form: :environment) do
       today_roster = Ygg::Acao::RosterDay.find_by(date: Time.now)
-      today_roster.check_and_mark_chief! if today_roster
-
-      # Print roster sheet
+      if today_roster
+        today_roster.check_and_mark_chief!
+        today_roster.print_daily_form
+      end
     end
   end
 
