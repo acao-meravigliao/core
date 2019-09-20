@@ -21,6 +21,7 @@ gem 'net-ldap'
 gem 'mail'
 gem 'phone'
 gem 'prawn'
+gem 'prawn-table'
 
 gem 'airbrake'
 
