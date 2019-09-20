@@ -62,12 +62,18 @@ Rails.application.configure do
     config.amqp_ws_gw.safe_receiver = true
 
     config.amqp_ws_gw.routes.merge!({
-      'ygg.glideradar.processed_traffic.linobis': {
+      'ygg.glideradar.processed_traffic.live.linobis': {
         type: :topic,
         durable: true,
         auto_delete: false,
         anonymous_access: true,
-      }
+      },
+      'ygg.autocam.state.linobis': {
+        type: :topic,
+        durable: true,
+        auto_delete: false,
+        anonymous_access: true,
+      },
     })
   end
 end
