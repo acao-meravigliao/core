@@ -11,7 +11,7 @@ namespace :acao do
        Ygg::Acao::MainDb::CassettaBarLocale.has_been_updated? ||
        Ygg::Acao::MainDb::LogBollini.has_been_updated?
 
-      puts "Updating Ygg::Acao::Pilot"
+      #puts "Updating Ygg::Acao::Pilot"
 
       Ygg::Acao::Pilot.sync_from_maindb!(with_logbar: Ygg::Acao::MainDb::LogBar2.has_been_updated? || Ygg::Acao::MainDb::CassettaBarLocale.has_been_updated?, with_logbollini: Ygg::Acao::MainDb::LogBollini.has_been_updated?)
 
@@ -25,15 +25,16 @@ namespace :acao do
     end
 
     if Ygg::Acao::MainDb::Mezzo.has_been_updated?
-       puts "Updating Ygg::Acao::Aircraft"
+       #puts "Updating Ygg::Acao::Aircraft"
        Ygg::Acao::Aircraft.sync_from_maindb!
        Ygg::Acao::MainDb::Mezzo.update_last_update!
     end
 
     if Ygg::Acao::MainDb::Volo.has_been_updated?
-      puts "Updating Ygg::Acao::Flight"
+      #puts "Updating Ygg::Acao::Flight"
 
-      start_id = Ygg::Acao::Flight.order(takeoff_time: :asc).where('takeoff_time > ?', Time.now - 30.days).first.source_id
+      ff = Ygg::Acao::Flight.order(takeoff_time: :asc).where('takeoff_time > ?', Time.now - 30.days).first
+      start_id = ff ? ff.source_id : 0
 
       Ygg::Acao::Flight.sync_from_maindb!(start: start_id, limit: 1000)
 
