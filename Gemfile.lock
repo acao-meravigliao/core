@@ -185,29 +185,26 @@ GEM
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    actor_model (1.9.3)
+    actor_model (1.9.7)
       activesupport
-      bigdecimal
-      etc
-      json
       sleepy_penguin
       ygg-exception
-    address_selector (0.1.0)
+    address_selector (0.1.2)
       actor_model
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
     aes_key_wrap (1.0.1)
-    airbrake (9.4.4)
-      airbrake-ruby (~> 4.6)
-    airbrake-ruby (4.6.0)
+    airbrake (9.4.5)
+      airbrake-ruby (~> 4.7)
+    airbrake-ruby (4.7.1)
       rbtree3 (~> 0.5)
-    am-amqp (1.5.12)
+    am-amqp (1.5.13)
       actor_model
       address_selector (>= 0.1.0)
       amq-protocol
       awesome_print
       vihai_io_buffer
-    am-http (0.10.8)
+    am-http (0.10.14)
       actor_model (~> 1.6)
       address_selector (>= 0.1.0)
       addressable
@@ -224,20 +221,19 @@ GEM
     amq-protocol (2.3.0)
     arel (9.0.0)
     awesome_print (1.8.0)
-    bigdecimal (1.4.4)
     bindata (2.4.4)
     builder (3.2.3)
     byebug (11.0.1)
     coderay (1.1.2)
     colorize (0.8.1)
     concurrent-ruby (1.1.5)
-    crass (1.0.4)
+    crass (1.0.5)
     deep_open_struct (1.0.5)
     dkim (1.0.1)
-    erubi (1.8.0)
+    erubi (1.9.0)
     etc (1.0.1)
     ffi (1.11.1)
-    geocoder (1.5.1)
+    geocoder (1.5.2)
     globalid (0.4.2)
       activesupport (>= 4.2.0)
     hel_together (1.4.6)
@@ -245,16 +241,16 @@ GEM
       ygg_agent (~> 2.9)
     hooks (0.4.1)
       uber (~> 0.0.14)
-    i18n (1.6.0)
+    i18n (1.7.0)
       concurrent-ruby (~> 1.0)
     json (2.2.0)
     json-jwt (1.10.2)
       activesupport (>= 4.2)
       aes_key_wrap
       bindata
-    json_exceptions (0.0.2)
+    json_exceptions (0.0.3)
       ygg-exception
-    loofah (2.2.3)
+    loofah (2.3.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mail (2.7.1)
@@ -265,9 +261,9 @@ GEM
     mimemagic (0.3.3)
     mini_mime (1.0.2)
     mini_portile2 (2.4.0)
-    minitest (5.11.3)
+    minitest (5.12.2)
     net-ldap (0.16.1)
-    nio4r (2.5.1)
+    nio4r (2.5.2)
     nokogiri (1.10.4)
       mini_portile2 (~> 2.4.0)
     pdf-core (0.7.0)
@@ -310,15 +306,15 @@ GEM
     rails-dom-testing (2.0.3)
       activesupport (>= 4.2.0)
       nokogiri (>= 1.6)
-    rails-html-sanitizer (1.2.0)
-      loofah (~> 2.2, >= 2.2.2)
+    rails-html-sanitizer (1.3.0)
+      loofah (~> 2.3)
     rails_active_rest (1.0.8)
       active_rest
       ygg-exception
     rails_actor_model (1.0.0)
       actor_model (~> 1.4)
       colorize
-    rails_amqp (1.0.0)
+    rails_amqp (1.0.1)
       am-amqp (>= 1.3)
     railties (5.2.3)
       actionpack (= 5.2.3)
@@ -326,7 +322,7 @@ GEM
       method_source
       rake (>= 0.8.7)
       thor (>= 0.19.0, < 2.0)
-    rake (12.3.3)
+    rake (13.0.0)
     rbtree3 (0.5.0)
     roxml (4.0.0)
       activesupport (>= 4.0)
@@ -336,7 +332,7 @@ GEM
       structured_warnings (~> 0.2)
     sleepy_penguin (3.5.1)
     spring (2.1.0)
-    sprockets (3.7.2)
+    sprockets (4.0.0)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
     sprockets-rails (3.2.1)
@@ -356,25 +352,27 @@ GEM
     uuidtools (2.1.5)
     vihai-password (2.0.0)
       ffi
-    vihai-password-rails (1.0.0)
+    vihai-password-rails (1.0.1)
       vihai-password
-    vihai_io_buffer (0.0.3)
+    vihai_io_buffer (0.0.4)
     websocket (1.2.8)
     websocket-driver (0.7.1)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.4)
-    ygg-exception (0.0.18)
-    ygg_agent (2.10.14)
+    ygg-exception (0.0.19)
+    ygg_agent (2.10.15)
       am-amqp (~> 1.4)
       ygg-exception (~> 0.0)
       ygg_app (~> 1.7)
-    ygg_app (1.8.9)
+    ygg_app (1.8.11)
       actor_model
       airbrake-ruby
       awesome_print
       colorize (>= 0.7.3)
       deep_open_struct
+      etc
       ffi (>= 1.9.0)
+      json
       pry
       unindent
       vihai_io_buffer
