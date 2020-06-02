@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 5.2.0'
+gem 'rails', '~> 6.0.0'
 
 gem 'pg'
 gem 'tiny_tds'#, '~> 1.1.0'
@@ -14,7 +14,7 @@ end
 
 gem 'pry'
 gem 'pry-rails'
-gem 'awesome_print'
+gem 'amazing_print'
 #gem 'state_machine'
 gem 'geocoder'
 gem 'net-ldap'
