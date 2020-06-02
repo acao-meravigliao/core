@@ -51,7 +51,8 @@ desc "Deploys the current version to the server."
 task :deploy do
   deploy do
     sh 'bundle install --quiet --without "development test"'
-    sh 'bundle package --all'
+    #sh 'bundle package --all'
+    sh 'bundle package'
 
     sh "rsync --recursive --delete --delete-excluded #{fetch(:rsync_excludes)} . #{fetch(:domain)}:#{fetch(:deploy_to)}/upload"
 
