@@ -1,6 +1,11 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 6.0.0'
+gem 'activerecord', '~> 6.0.0'
+gem 'activemodel', '~> 6.0.0'
+gem 'actionpack', '~> 6.0.0'
+gem 'actionview', '~> 6.0.0'
+gem 'activesupport', '~> 6.0.0'
+gem 'railties', '~> 6.0.0'
 
 gem 'pg'
 gem 'tiny_tds'#, '~> 1.1.0'

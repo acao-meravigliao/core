@@ -44,7 +44,7 @@ PATH
   specs:
     amqp_ws_gw (1.0.0)
       am-amqp (~> 2.0)
-      websocket
+      am-ws
 
 PATH
   remote: ../yggdra/plugins/ca_hel
@@ -140,23 +140,6 @@ GEM
   remote: https://rubygems.org/
   remote: https://gems.sevio.it/
   specs:
-    actioncable (6.0.3.1)
-      actionpack (= 6.0.3.1)
-      nio4r (~> 2.0)
-      websocket-driver (>= 0.6.1)
-    actionmailbox (6.0.3.1)
-      actionpack (= 6.0.3.1)
-      activejob (= 6.0.3.1)
-      activerecord (= 6.0.3.1)
-      activestorage (= 6.0.3.1)
-      activesupport (= 6.0.3.1)
-      mail (>= 2.7.1)
-    actionmailer (6.0.3.1)
-      actionpack (= 6.0.3.1)
-      actionview (= 6.0.3.1)
-      activejob (= 6.0.3.1)
-      mail (~> 2.5, >= 2.5.4)
-      rails-dom-testing (~> 2.0)
     actionpack (6.0.3.1)
       actionview (= 6.0.3.1)
       activesupport (= 6.0.3.1)
@@ -164,49 +147,35 @@ GEM
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.2.0)
-    actiontext (6.0.3.1)
-      actionpack (= 6.0.3.1)
-      activerecord (= 6.0.3.1)
-      activestorage (= 6.0.3.1)
-      activesupport (= 6.0.3.1)
-      nokogiri (>= 1.8.5)
     actionview (6.0.3.1)
       activesupport (= 6.0.3.1)
       builder (~> 3.1)
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.1, >= 1.2.0)
-    active_rest (10.0.16)
+    active_rest (10.0.19)
       activerecord
       bigdecimal
       etc
       rubytree
       ygg-exception
-    activejob (6.0.3.1)
-      activesupport (= 6.0.3.1)
-      globalid (>= 0.3.6)
     activemodel (6.0.3.1)
       activesupport (= 6.0.3.1)
     activerecord (6.0.3.1)
       activemodel (= 6.0.3.1)
       activesupport (= 6.0.3.1)
-    activestorage (6.0.3.1)
-      actionpack (= 6.0.3.1)
-      activejob (= 6.0.3.1)
-      activerecord (= 6.0.3.1)
-      marcel (~> 0.3.1)
     activesupport (6.0.3.1)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
       zeitwerk (~> 2.2, >= 2.2.2)
-    actor_model (1.10.3)
+    actor_model (1.11.0)
       activesupport
       etc
       sleepy_penguin
       ygg-exception
-    address_selector (1.0.2)
+    address_selector (1.0.3)
       actor_model
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
@@ -220,27 +189,29 @@ GEM
       am-sockets
       amazing_print
       rubynary
-    am-http (0.18.1)
+    am-http (0.18.2)
       actor_model (~> 1.6)
       address_selector (~> 1.0)
       addressable
       am-sockets
-      awesome_print
       sqlite3
       vihai_io_buffer
     am-satispay (0.1.0)
       activesupport
       am-http (~> 0.7)
-    am-smtp (1.3.1)
+    am-smtp (1.4.1)
       actor_model (~> 1.6)
       am-sockets
-    am-sockets (0.4.6)
+    am-sockets (0.4.8)
       actor_model
       address_selector (~> 1.0)
       vihai_io_buffer (~> 0.2)
       ygg-exception
+    am-ws (0.1.2)
+      actor_model (~> 1.6)
+      am-http
+      vihai_io_buffer
     amazing_print (1.1.0)
-    awesome_print (1.8.0)
     bigdecimal (2.0.0)
     bindata (2.4.7)
     builder (3.2.4)
@@ -255,8 +226,6 @@ GEM
     etc (1.1.0)
     ffi (1.13.0)
     geocoder (1.6.3)
-    globalid (0.4.2)
-      activesupport (>= 4.2.0)
     hel_together (1.5.1)
       rack (>= 1.5.2)
       ygg_agent (~> 2.9)
@@ -276,15 +245,11 @@ GEM
       nokogiri (>= 1.5.9)
     mail (2.7.1)
       mini_mime (>= 0.1.1)
-    marcel (0.3.3)
-      mimemagic (~> 0.3.2)
     method_source (1.0.0)
-    mimemagic (0.3.5)
     mini_mime (1.0.2)
     mini_portile2 (2.4.0)
     minitest (5.14.1)
     net-ldap (0.16.2)
-    nio4r (2.5.2)
     nokogiri (1.10.9)
       mini_portile2 (~> 2.4.0)
     pdf-core (0.7.0)
@@ -311,21 +276,6 @@ GEM
     rack (2.2.2)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
-    rails (6.0.3.1)
-      actioncable (= 6.0.3.1)
-      actionmailbox (= 6.0.3.1)
-      actionmailer (= 6.0.3.1)
-      actionpack (= 6.0.3.1)
-      actiontext (= 6.0.3.1)
-      actionview (= 6.0.3.1)
-      activejob (= 6.0.3.1)
-      activemodel (= 6.0.3.1)
-      activerecord (= 6.0.3.1)
-      activestorage (= 6.0.3.1)
-      activesupport (= 6.0.3.1)
-      bundler (>= 1.3.0)
-      railties (= 6.0.3.1)
-      sprockets-rails (>= 2.0.0)
     rails-dom-testing (2.0.3)
       activesupport (>= 4.2.0)
       nokogiri (>= 1.6)
@@ -354,18 +304,11 @@ GEM
       activesupport
       bigdecimal
       json
-    rubytree (100.9.7)
+    rubytree (100.9.8)
       json
       structured_warnings (~> 0.2)
     sleepy_penguin (3.5.2)
     spring (2.1.0)
-    sprockets (4.0.0)
-      concurrent-ruby (~> 1.0)
-      rack (> 1, < 3)
-    sprockets-rails (3.2.1)
-      actionpack (>= 4.0)
-      activesupport (>= 4.0)
-      sprockets (>= 3.0.0)
     sqlite3 (1.4.2)
     structured_warnings (0.4.0)
     thor (1.0.1)
@@ -382,10 +325,6 @@ GEM
     vihai-password-rails (1.0.1)
       vihai-password
     vihai_io_buffer (0.3.0)
-    websocket (1.2.8)
-    websocket-driver (0.7.2)
-      websocket-extensions (>= 0.1.0)
-    websocket-extensions (0.1.4)
     ygg-exception (0.0.21)
     ygg_agent (2.11.2)
       activesupport
@@ -417,8 +356,13 @@ DEPENDENCIES
   acao_maindb_models!
   acao_models!
   acao_onda_models!
+  actionpack (~> 6.0.0)
+  actionview (~> 6.0.0)
   active_rest (~> 10.0)!
+  activemodel (~> 6.0.0)
+  activerecord (~> 6.0.0)
   activerecord-sqlserver-adapter!
+  activesupport (~> 6.0.0)
   airbrake
   am-http!
   amazing_print
@@ -449,10 +393,10 @@ DEPENDENCIES
   pry-rails
   puma
   puma-plugin-systemd!
-  rails (~> 6.0.0)
   rails_active_rest (~> 1.0)!
   rails_actor_model!
   rails_amqp!
+  railties (~> 6.0.0)
   spring
   streaming_hel!
   streaming_models!
