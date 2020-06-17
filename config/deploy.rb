@@ -39,7 +39,8 @@ end
 desc 'Does local cleanup'
 task :local_cleanup do
   sh 'rm -r vendor/cache'
-  sh 'bundle install --without ""'
+  sh 'bundle config --local with ""'
+  sh 'bundle config --local without ""'
 end
 
 task :production do
@@ -50,8 +51,9 @@ end
 desc "Deploys the current version to the server."
 task :deploy do
   deploy do
-    sh 'bundle install --quiet --without "development test"'
-    #sh 'bundle package --all'
+    sh "bundle config --local with 'production hel_together puma'"
+    sh 'bundle config --local without "development test"'
+    sh 'bundle install --quiet'
     sh 'bundle package'
 
     sh "rsync --recursive --delete --delete-excluded #{fetch(:rsync_excludes)} . #{fetch(:domain)}:#{fetch(:deploy_to)}/upload"
