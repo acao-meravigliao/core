@@ -51,6 +51,7 @@ Airbrake.configure do |c|
   # Alternatively, you can integrate with Rails' filter_parameters.
   # Read more: https://goo.gl/gqQ1xS
   # c.blocklist_keys = Rails.application.config.filter_parameters
+  c.performance_stats = false
 end
 
 # A filter that collects request body information. Enable it if you are sure you
