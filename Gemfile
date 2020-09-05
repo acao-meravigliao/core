@@ -17,6 +17,8 @@ source 'https://gems.sevio.it/' do
   gem 'puma-plugin-systemd'
 end
 
+#gem 'rbtrace'
+
 gem 'pry'
 gem 'pry-rails'
 gem 'amazing_print'
