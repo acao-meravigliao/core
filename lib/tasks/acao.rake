@@ -1,7 +1,33 @@
+require 'actor_model'
+class TimeoutActor
+  include AM::Actor
+
+  def initialize(tout:, **args)
+    @tout = tout
+
+    super(**args)
+  end
+
+  def actor_boot
+    after(@tout) do
+      puts "========================================== TIMEOUT! ============================================="
+
+      Thread.list.each do |th|
+        puts "----------------- Thread #{th} -------------------"
+        puts th.backtrace
+      end
+
+      Process.exit!(255)
+    end
+  end
+end
+
 namespace :acao do
   desc 'Sync stuff'
 
   task(:syncall => :environment) do
+    TimeoutActor.new(tout: 300)
+
     if Ygg::Acao::MainDb::Socio.has_been_updated? ||
        Ygg::Acao::MainDb::SociDatiLicenza.has_been_updated? ||
        Ygg::Acao::MainDb::SociDatiVisita.has_been_updated? ||
@@ -44,28 +70,34 @@ namespace :acao do
 
   namespace :people do
     task(:sync => :environment) do
+      TimeoutActor.new(tout: 100)
       Ygg::Acao::Pilot.sync_from_maindb!
     end
 
     task(:chores => :environment) do
+      TimeoutActor.new(tout: 100)
       Ygg::Acao::Pilot.run_chores!
     end
   end
 
   namespace :payments do
     task(:chores => :environment) do
+      TimeoutActor.new(tout: 100)
       Ygg::Acao::Payment.run_chores!
     end
   end
 
   namespace :invoices do
     task(:chores => :environment) do
+      TimeoutActor.new(tout: 100)
       Ygg::Acao::Invoice.run_chores!
     end
   end
 
   namespace :roster do
     task(print_daily_form: :environment) do
+      TimeoutActor.new(tout: 100)
+
       today_roster = Ygg::Acao::RosterDay.find_by(date: Time.now)
       if today_roster
         today_roster.check_and_mark_chief!
@@ -77,6 +109,7 @@ namespace :acao do
   task(:'aircrafts' => :environment) do
     desc 'Sync aircrafts'
 
+    TimeoutActor.new(tout: 100)
     Ygg::Acao::Aircraft.sync_from_maindb!
   end
 
@@ -93,6 +126,7 @@ namespace :acao do
 #  end
 
   task(:'ml:soci' => :environment) do
+    TimeoutActor.new(tout: 100)
     Ygg::Acao::Pilot.sync_soci_ml!
   end
 end
