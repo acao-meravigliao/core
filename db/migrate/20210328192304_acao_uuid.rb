@@ -281,6 +281,16 @@ class AcaoUuid < ActiveRecord::Migration[6.0]
     add_index 'acao.years', :id_old
     execute 'ALTER TABLE acao.years ADD CONSTRAINT years_pkey PRIMARY KEY (id)'
 
+    execute 'ALTER TABLE acao.memberships DROP CONSTRAINT memberships_pkey CASCADE'
+    rename_column 'acao.memberships', 'id', 'id_old'
+    rename_column 'acao.memberships', 'uuid', 'id'
+    add_index 'acao.memberships', :id_old
+    execute 'ALTER TABLE acao.memberships ADD CONSTRAINT memberships_pkey PRIMARY KEY (id)'
+    fk_to_uuid('acao.memberships', 'person_id', 'core.people')
+    fk_to_uuid('acao.memberships', 'payment_id', 'acao.payments')
+    fk_to_uuid('acao.memberships', 'reference_year_id', 'acao.years')
+    fk_to_uuid('acao.memberships', 'invoice_detail_id', 'acao.invoice_details')
+
     ActiveRecord::Base.connection.schema_search_path = current_schema
   end
 
