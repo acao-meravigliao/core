@@ -6,6 +6,9 @@ preload_app!
 
 quiet false
 
+state_path 'log/puma.state'
+pidfile 'log/puma.pid'
+
 on_worker_boot do
   begin
     require 'rails_actor_model/logger'
