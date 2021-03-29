@@ -9,7 +9,7 @@ gem 'railties', '~> 6.0.0'
 
 gem 'pg'
 gem 'tiny_tds'#, '~> 1.1.0'
-gem 'activerecord-sqlserver-adapter', git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git'
+gem 'activerecord-sqlserver-adapter'#, git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git'
 
 gem 'puma'
 
