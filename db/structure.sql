@@ -9727,7 +9727,7 @@ ALTER TABLE ONLY acao.trailers
 --
 
 ALTER TABLE ONLY acao.flights
-    ADD CONSTRAINT fk_rails_be11b218e4 FOREIGN KEY (towed_by_id) REFERENCES core.people(id);
+    ADD CONSTRAINT fk_rails_be11b218e4 FOREIGN KEY (towed_by_id) REFERENCES acao.flights(id);
 
 
 --
@@ -10453,6 +10453,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210328183142'),
 ('20210328192304'),
 ('20210328235158'),
-('20210329174846');
+('20210329174846'),
+('20210329231036');
 
 
