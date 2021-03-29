@@ -2,9 +2,6 @@ require 'mina/rails'
 
 set :application_name, 'acao-core'
 set :user, 'yggdra'
-set :domain, 'linobis.acao.it'
-set :production_domain, 'lino.acao.it'
-set :deploy_to, '/opt/acao-core'
 set :shared_dirs, fetch(:shared_dirs, []) + [ ]
 set :shared_files, fetch(:shared_files, []) + [ 'config/database.yml', 'config/secrets.yml', ]
 set :repository, 'foobar'
@@ -17,6 +14,7 @@ set :rsync_excludes, [
   '/vendor/bundle',
   '/tmp/cache',
   '/log',
+  '/.env*.local',
 ].map { |x| "--exclude \"#{x}\"" }.join(' ')
 
 task :environment do
@@ -43,9 +41,20 @@ task :local_cleanup do
   sh 'bundle config --local without ""'
 end
 
+task :staging do
+  set :domain, 'linobis.acao.it'
+  set :deploy_to, '/opt/acao-core'
+  set :environment, 'staging'
+end
+
 task :production do
-  set :domain, fetch(:production_domain)
-  set :rails_env, 'production'
+  if `git branch --show-current`.chomp != 'production'
+    abort 'Production deployment is supposed to be done from production branch'
+  end
+
+  set :domain, 'lino.acao.it'
+  set :deploy_to, '/opt/acao-core'
+  set :environment, 'production'
 end
 
 desc "Deploys the current version to the server."

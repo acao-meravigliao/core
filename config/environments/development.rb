@@ -76,4 +76,6 @@ Rails.application.configure do
       },
     })
   end
+
+  config.hosts.clear
 end
