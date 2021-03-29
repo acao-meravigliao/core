@@ -12,6 +12,7 @@ gem 'tiny_tds'#, '~> 1.1.0'
 gem 'activerecord-sqlserver-adapter'#, git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git'
 
 gem 'puma'
+gem 'puma-plugin-systemd'
 
 #gem 'rbtrace'
 
