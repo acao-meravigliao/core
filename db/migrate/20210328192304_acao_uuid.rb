@@ -8,22 +8,19 @@ class AcaoUuid < ActiveRecord::Migration[6.0]
     current_schema = ActiveRecord::Base.connection.current_schema
     ActiveRecord::Base.connection.schema_search_path = "'acao', 'public'"
 
+    execute 'ALTER TABLE acao.aircraft_types DROP CONSTRAINT aircraft_types_pkey CASCADE'
+    rename_column 'acao.aircraft_types', 'id', 'id_old'
+    rename_column 'acao.aircraft_types', 'uuid', 'id'
+    add_index 'acao.aircraft_types', :id_old
+    execute 'ALTER TABLE acao.aircraft_types ADD CONSTRAINT aircraft_types_pkey PRIMARY KEY (id)'
 
-
-#    execute 'ALTER TABLE acao.aircraft_types DROP CONSTRAINT aircraft_types_pkey CASCADE'
-#    rename_column 'acao.aircraft_types', 'id', 'id_old'
-#    rename_column 'acao.aircraft_types', 'uuid', 'id'
-#    add_index 'acao.aircraft_types', :id_old
-#    execute 'ALTER TABLE acao.aircraft_types ADD CONSTRAINT aircraft_types_pkey PRIMARY KEY (id)'
-#
-##    execute 'ALTER TABLE acao.aircrafts DROP CONSTRAINT aircrafts_pkey CASCADE'
-##    rename_column 'acao.aircrafts', 'id', 'id_old'
-##    rename_column 'acao.aircrafts', 'uuid', 'id'
-##    add_index 'acao.aircrafts', :id_old
-##    execute 'ALTER TABLE acao.aircrafts ADD CONSTRAINT aircrafts_pkey PRIMARY KEY (id)'
+#    execute 'ALTER TABLE acao.aircrafts DROP CONSTRAINT aircrafts_pkey CASCADE'
+#    rename_column 'acao.aircrafts', 'id', 'id_old'
+#    rename_column 'acao.aircrafts', 'uuid', 'id'
+#    add_index 'acao.aircrafts', :id_old
+#    execute 'ALTER TABLE acao.aircrafts ADD CONSTRAINT aircrafts_pkey PRIMARY KEY (id)'
     fk_to_uuid('acao.aircrafts', 'owner_id', 'core.people')
     fk_to_uuid('acao.aircrafts', 'aircraft_type_id', 'acao.aircraft_types')
-return
 
     execute 'ALTER TABLE acao.airfields DROP CONSTRAINT airfields_pkey CASCADE'
     rename_column 'acao.airfields', 'id', 'id_old'
