@@ -32,6 +32,6 @@ production:
 development:
   adapter: postgresql
   encoding: unicode
-  database: acao
+  database: acao_dev
   username:
   password:
