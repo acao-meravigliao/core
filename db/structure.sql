@@ -1205,6 +1205,18 @@ ALTER SEQUENCE acao.acao_years_id_seq OWNED BY acao.years.id_old;
 
 
 --
+-- Name: airfield_circuits; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.airfield_circuits (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    airfield_id uuid NOT NULL,
+    name character varying(64) NOT NULL,
+    data text NOT NULL
+);
+
+
+--
 -- Name: bar_menu_entries; Type: TABLE; Schema: acao; Owner: -
 --
 
@@ -5685,6 +5697,14 @@ ALTER TABLE ONLY acao.aircrafts
 
 
 --
+-- Name: airfield_circuits airfield_circuits_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.airfield_circuits
+    ADD CONSTRAINT airfield_circuits_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: airfields airfields_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -9743,6 +9763,14 @@ ALTER TABLE ONLY acao.bar_transactions
 
 
 --
+-- Name: airfield_circuits fk_rails_ccc65d421a; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.airfield_circuits
+    ADD CONSTRAINT fk_rails_ccc65d421a FOREIGN KEY (airfield_id) REFERENCES acao.airfields(id);
+
+
+--
 -- Name: payment_services fk_rails_d1da4cc328; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -10424,6 +10452,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20201212222909'),
 ('20210328183142'),
 ('20210328192304'),
-('20210328235158');
+('20210328235158'),
+('20210329174846');
 
 
