@@ -219,7 +219,7 @@ GEM
     erubi (1.10.0)
     ffi (1.15.0)
     geocoder (1.6.6)
-    hel_together (1.6.0)
+    hel_together (1.5.2)
       rack (>= 1.5.2)
       ygg_agent (~> 2.9)
     hooks (0.4.1)
@@ -368,7 +368,7 @@ DEPENDENCIES
   core_models!
   geocoder
   hel!
-  hel_together (~> 1.3)
+  hel_together (~> 1.5.2)
   i18n_hel!
   i18n_models!
   json_exceptions!
