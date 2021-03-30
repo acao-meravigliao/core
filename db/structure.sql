@@ -186,10 +186,11 @@ CREATE TABLE acao.airfields (
     id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     name character varying NOT NULL,
-    location_id integer NOT NULL,
+    location_id_old integer,
     radius integer NOT NULL,
     icao_code character(4),
-    symbol character varying(16)
+    symbol character varying(16),
+    location_id uuid NOT NULL
 );
 
 
@@ -1292,7 +1293,7 @@ CREATE TABLE acao.invoice_details (
 CREATE TABLE acao.invoices (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     identifier character varying(16) DEFAULT NULL::character varying,
-    person_id integer NOT NULL,
+    person_id_old integer,
     first_name character varying(255) DEFAULT NULL::character varying,
     last_name character varying(255) DEFAULT NULL::character varying,
     address character varying(255) DEFAULT NULL::character varying,
@@ -1304,7 +1305,8 @@ CREATE TABLE acao.invoices (
     state character varying DEFAULT 'NEW'::character varying NOT NULL,
     payment_state character varying DEFAULT 'UNPAID'::character varying NOT NULL,
     onda_export_filename character varying,
-    onda_no_reg boolean DEFAULT false NOT NULL
+    onda_no_reg boolean DEFAULT false NOT NULL,
+    person_id uuid NOT NULL
 );
 
 
@@ -6890,6 +6892,20 @@ CREATE INDEX acao_trailers_aircraft_id_idx ON acao.trailers USING btree (aircraf
 
 
 --
+-- Name: index_acao.airfields_on_location_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX "index_acao.airfields_on_location_id" ON acao.airfields USING btree (location_id);
+
+
+--
+-- Name: index_acao.invoices_on_person_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX "index_acao.invoices_on_person_id" ON acao.invoices USING btree (person_id);
+
+
+--
 -- Name: index_acao_person_services_on_uuid; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -6978,13 +6994,6 @@ CREATE INDEX index_aircrafts_on_registration ON acao.aircrafts USING btree (regi
 --
 
 CREATE INDEX index_airfields_on_id_old ON acao.airfields USING btree (id_old);
-
-
---
--- Name: index_airfields_on_location_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_airfields_on_location_id ON acao.airfields USING btree (location_id);
 
 
 --
@@ -7153,13 +7162,6 @@ CREATE INDEX index_invoice_details_on_service_type_id ON acao.invoice_details US
 --
 
 CREATE UNIQUE INDEX index_invoices_on_identifier ON acao.invoices USING btree (identifier);
-
-
---
--- Name: index_invoices_on_person_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_invoices_on_person_id ON acao.invoices USING btree (person_id);
 
 
 --
@@ -9707,6 +9709,14 @@ ALTER TABLE ONLY acao.timetable_entries
 
 
 --
+-- Name: airfields fk_rails_b744cff7d3; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.airfields
+    ADD CONSTRAINT fk_rails_b744cff7d3 FOREIGN KEY (location_id) REFERENCES core.locations(id);
+
+
+--
 -- Name: timetable_entries fk_rails_bb5f091f7a; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -9776,6 +9786,14 @@ ALTER TABLE ONLY acao.airfield_circuits
 
 ALTER TABLE ONLY acao.payment_services
     ADD CONSTRAINT fk_rails_d1da4cc328 FOREIGN KEY (service_type_id) REFERENCES acao.service_types(id);
+
+
+--
+-- Name: invoices fk_rails_d35bec14bb; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.invoices
+    ADD CONSTRAINT fk_rails_d35bec14bb FOREIGN KEY (person_id) REFERENCES core.people(id);
 
 
 --
@@ -10454,6 +10472,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210328192304'),
 ('20210328235158'),
 ('20210329174846'),
-('20210329231036');
+('20210329231036'),
+('20210329235808'),
+('20210330120030');
 
 
