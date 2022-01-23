@@ -64,24 +64,28 @@ Rails.application.configure do
   config.ml.sms_redirect_to = '+393474659309'
   config.ml.sms_skebby_debug = 0
 
-  config.amqp_ws_gw.allowed_request_origins = [
-    'https://linobis.acao.it',
-  ]
+  if config.respond_to?(:amqp_ws_gw)
+    config.amqp_ws_gw.allowed_request_origins = [
+      'https://linobis.acao.it',
+      'http://linobis.acao.it:4200',
+      'https://dashboard-linobis.acao.it',
+    ]
 
-  config.amqp_ws_gw.routes.merge!({
-    'ygg.glideradar.processed_traffic': {
-      type: :topic,
-      durable: true,
-      auto_delete: false,
-      anonymous_access: true,
-    },
-    'ygg.glideradar.processed_traffic.linobis': {
-      type: :topic,
-      durable: true,
-      auto_delete: false,
-      anonymous_access: true,
-    },
-  })
+    config.amqp_ws_gw.routes.merge!({
+      'ygg.glideradar.processed_traffic': {
+        type: :topic,
+        durable: true,
+        auto_delete: false,
+        anonymous_access: true,
+      },
+      'ygg.glideradar.processed_traffic.linobis': {
+        type: :topic,
+        durable: true,
+        auto_delete: false,
+        anonymous_access: true,
+      },
+    })
+  end
 
   config.acao.soci_ml_dry_run = true
 end
