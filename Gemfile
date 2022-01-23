@@ -18,6 +18,7 @@ gem 'puma-plugin-systemd'
 
 gem 'pry'
 gem 'pry-rails'
+gem 'rb-readline'
 gem 'amazing_print'
 gem 'geocoder'
 gem 'net-ldap'
@@ -55,6 +56,7 @@ group :hel_together do
   gem 'nisse_hel', path: '../yggdra/plugins/nisse_hel'
   gem 'core_heltog', path: '../yggdra/plugins/core_heltog'
   gem 'ml_heltog', path: '../yggdra/plugins/ml_heltog'
+  #gem 'acao_heltog', path: 'plugins/acao_heltog'
 end
 
 group :controllers do
@@ -63,7 +65,7 @@ group :controllers do
   gem 'i18n_hel', path: '../yggdra/plugins/i18n_hel'
   gem 'ml_hel', path: '../yggdra/plugins/ml_hel'
   gem 'ca_hel', path: '../yggdra/plugins/ca_hel'
-  gem 'acao_hel', path: '../acao-plugins/acao_hel'
+  #gem 'acao_hel', path: 'plugins/acao_hel'
   gem 'trk_hel', path: '../acao-plugins/trk_hel'
   gem 'streaming_hel', path: '../yggdra/plugins/streaming_hel'
   gem 'amqp_ws_gw', path: '../yggdra/plugins/amqp_ws_gw'
@@ -73,9 +75,9 @@ gem 'core_models', path: '../yggdra/plugins/core_models'
 gem 'i18n_models', path: '../yggdra/plugins/i18n_models'
 gem 'ml_models', path: '../yggdra/plugins/ml_models'
 gem 'ca_models', path: '../yggdra/plugins/ca_models'
-gem 'acao_maindb_models', path: '../acao-plugins/acao_maindb_models'
-gem 'acao_onda_models', path: '../acao-plugins/acao_onda_models'
-gem 'acao_models', path: '../acao-plugins/acao_models'
+#gem 'acao_maindb_models', path: '../acao-plugins/acao_maindb_models'
+#gem 'acao_onda_models', path: '../acao-plugins/acao_onda_models'
+#gem 'acao_models', path: '../acao-plugins/acao_models'
 gem 'trk_models', path: '../acao-plugins/trk_models'
 gem 'streaming_models', path: '../yggdra/plugins/streaming_models'
 

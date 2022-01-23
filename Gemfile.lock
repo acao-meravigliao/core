@@ -37,6 +37,7 @@ PATH
     amqp_ws_gw (1.0.0)
       am-amqp (~> 2.0)
       am-ws
+      ygg-diffable
 
 PATH
   remote: ../yggdra/plugins/ca_hel
@@ -128,128 +129,134 @@ PATH
   specs:
     streaming_models (1.0.0)
 
+PATH
+  remote: plugins/acao_heltog
+  specs:
+    acao_heltog (1.0.0)
+
 GEM
   remote: https://rubygems.org/
   remote: https://gems.sevio.it/
   specs:
-    actionpack (6.0.3.6)
-      actionview (= 6.0.3.6)
-      activesupport (= 6.0.3.6)
+    actionpack (6.0.4.4)
+      actionview (= 6.0.4.4)
+      activesupport (= 6.0.4.4)
       rack (~> 2.0, >= 2.0.8)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.2.0)
-    actionview (6.0.3.6)
-      activesupport (= 6.0.3.6)
+    actionview (6.0.4.4)
+      activesupport (= 6.0.4.4)
       builder (~> 3.1)
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.1, >= 1.2.0)
-    active_rest (10.0.26)
+    active_rest (10.0.27)
       activerecord
       rubytree
       ygg-exception
-    activemodel (6.0.3.6)
-      activesupport (= 6.0.3.6)
-    activerecord (6.0.3.6)
-      activemodel (= 6.0.3.6)
-      activesupport (= 6.0.3.6)
-    activerecord-sqlserver-adapter (6.0.1)
+    activemodel (6.0.4.4)
+      activesupport (= 6.0.4.4)
+    activerecord (6.0.4.4)
+      activemodel (= 6.0.4.4)
+      activesupport (= 6.0.4.4)
+    activerecord-sqlserver-adapter (6.0.2)
       activerecord (~> 6.0.0)
       tiny_tds
-    activesupport (6.0.3.6)
+    activesupport (6.0.4.4)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
       zeitwerk (~> 2.2, >= 2.2.2)
-    actor_model (1.14.3)
+    actor_model (1.25.0)
       activesupport
       sleepy_penguin
       ygg-exception
-    address_selector (1.0.3)
-      actor_model
-    addressable (2.7.0)
+    addressable (2.8.0)
       public_suffix (>= 2.0.2, < 5.0)
     aes_key_wrap (1.1.0)
-    airbrake (11.0.1)
-      airbrake-ruby (~> 5.1)
-    airbrake-ruby (5.2.0)
+    airbrake (13.0.0)
+      airbrake-ruby (~> 6.0)
+    airbrake-ruby (6.0.2)
       rbtree3 (~> 0.5)
-    am-amqp (2.1.6)
+    am-amqp (2.3.3)
       actor_model
-      am-sockets (~> 0.9)
+      am-sockets (~> 0.17)
       amazing_print
       rubynary
-    am-http (0.19.5)
+    am-http (0.29.3)
       actor_model (~> 1.6)
-      address_selector (~> 1.0)
       addressable
-      am-sockets (~> 0.9)
+      am-sockets (~> 0.17)
       sqlite3
-      vihai_io_buffer
     am-io-buffer (0.4.0)
     am-satispay (0.1.0)
       activesupport
       am-http (~> 0.7)
-    am-smtp (1.5.0)
+    am-smtp (1.8.0)
       actor_model (~> 1.6)
-      am-sockets (~> 0.5)
-    am-sockets (0.11.2)
-      actor_model
-      address_selector (~> 1.0)
       am-io-buffer
+      am-sockets (~> 0.17)
+    am-sockets (0.20.4)
+      actor_model
+      am-io-buffer
+      netbin
       ygg-exception
-    am-ws (0.2.1)
+      ynetaddr
+    am-ws (1.6.0)
       actor_model (~> 1.6)
       am-http
       am-io-buffer
-      am-sockets (~> 0.9)
-    amazing_print (1.3.0)
-    bigdecimal (3.0.0)
-    bindata (2.4.8)
+      am-sockets (>= 0.18)
+    amazing_print (1.4.0)
+    bigdecimal (3.1.2)
+    bindata (2.4.10)
     builder (3.2.4)
     byebug (11.1.3)
     coderay (1.1.3)
     colorize (0.8.1)
-    concurrent-ruby (1.1.8)
+    concurrent-ruby (1.1.9)
     crass (1.0.6)
-    deep_open_struct (2.0.1)
-    dkim (1.0.1)
+    deep_open_struct (2.0.2)
+    dkim (1.1.0)
     erubi (1.10.0)
-    ffi (1.15.0)
-    geocoder (1.6.6)
+    ffi (1.15.5)
+    geocoder (1.7.3)
     hel_together (1.5.2)
       rack (>= 1.5.2)
       ygg_agent (~> 2.9)
     hooks (0.4.1)
       uber (~> 0.0.14)
-    i18n (1.8.9)
+    i18n (1.8.11)
       concurrent-ruby (~> 1.0)
-    json (2.5.1)
+    json (2.6.1)
     json-jwt (1.13.0)
       activesupport (>= 4.2)
       aes_key_wrap
       bindata
     json_exceptions (0.0.3)
       ygg-exception
-    loofah (2.9.0)
+    loofah (2.13.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mail (2.7.1)
       mini_mime (>= 0.1.1)
     method_source (1.0.0)
-    mini_mime (1.0.3)
-    mini_portile2 (2.5.0)
-    minitest (5.14.4)
+    mini_mime (1.1.2)
+    mini_portile2 (2.7.1)
+    minitest (5.15.0)
     net-ldap (0.17.0)
-    nio4r (2.5.7)
-    nokogiri (1.11.2)
-      mini_portile2 (~> 2.5.0)
+    netbin (0.5.0)
+      rubynary
+      ynetaddr
+    nio4r (2.5.8)
+    nokogiri (1.13.1)
+      mini_portile2 (~> 2.7.0)
       racc (~> 1.4)
     pdf-core (0.9.0)
     pg (1.2.3)
-    pg_search (2.3.5)
+    pg_search (2.3.6)
       activerecord (>= 5.2)
       activesupport (>= 5.2)
     phone (1.2.3)
@@ -258,25 +265,23 @@ GEM
       ttfunk (~> 1.7)
     prawn-table (0.2.2)
       prawn (>= 1.3.0, < 3.0.0)
-    pry (0.14.0)
+    pry (0.14.1)
       coderay (~> 1.1)
       method_source (~> 1.0)
-    pry-rails (0.3.9)
-      pry (>= 0.10.4)
     public_suffix (4.0.6)
-    puma (4.3.7)
+    puma (4.3.10)
       nio4r (~> 2.0)
     puma-plugin-systemd (0.1.5)
       json
       puma (>= 3.6, < 5)
-    racc (1.5.2)
+    racc (1.6.0)
     rack (2.2.3)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
     rails-dom-testing (2.0.3)
       activesupport (>= 4.2.0)
       nokogiri (>= 1.6)
-    rails-html-sanitizer (1.3.0)
+    rails-html-sanitizer (1.4.2)
       loofah (~> 2.3)
     rails_active_rest (1.0.9)
       active_rest
@@ -286,18 +291,18 @@ GEM
       colorize
     rails_amqp (1.0.5)
       am-amqp (~> 2.0)
-    railties (6.0.3.6)
-      actionpack (= 6.0.3.6)
-      activesupport (= 6.0.3.6)
+    railties (6.0.4.4)
+      actionpack (= 6.0.4.4)
+      activesupport (= 6.0.4.4)
       method_source
       rake (>= 0.8.7)
       thor (>= 0.20.3, < 2.0)
-    rake (13.0.3)
-    rbtree3 (0.6.0)
-    roxml (4.1.1)
+    rake (13.0.6)
+    rbtree3 (0.7.0)
+    roxml (4.2.0)
       activesupport (>= 4.0)
       nokogiri (>= 1.3.3)
-    rubynary (0.4.1)
+    rubynary (0.8.6)
       activesupport
       bigdecimal
       json
@@ -305,47 +310,52 @@ GEM
       json
       structured_warnings (~> 0.2)
     sleepy_penguin (3.5.2)
-    spring (2.1.1)
+    spring (4.0.0)
     sqlite3 (1.4.2)
     structured_warnings (0.4.0)
-    thor (1.1.0)
+    thor (1.2.1)
     thread_safe (0.3.6)
-    tiny_tds (2.1.3)
+    tiny_tds (2.1.5)
     ttfunk (1.7.0)
     tzinfo (1.2.9)
       thread_safe (~> 0.1)
     uber (0.0.15)
     unindent (1.0)
     uuidtools (2.2.0)
-    vihai-password (2.0.0)
+    vihai-password (2.1.0)
       ffi
     vihai-password-rails (1.0.1)
       vihai-password
-    vihai_io_buffer (0.3.0)
-    ygg-exception (0.0.21)
-    ygg_agent (2.12.1)
+    ygg-diffable (0.5.2)
+      activesupport
+      bigdecimal
+      json
+    ygg-exception (0.4.0)
+    ygg_agent (2.12.2)
       activesupport
       am-amqp (~> 2.0)
       ygg-exception (~> 0.0)
       ygg_app (~> 1.7)
-    ygg_app (1.8.39)
+    ygg_app (1.11.0)
       actor_model
       airbrake-ruby
+      am-io-buffer
       amazing_print
       colorize (>= 0.7.3)
       deep_open_struct
       ffi (>= 1.9.0)
       pry
       unindent
-      vihai_io_buffer
       ygg-exception
-    zeitwerk (2.4.2)
+    ynetaddr (1.17.0)
+    zeitwerk (2.5.3)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   acao_hel!
+  acao_heltog!
   acao_maindb_models!
   acao_models!
   acao_onda_models!
@@ -382,8 +392,6 @@ DEPENDENCIES
   phone
   prawn
   prawn-table
-  pry
-  pry-rails
   puma
   puma-plugin-systemd
   rails_active_rest (~> 1.0)!
