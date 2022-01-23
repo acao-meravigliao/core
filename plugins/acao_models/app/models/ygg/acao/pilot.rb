@@ -154,7 +154,7 @@ class Pilot < Ygg::Core::Person
       needed[:high_season] = 0
       needed[:reason] = ''
     elsif acao_is_board_member
-      needed[:total] = 1
+      needed[:total] = 0
       needed[:high_season] = 0
       needed[:reason] = 'Membro del consiglio'
     elsif acao_is_tug_pilot
@@ -221,7 +221,7 @@ class Pilot < Ygg::Core::Person
 
     transaction do
       act = active_members.to_a
-      act << Ygg::Core::Person.find_by(acao_code: 7009) # Special entry for Daniela
+      act << Ygg::Core::Person.find_by(acao_code: 7002) # Special entry for Daniela
       act << Ygg::Core::Person.find_by(acao_code: 7020) # Special entry for Annalisa
       act << Ygg::Core::Person.find_by(acao_code: 554) # Special entry for Fabio
       act << Ygg::Core::Person.find_by(acao_code: 7006) # Special entry for Ale
@@ -230,7 +230,7 @@ class Pilot < Ygg::Core::Person
       sync_ml!(symbol: 'ACTIVE_MEMBERS', members: act.compact.uniq)
 
       vot = voting_members.to_a
-      vot << Ygg::Core::Person.find_by(acao_code: 7009)
+      vot << Ygg::Core::Person.find_by(acao_code: 7002)
 
       sync_ml!(symbol: 'VOTING_MEMBERS', members: vot.compact.uniq)
 
@@ -241,7 +241,7 @@ class Pilot < Ygg::Core::Person
     end
 
     transaction do
-      sync_mailman!(list_name: 'soci', symbol: 'VOTING_MEMBERS')
+      sync_mailman!(list_name: 'soci', symbol: 'ACTIVE_MEMBERS')
 #      sync_mailman!(list_name: 'allievi', symbol: 'STUDENTS')
       sync_mailman!(list_name: 'istruttori', symbol: 'INSTRUCTORS')
 #      sync_mailman!(list_name: 'consiglio', symbol: 'BOARD_MEMBERS')
