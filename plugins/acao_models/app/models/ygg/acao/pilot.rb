@@ -95,12 +95,11 @@ class Pilot < Ygg::Core::Person
     'Ygg::Core::Person'
   end
 
-  def self.active_members(time: Time.now)
+  def self.active_members(time: Time.now, grace_period: 31.days)
     members = Ygg::Acao::Pilot.
                 where.not('acao_sleeping').
                 where('EXISTS (SELECT * FROM acao.memberships WHERE acao.memberships.person_id=core.people.id ' +
-                        'AND ? BETWEEN acao.memberships.valid_from AND acao.memberships.valid_to)', time)
-
+                        'AND ? BETWEEN acao.memberships.valid_from AND (acao.memberships.valid_to + (? || \' seconds\')::interval))', time, grace_period)
     members
   end
 
@@ -1025,7 +1024,7 @@ class Pilot < Ygg::Core::Person
   end
 
   def self.voting_members(time: Time.now)
-    active_members.where('birth_date < ?', time.to_date - 18.years)
+    active_members(time: time, grace_period: 0).where('birth_date < ?', time.to_date - 18.years)
   end
 
   def self.students
