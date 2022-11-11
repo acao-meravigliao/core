@@ -56,7 +56,7 @@ class RosterDay < Ygg::PublicModel
     transaction do
       while day.year == year do
 
-        high_season = day.between?(Time.new(day.year, 3, 15).beginning_of_day, Time.new(day.year, 6, 30).end_of_day)
+        high_season = day.between?(Time.new(day.year, 3, 1).beginning_of_day, Time.new(day.year, 7, 7).end_of_day)
 
         if high_season
           needed_people = 4
