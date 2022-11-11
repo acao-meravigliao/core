@@ -31,6 +31,9 @@ module AcaoCore
     config.add_autoload_paths_to_load_path = false
     config.active_record.schema_format = :sql
 
+    # Breaks ActiveRecord::TimeWithZone deserialization
+    config.active_record.use_yaml_unsafe_load = true
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
