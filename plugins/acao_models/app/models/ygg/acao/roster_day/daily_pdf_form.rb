@@ -46,7 +46,8 @@ class DailyPdfForm < Prawn::Document
       indent(5) do
         pad(5) do
           @day.roster_entries.each do |entry|
-            text "<font size=\"14\">#{entry.person.name}</font>, #{entry.person.acao_code}#{entry.chief ? ', Capolinea' : ', Aiuto'}", inline_format: true
+            ##### #{entry.chief ? ', Capolinea' : ', Aiuto'}
+            text "<font size=\"14\">#{entry.person.name}</font>, #{entry.person.acao_code}", inline_format: true
           end
         end
       end
