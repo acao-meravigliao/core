@@ -73,10 +73,15 @@ class RosterEntry::RestController < Ygg::Hel::RestController
   end
 
   def ar_apply_filter(rel, filter)
-    if filter['today']
+    if filter && filter['today']
       (attr, path) = rel.nested_attribute('roster_day.date')
       rel = rel.joins(path[0..-1].reverse.inject { |a,x| { x => a } }) if path.any?
       rel = rel.where(attr.eq(Time.now))
+    elsif filter && filter[:year]
+      year = Time.new(filter.delete(:year))
+      (attr, path) = rel.nested_attribute('roster_day.date')
+      rel = rel.joins(path[0..-1].reverse.inject { |a,x| { x => a } }) if path.any?
+      rel = rel.where(attr.between(year.beginning_of_year..year.end_of_year))
     else
       rel = rel.where(filter)
     end
@@ -113,6 +118,25 @@ class RosterEntry::RestController < Ygg::Hel::RestController
     end
 
     ar_respond_with(res)
+  end
+
+  # Request:
+  # - person (implicit in aaa_context)
+  # - year
+  # - with_cav
+  #
+  # Response:
+  # - needed_entries_high_season
+  # - needed_entries_low_season
+  #
+  def get_policy
+    person = aaa_context.auth_person.becomes(Ygg::Acao::Pilot)
+
+# TODO implement with_cav
+
+    year = Ygg::Acao::Year.find_by!(year: json_request[:year])
+
+    ar_respond_with(person.roster_entries_needed(year: year.year, with_cav: json_request[:with_cav]))
   end
 
   def offer
