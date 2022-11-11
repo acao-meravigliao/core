@@ -83,6 +83,7 @@ Rails.application.routes.draw do
       hel_resources :roster_entries, controller: 'roster_entry/rest' do
         collection do
           get 'status' => :get_status
+          post 'get_policy' => :get_policy
         end
 
         member do
