@@ -132,7 +132,7 @@ class Pilot < Ygg::Core::Person
 
   # Implementazione dei criteri che stabiliscono il numero di turni di linea da fare
   #
-  def roster_entries_needed(year: Time.now.year)
+  def roster_entries_needed(year: Time.now.year, with_cav: true)
     ym = Ygg::Acao::Year.find_by!(year: year)
 
     needed = {
@@ -140,26 +140,30 @@ class Pilot < Ygg::Core::Person
       high_season: 1,
     }
 
-    if birth_date && compute_completed_years(birth_date, ym.renew_opening_time) >= 65
+    if !with_cav
       needed[:total] = 0
       needed[:high_season] = 0
-      needed[:reason] = 'Età maggiore di 65 anni'
+      needed[:reason] = 'cav_not_paid'
+    elsif birth_date && compute_completed_years(birth_date, ym.renew_opening_time) >= 65
+      needed[:total] = 0
+      needed[:high_season] = 0
+      needed[:reason] = 'older_than_65'
     elsif acao_is_instructor
       needed[:total] = 0
       needed[:high_season] = 0
-      needed[:reason] = 'Istruttore'
+      needed[:reason] = 'instructor'
     elsif acao_has_disability
       needed[:total] = 0
       needed[:high_season] = 0
-      needed[:reason] = ''
+      needed[:reason] = 'has_disability'
     elsif acao_is_board_member
       needed[:total] = 0
       needed[:high_season] = 0
-      needed[:reason] = 'Membro del consiglio'
+      needed[:reason] = 'board_member'
     elsif acao_is_tug_pilot
       needed[:total] = 1
       needed[:high_season] = 0
-      needed[:reason] = 'Trainatore'
+      needed[:reason] = 'tow_pilot'
     end
 
     needed
@@ -225,6 +229,7 @@ class Pilot < Ygg::Core::Person
       act << Ygg::Core::Person.find_by(acao_code: 554) # Special entry for Fabio
       act << Ygg::Core::Person.find_by(acao_code: 7006) # Special entry for Ale
       act << Ygg::Core::Person.find_by(acao_code: 7017) # Special entry for Matteo Negri
+      act << Ygg::Core::Person.find_by(acao_code: 7016) # Special entry for Alessandro
 
       sync_ml!(symbol: 'ACTIVE_MEMBERS', members: act.compact.uniq)
 
@@ -526,38 +531,112 @@ class Pilot < Ygg::Core::Person
   def self.sync_to_acao_for_wp!(relation: active_members)
     data = ''
 
-    IO::popen([ '/usr/bin/ssh', '-i', '/var/lib/yggdra/lino', 'lino@iserver.acao.it', '/usr/local/bin/wp', '--skip-plugins', '--path=/srv/hosting/links/acao.it/htdocs',
-                'user', 'import-csv', '-' ], 'r+') do |io|
-
-      io.write("user_login,user_email,display_name,user_pass,first_name,last_name\n")
-
-      relation.each do |m|
-        user = [
-          m.acao_code.to_s,
-          m.acao_code.to_s + '@acao.it',
-          #m.contacts.where(type: 'email').any? ? m.contacts.where(type: 'email').first.value : '',
-          m.name,
-          m.credentials.where('fqda LIKE \'%@cp.acao.it\'').first.password,
-          m.first_name,
-          m.last_name,
-        ]
-
-        io.write(user.join(',') + "\n")
-      end
-
-      io.close_write
-
-      data = io.read
-      io.close
-
-      if !$?.success?
-        raise "Cannot update wordpress users: #{data}"
-      end
+    IO::popen([
+      '/usr/bin/ssh',
+        '-i', '/var/lib/yggdra/lino',
+        'lino@w1.acao.it',
+        'php', '/srv/hosting/links/acao.it/wp-cli.phar',
+          '--skip-plugins',
+          '--path=/srv/hosting/links/acao.it/htdocs',
+          'user', 'list', '--format=json' ], 'r+') do |io|
+      data = JSON.parse(io.read, symbolize_names: true)
     end
 
-    data
+    # Roles for which we are authoritative
+    auth_roles = [ 'socio', 'trainatore', 'allievo' ]
+
+    updates = []
+
+    l_records = relation.sort_by { |x| x.acao_code.to_s }
+    r_records = data.select { |x| x[:roles].split(',').include?('socio') }.sort_by { |x| x[:user_login] }
+
+    merge(l: l_records, r: r_records,
+    l_cmp_r: lambda { |l,r| l.acao_code.to_s <=> r[:user_login] },
+    l_to_r: lambda { |l|
+      puts "CREATE: #{l.acao_code}"
+
+      updates << [
+        l.acao_code.to_s,
+        l.contacts.where(type: 'email').any? ? l.contacts.where(type: 'email').first.value : '',
+        l.credentials.where('fqda LIKE \'%@cp.acao.it\'').first.password,
+        l.first_name,
+        l.last_name,
+        l.name,
+        sync_to_acao_for_wp_roles(l).join(','),
+        l.acao_code.to_s,
+      ]
+    },
+    r_to_l: lambda { |r|
+      puts "REMOVE: #{r[:user_login]}"
+    },
+    lr_update: lambda { |l,r|
+      puts "UPDATE #{l.acao_code}"
+
+      # All current roles
+      r_roles = r[:roles].split(',').sort
+
+      # Current roles for which we are authoritative
+      r_our_roles = r_roles & auth_roles
+
+      roles = sync_to_acao_for_wp_roles(l)
+
+      new_roles = ((r_roles - auth_roles) + roles).sort
+
+      puts "Current Roles = #{r_roles}"
+      puts "Our current roles = #{r_our_roles}"
+      puts "Our target roles = #{roles}"
+      puts "Roles to update = #{new_roles}"
+
+      if new_roles != r_roles
+        puts "Roles are going to be updated"
+      end
+
+      updates << [
+        l.acao_code.to_s,
+        l.contacts.where(type: 'email').any? ? l.contacts.where(type: 'email').first.value : '',
+        l.credentials.where('fqda LIKE \'%@cp.acao.it\'').first.password,
+        l.first_name,
+        l.last_name,
+        l.name,
+        new_roles.join(','),
+        l.acao_code.to_s,
+      ]
+    })
+
+    if updates.any?
+      csv = CSV.generate do |csv|
+        csv << [ 'user_login','user_email','user_pass','first_name','last_name','display_name','roles','codice_socio' ]
+        updates.each { |x| csv << x }
+      end
+
+      IO::popen([
+        '/usr/bin/ssh',
+          '-i', '/var/lib/yggdra/lino',
+          'lino@w1.acao.it',
+          'php', '/srv/hosting/links/acao.it/wp-cli.phar',
+            '--skip-plugins',
+            '--path=/srv/hosting/links/acao.it/htdocs',
+            'user', 'import-csv', '-' ], 'r+') do |io|
+        io.write(csv)
+        io.close_write
+
+        data = io.read
+        io.close
+
+        if !$?.success?
+          raise "Cannot update wordpress users: #{data}"
+        end
+      end
+    end
   end
 
+  def self.sync_to_acao_for_wp_roles(pilot)
+    roles = [ 'socio' ]
+    roles << 'trainatore' if pilot.acao_is_tug_pilot
+    roles << 'allievo' if pilot.acao_is_student
+
+    roles
+  end
 
   ############ Old Database Synchronization
 

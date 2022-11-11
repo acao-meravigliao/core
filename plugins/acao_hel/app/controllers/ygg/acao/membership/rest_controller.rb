@@ -120,6 +120,10 @@ class Membership::RestController < Ygg::Hel::RestController
   def renew_do
     membership = nil
 
+    puts "=========== Membership RENEW ================================================"
+    puts json_request
+    puts "============================================================================="
+
     hel_transaction('Membership renewal wizard') do
       membership = Ygg::Acao::Membership.renew(
         person: aaa_context.auth_person,
@@ -127,6 +131,7 @@ class Membership::RestController < Ygg::Hel::RestController
         enable_email: json_request[:enable_email],
         with_cav: json_request[:with_cav],
         services: json_request[:services],
+        selected_roster_days: json_request[:selected_roster_days],
       )
     end
 
