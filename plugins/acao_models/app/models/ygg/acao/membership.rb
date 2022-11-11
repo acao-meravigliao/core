@@ -161,7 +161,7 @@ class Membership < Ygg::PublicModel
     }
   end
 
-  def self.renew(person:, payment_method:, services:, enable_email:, with_cav:)
+  def self.renew(person:, payment_method:, services:, enable_email:, with_cav:, selected_roster_days:)
     payment = nil
 
     renewal_year = Ygg::Acao::Year.renewal_year
@@ -251,11 +251,23 @@ class Membership < Ygg::PublicModel
       )
     end
 
+    # Roster entries
+
+    raise "Unexpected duplicate day" if selected_roster_days.uniq != selected_roster_days
+
+    selected_roster_days.each do |day_id|
+      day = Ygg::Acao::RosterDay.find(day_id)
+
+      raise "Unexpected duplicate roster selection" if person.acao_roster_entries.any? { |x| x.roster_day == day }
+
+      person.acao_roster_entries.create(roster_day: day)
+    end
+
     # Done! -------------
 
     invoice.close!
     payment = invoice.generate_payment!(
-      reason: "rinnovo associazione, codice pilota #{person.acao_code}",
+      reason: "rinnovo associazione #{renewal_year.year}, codice pilota #{person.acao_code}",
       timeout: 10.days,
     )
     payment.save!
