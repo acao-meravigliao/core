@@ -57,6 +57,17 @@ Rails.application.configure do
       'http://linobis.acao.it:3332',
       'http://linobis.acao.it:4200',
       'http://linobis.acao.it:4201',
+      'http://dashboard-linobis.acao.it:3330',
+      'http://dashboard-linobis.acao.it:3331',
+      'http://dashboard-linobis.acao.it:3332',
+      'http://dashboard-linobis.acao.it:4200',
+      'http://dashboard-linobis.acao.it:4201',
+      'http://services-linobis.acao.it:3330',
+      'http://services-linobis.acao.it:3331',
+      'http://services-linobis.acao.it:3332',
+      'http://services-linobis.acao.it:4200',
+      'http://services-linobis.acao.it:4201',
+      'https://servizi-dev.acao.it',
     ]
 
     config.amqp_ws_gw.safe_receiver = true
