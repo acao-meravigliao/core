@@ -1218,6 +1218,25 @@ CREATE TABLE acao.airfield_circuits (
 
 
 --
+-- Name: autocam_camera_events; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.autocam_camera_events (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    event_type character varying(32) NOT NULL,
+    ts timestamp without time zone,
+    aircraft_id uuid,
+    name character varying,
+    flarm_id character varying(32),
+    data text NOT NULL,
+    lat double precision,
+    lng double precision,
+    alt double precision,
+    hgt double precision
+);
+
+
+--
 -- Name: bar_menu_entries; Type: TABLE; Schema: acao; Owner: -
 --
 
@@ -5712,6 +5731,14 @@ ALTER TABLE ONLY acao.airfield_circuits
 
 ALTER TABLE ONLY acao.airfields
     ADD CONSTRAINT airfields_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: autocam_camera_events autocam_camera_events_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.autocam_camera_events
+    ADD CONSTRAINT autocam_camera_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -10474,6 +10501,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210329174846'),
 ('20210329231036'),
 ('20210329235808'),
-('20210330120030');
+('20210330120030'),
+('20220123150235');
 
 
