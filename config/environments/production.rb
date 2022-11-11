@@ -69,6 +69,8 @@ Rails.application.configure do
     config.amqp_ws_gw.allowed_request_origins = [
       'https://lino.acao.it',
       'https://servizi.acao.it',
+      'https://servizi-lilc.acao.it',
+      'https://servizi-staging.acao.it',
       'https://pub.acao.it',
     ]
 
