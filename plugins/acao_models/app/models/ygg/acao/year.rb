@@ -25,6 +25,10 @@ class Year < Ygg::PublicModel
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 
+  has_many :memberships,
+           foreign_key: :reference_year_id,
+           class_name: 'Ygg::Acao::Membership'
+
   def self.renewal_year
     Ygg::Acao::Year.where('renew_opening_time < ?', Time.now).order(year: :desc).first
   end
