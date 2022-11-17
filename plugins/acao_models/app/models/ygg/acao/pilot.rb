@@ -609,6 +609,8 @@ class Pilot < Ygg::Core::Person
         updates.each { |x| csv << x }
       end
 
+      import_out = nil
+
       IO::popen([
         '/usr/bin/ssh',
           '-i', '/var/lib/yggdra/lino',
@@ -620,13 +622,15 @@ class Pilot < Ygg::Core::Person
         io.write(csv)
         io.close_write
 
-        data = io.read
+        import_out = io.read
         io.close
 
         if !$?.success?
           raise "Cannot update wordpress users: #{data}"
         end
       end
+
+      puts "OUT: #{import_out}"
     end
   end
 
