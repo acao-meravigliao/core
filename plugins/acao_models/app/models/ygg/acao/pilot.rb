@@ -95,10 +95,12 @@ class Pilot < Ygg::Core::Person
     'Ygg::Core::Person'
   end
 
+  def self.alive_pilots
+    Ygg::Acao::Pilot.where.not('acao_sleeping')
+  end
+
   def self.active_members(time: Time.now, grace_period: 31.days)
-    members = Ygg::Acao::Pilot.
-                where.not('acao_sleeping').
-                where('EXISTS (SELECT * FROM acao.memberships WHERE acao.memberships.person_id=core.people.id ' +
+    members = alive_pilots.where('EXISTS (SELECT * FROM acao.memberships WHERE acao.memberships.person_id=core.people.id ' +
                         'AND ? BETWEEN acao.memberships.valid_from AND (acao.memberships.valid_to + (? || \' seconds\')::interval))', time, grace_period)
     members
   end
@@ -528,7 +530,7 @@ class Pilot < Ygg::Core::Person
     end
   end
 
-  def self.sync_to_acao_for_wp!(relation: active_members)
+  def self.sync_to_acao_for_wp!(relation: alive_pilots)
     data = ''
 
     IO::popen([
@@ -543,12 +545,12 @@ class Pilot < Ygg::Core::Person
     end
 
     # Roles for which we are authoritative
-    auth_roles = [ 'socio', 'trainatore', 'allievo' ]
+    auth_roles = [ 'src_acao', 'socio', 'trainatore', 'allievo' ]
 
     updates = []
 
     l_records = relation.sort_by { |x| x.acao_code.to_s }
-    r_records = data.select { |x| x[:roles].split(',').include?('socio') }.sort_by { |x| x[:user_login] }
+    r_records = data.select { |x| x[:roles].split(',').include?('src_acao') }.sort_by { |x| x[:user_login] }
 
     merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| l.acao_code.to_s <=> r[:user_login] },
@@ -582,10 +584,10 @@ class Pilot < Ygg::Core::Person
 
       new_roles = ((r_roles - auth_roles) + roles).sort
 
-      puts "Current Roles = #{r_roles}"
-      puts "Our current roles = #{r_our_roles}"
-      puts "Our target roles = #{roles}"
-      puts "Roles to update = #{new_roles}"
+      #puts "Current Roles = #{r_roles}"
+      #puts "Our current roles = #{r_our_roles}"
+      #puts "Our target roles = #{roles}"
+      #puts "Roles to update = #{new_roles}"
 
       if new_roles != r_roles
         puts "Roles are going to be updated"
@@ -631,7 +633,8 @@ class Pilot < Ygg::Core::Person
   end
 
   def self.sync_to_acao_for_wp_roles(pilot)
-    roles = [ 'socio' ]
+    roles = [ 'src_acao' ]
+    roles << 'socio' if pilot.active?
     roles << 'trainatore' if pilot.acao_is_tug_pilot
     roles << 'allievo' if pilot.acao_is_student
 
