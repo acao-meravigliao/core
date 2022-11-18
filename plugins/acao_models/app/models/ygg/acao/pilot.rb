@@ -8,6 +8,7 @@
 
 require 'vihai_password_rails'
 
+require 'csv'
 
 module Ygg
 module Acao
