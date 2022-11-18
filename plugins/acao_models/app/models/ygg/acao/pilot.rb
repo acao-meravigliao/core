@@ -171,6 +171,10 @@ class Pilot < Ygg::Core::Person
     needed
   end
 
+  def active?(time: Time.now)
+    acao_memberships.any? { |x| time > x.valid_from && time < x.valid_to }
+  end
+
   # Verifica che i turni di linea necessari siano stati selezionati
   #
   def roster_needed_entries_present(year: Time.now.year)
