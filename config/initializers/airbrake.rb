@@ -16,6 +16,11 @@ Airbrake.configure do |c|
   c.project_id = 1
   c.project_key = '817b733052ab2266c9396d693aa4bfb2'
 
+  c.error_host = 'https://errbit.sevio.it'
+  c.apm_host = nil
+  c.remote_config = false
+  c.remote_config_host = nil#'https://errbit.airbrake.io'
+
   # Configures the root directory of your project. Expects a String or a
   # Pathname, which represents the path to your project. Providing this option
   # helps us to filter out repetitive data from backtrace frames and link to
