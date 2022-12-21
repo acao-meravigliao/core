@@ -3,6 +3,7 @@ Rails.application.routes.draw do
     namespace :acao do
       post 'password_recovery' => 'password_recovery#recover'
       get 'stats' => 'stats#all'
+      post 'wol' => 'wol#wake'
 
       hel_resources :flights, controller: 'flight/rest' do
       end

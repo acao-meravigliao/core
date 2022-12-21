@@ -49,6 +49,7 @@ source 'https://gems.sevio.it/' do
 
   gem 'am-smtp'
   gem 'am-satispay'
+  gem 'am-ssh'
 
   group :hel_together do
     #gem 'hel_together', '~> 1.5.2' # For rails 6.0
