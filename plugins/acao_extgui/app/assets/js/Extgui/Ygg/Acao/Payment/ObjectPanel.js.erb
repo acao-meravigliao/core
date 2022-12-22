@@ -1,0 +1,201 @@
+/*
+ * Copyright (C) 2017-2017, Daniele Orlandi
+ *
+ * Author:: Daniele Orlandi <daniele@orlandi.com>
+ *
+ * License:: You can redistribute it and/or modify it under the terms of the LICENSE file.
+ *
+ */
+
+Ext.define('Extgui.Ygg.Acao.Payment.ObjectPanel.CompleteWindow', {
+  extend: 'Ext.window.Window',
+  requires: [
+  ],
+  title: i18n('extgui.ygg.acao.payment.object_panel.complete_window.title'),
+  width: 500,
+  height: 250,
+  layout: 'fit',
+  items: [
+   {
+    xtype: 'extguiform',
+    layout: 'anchor',
+    padding: 10,
+    items: [
+     {
+      xtype: 'textfield',
+      labelWidth: 200,
+      i18nFieldLabel: 'extgui.ygg.acao.payment.object_panel.complete_window.receipt_code',
+      name: 'receipt_code',
+      anchor: '100%',
+     },
+     {
+      xtype: 'datetimefield',
+      labelWidth: 200,
+      fieldLabel: 'PAPAPAPPA',
+      i18nFieldLabel: 'extgui.ygg.acao.payment.object_panel.complete_window.wire_value_date',
+      name: 'wire_value_date',
+      anchor: '100%',
+     },
+     {
+      xtype: 'checkboxfield',
+      labelWidth: 200,
+      i18nFieldLabel: 'extgui.ygg.acao.payment.object_panel.complete_window.no_export',
+      name: 'no_export',
+     },
+     {
+      xtype: 'checkboxfield',
+      labelWidth: 200,
+      i18nFieldLabel: 'extgui.ygg.acao.payment.object_panel.complete_window.no_reg',
+      name: 'no_reg',
+     },
+    ],
+   },
+  ],
+
+ buttons: [
+   {
+    text: i18n('extgui.ygg.acao.payment.object_panel.complete_window.ok'),
+    name: 'ok',
+   },
+   {
+    text: i18n('extgui.ygg.acao.payment.object_panel.complete_window.cancel'),
+    name: 'cancel',
+   },
+  ],
+
+  initComponent: function() {
+    var me = this;
+
+    me.callParent(arguments);
+
+    me.down('button[name=cancel]').on('click', function() {
+      me.close();
+    });
+
+    me.down('button[name=ok]').on('click', function() {
+      me.fireEvent('okay', me.down('form').getValues());
+    });
+  },
+});
+
+Ext.define('Extgui.Ygg.Acao.Payment.ObjectPanel', {
+  extend: 'Extgui.object.panel.Base',
+  requires: [
+    'Extgui.Ygg.Acao.Plugin',
+    'Extgui.form.field.DecimalNumber',
+    'Extgui.form.field.DateTime',
+    'Extgui.Ygg.Acao.Payment',
+    'Extgui.Ygg.Core.Person.ReferenceField',
+    'Extgui.Ygg.Acao.Invoice.ReferenceField',
+  ],
+
+  extguiObject: 'Extgui.Ygg.Acao.Payment',
+
+  tabs: [
+   {
+    xtype: 'panel',
+    title: i18n('extgui.ygg.acao.payment.object_panel.object_tab'),
+    padding: 10,
+    layout: 'anchor',
+    items: [
+     {
+      xtype: 'acao_invoice',
+      name: 'invoice_id',
+     },
+     {
+      xtype: 'core_person',
+      name: 'person_id',
+     },
+     {
+      xtype: 'textfield',
+      name: 'identifier',
+     },
+     {
+      xtype: 'decimalnumberfield',
+      name: 'amount',
+      unit: '€',
+      minValue: 0,
+     },
+     {
+      xtype: 'textfield',
+      name: 'payment_method',
+     },
+     {
+      xtype: 'textfield',
+      name: 'reason_for_payment',
+      width: 500,
+     },
+     {
+      xtype: 'textfield',
+      name: 'state',
+     },
+     {
+      xtype: 'textfield',
+      name: 'receipt_code',
+     },
+     {
+      xtype: 'datetimefield',
+      name: 'created_at',
+     },
+     {
+      xtype: 'datetimefield',
+      name: 'expires_at',
+     },
+     {
+      xtype: 'datetimefield',
+      name: 'completed_at',
+     },
+     {
+      xtype: 'datetimefield',
+      name: 'wire_value_date',
+     },
+     {
+      xtype: 'textarea',
+      name: 'notes',
+      anchor: '100%',
+      height: 200,
+      maxWidth: 1000,
+      labelAlign: 'top',
+     },
+    ],
+   },
+  ],
+
+  actions: [
+   {
+    name: 'complete',
+    i18nText: 'ygg.acao.payment.completed',
+   },
+  ],
+
+  nav: [
+  ],
+
+  reports: [],
+
+  initComponent: function() {
+    var me = this;
+
+    me.callParent(arguments);
+
+    me.actionsToolbar.down('button[name=complete]').on('click', function() {
+      var w = Ext.create('Extgui.Ygg.Acao.Payment.ObjectPanel.CompleteWindow');
+
+      w.show();
+
+      w.on('okay', function(pars) {
+        me.setLoading('Requesting...');
+        Extgui.AjaxJson.request({
+          url: me.getRecord().helUri() + '/complete',
+          method: 'POST',
+          jsonData: pars,
+          callback: function() { me.setLoading(false); },
+          success: function(resp) {
+            w.close();
+          },
+          failure: Extgui.ExceptionWindow.ajaxFailure
+        });
+      });
+    });
+  },
+});

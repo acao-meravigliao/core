@@ -1,0 +1,141 @@
+/*
+ * Copyright (C) 2013-2017, Daniele Orlandi
+ *
+ * Author:: Daniele Orlandi <daniele@orlandi.com>
+ *
+ * License:: You can redistribute it and/or modify it under the terms of the LICENSE file.
+ *
+ */
+
+Ext.define('Extgui.Ygg.Acao.Aircraft.ObjectPanel', {
+  extend: 'Extgui.object.panel.Base',
+  requires: [
+    'Extgui.Ygg.Acao.Plugin',
+    'Extgui.Ygg.Acao.Aircraft',
+    'Extgui.Ygg.Acao.AircraftType.ReferenceField',
+    'Extgui.Ygg.Acao.Club.ReferenceField',
+    'Extgui.Ygg.Core.Person.ReferenceField',
+  ],
+
+//  title: 'Aircraft...',
+  extguiObject: 'Extgui.Ygg.Acao.Aircraft',
+//  imageSrc: '<%= image_path 'email/aircraft_64x64.png' %>',
+//  tabTitleTpl: '{registration}',
+//  panelTitleTpl: '<div class="name">Aircraft</div><div class="value">{registration}</div>',
+
+  tabs: [
+   {
+    xtype: 'panel',
+    title: i18n('extgui.sevio.device.object_panel.object_tab'),
+    padding: 10,
+    layout: 'anchor',
+    items: [
+     {
+      xtype: 'textfield',
+      name: 'registration',
+      cls: 'acao_aircraft_registration',
+      width: 200,
+     },
+     {
+      xtype: 'textfield',
+      name: 'race_registration',
+      cls: 'acao_aircraft_race_registration',
+      width: 160,
+     },
+     {
+      xtype: 'acao_aircraft_type',
+      name: 'aircraft_type_id',
+     },
+     {
+      xtype: 'core_person',
+      name: 'owner_id',
+     },
+     {
+      xtype: 'acao_club',
+      name: 'club_id',
+     },
+     {
+      xtype: 'acao_club',
+      name: 'club_owner_id',
+     },
+     {
+      xtype: 'textfield',
+      name: 'flarm_identifier',
+      maxLength: 6,
+      minLength: 6,
+      cls: 'acao_flarm_identifier',
+      width: 200,
+     },
+     {
+      xtype: 'textfield',
+      name: 'icao_identifier',
+      maxLength: 6,
+      minLength: 6,
+      cls: 'acao_flarm_identifier',
+      width: 200,
+     },
+     {
+      xtype: 'textfield',
+      name: 'serial_number',
+      width: 200,
+     },
+     {
+      xtype: 'checkboxfield',
+      name: 'hangar',
+     },
+     {
+      xtype: 'datetimefield',
+      name: 'arc_valid_to',
+     },
+     {
+      xtype: 'datetimefield',
+      name: 'insurance_valid_to',
+     },
+     {
+      xtype: 'checkboxfield',
+      name: 'is_towplane',
+     },
+     {
+      xtype: 'checkboxfield',
+      name: 'available',
+     },
+
+     {
+      xtype: 'textarea',
+      name: 'notes',
+      anchor: '100%',
+      height: 200,
+      maxWidth: 1000,
+      labelAlign: 'top',
+     },
+
+
+     {
+      xtype: 'textfield',
+      name: 'fn_owner_name',
+      acl: 'R',
+     },
+     {
+      xtype: 'textfield',
+      name: 'fn_home_airport',
+      acl: 'R',
+     },
+     {
+      xtype: 'textfield',
+      name: 'fn_type_name',
+      acl: 'R',
+     },
+     {
+      xtype: 'textfield',
+      name: 'fn_common_radio_frequency',
+      acl: 'R',
+     },
+    ],
+   },
+  ],
+
+  nav: [
+  ],
+
+  reports: [],
+});

@@ -1,0 +1,83 @@
+/*
+ * Copyright (C) 2013-2017, Daniele Orlandi
+ *
+ * Author:: Daniele Orlandi <daniele@orlandi.com>
+ *
+ * License:: You can redistribute it and/or modify it under the terms of the LICENSE file.
+ *
+ */
+
+Ext.define('Extgui.Ygg.Acao.Plugin', {
+  extend: 'Extgui.Plugin',
+
+  css: '<%=stylesheet_path 'extgui/acao.css'%>',
+
+  refs: [
+  ],
+
+  init: function() {
+    var me = this;
+
+    this.callParent(arguments);
+
+    me.control({
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.Membership.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/memberships/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.Aircraft.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/aircrafts/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.AircraftType.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/aircraft_types/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.License.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/licenses/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.Medical.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/medicals/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.FaiCard.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/fai_cards/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.KeyFob.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/key_fobs/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.Tracker.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/trackers/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.MeterBus.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/meter_bus/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.Meter.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/meter/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.Airfield.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/airfield/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.Club.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/club/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.ServiceType.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/service_type/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.Year.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/years/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.RosterDay.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/roster_days/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.RosterEntry.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/roster_entries/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.BarMenuEntry.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/bar_menu_entries/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.Gate.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/gates/new'); }, },
+
+      'viewport > tabpanel > panel[klass=Extgui.Ygg.Acao.Trailer.IndexPanel] > panel > toolbar button[name=new]':
+       { click: function(el, record) { me.openUri('model/ygg/acao/trailers/new'); }, },
+
+    });
+  },
+});

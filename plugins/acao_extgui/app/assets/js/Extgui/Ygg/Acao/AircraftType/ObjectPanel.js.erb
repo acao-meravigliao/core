@@ -1,0 +1,115 @@
+/*
+ * Copyright (C) 2008-2017, Daniele Orlandi
+ *
+ * Author:: Daniele Orlandi <daniele@orlandi.com>
+ *
+ * License:: You can redistribute it and/or modify it under the terms of the LICENSE file.
+ *
+ */
+
+Ext.define('Extgui.Ygg.Acao.AircraftType.ObjectPanel', {
+  extend: 'Extgui.object.panel.Base',
+  requires: [
+    'Extgui.Ygg.Acao.Plugin',
+    'Extgui.Ygg.Acao.AircraftType',
+    'Extgui.Ygg.Acao.AircraftType.ReferenceField',
+    'Extgui.form.field.DecimalNumber',
+  ],
+  extguiObject: 'Extgui.Ygg.Acao.AircraftType',
+
+//  tabTitleTpl: '{local}@{domain.name}',
+//  panelTitleTpl: '<h1><span class="name">Acao AircraftType</span><span class="value">{local}@{domain.name}</span></h1>',
+
+  requestDeletionButton: true,
+
+  tabs: {
+    title: i18n('extgui.acao.aircraft_type.object_panel.object_tab'),
+    padding: 10,
+    layout: 'anchor',
+    items: [
+     {
+      xtype: 'textfield',
+      name: 'manufacturer',
+      allowBlank: false,
+     },
+     {
+      xtype: 'textfield',
+      name: 'name',
+      allowBlank: false,
+     },
+     {
+      xtype: 'combobox',
+      name: 'aircraft_class',
+      width: 370,
+      queryMode: 'local',
+      store: [
+       [ 'GLD', 'Glider' ],
+       [ 'TMG', 'Touring Motorglider' ],
+       [ 'ULM', 'Ultralight' ],
+       [ 'SEP', 'Single-engine Piston' ],
+       [ 'MEP', 'Multi-engine Piston' ],
+       [ 'SET', 'Single-engine Turbine' ],
+       [ 'MET', 'Multi-engine Turbine' ],
+       [ 'HEL', 'Helicopter' ],
+       [ 'GYR', 'Gyrocopter' ],
+      ],
+     },
+     {
+      xtype: 'engnumberfield',
+      name: 'wingspan',
+      minValue: 1,
+      maxValue: 50,
+      step: 1,
+      decimalPrecision: 2,
+      unit: 'm',
+     },
+     {
+      xtype: 'numberfield',
+      name: 'seats',
+      minValue: 1,
+      maxValue: 10,
+     },
+     {
+      xtype: 'numberfield',
+      name: 'motor',
+      minValue: 0,
+      maxValue: 2,
+     },
+     {
+      xtype: 'numberfield',
+      name: 'handicap',
+      scale: 2,
+     },
+     {
+      xtype: 'numberfield',
+      name: 'handicap_club',
+      scale: 2,
+     },
+     {
+      xtype: 'textfield',
+      name: 'link_wp',
+      anchor: '100%',
+     },
+     {
+      xtype: 'checkboxfield',
+      name: 'is_vintage',
+     },
+     {
+      xtype: 'checkboxfield',
+      name: 'foldable_wings',
+     },
+    ],
+  },
+
+  nav: [
+  ],
+
+  actions: [
+  ],
+
+//  initComponent: function() {
+//    var me = this;
+//
+//    me.callParent(arguments);
+//  },
+});

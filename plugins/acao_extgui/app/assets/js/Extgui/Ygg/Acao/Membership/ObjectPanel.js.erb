@@ -1,0 +1,88 @@
+/*
+ * Copyright (C) 2017-2017, Daniele Orlandi
+ *
+ * Author:: Daniele Orlandi <daniele@orlandi.com>
+ *
+ * License:: You can redistribute it and/or modify it under the terms of the LICENSE file.
+ *
+ */
+
+Ext.define('Extgui.Ygg.Acao.Membership.ObjectPanel', {
+  extend: 'Extgui.object.panel.Base',
+  requires: [
+    'Extgui.Ygg.Acao.Plugin',
+    'Extgui.form.field.DecimalNumber',
+    'Extgui.form.field.DateTime',
+    'Extgui.Ygg.Acao.Membership',
+    'Extgui.Ygg.Acao.Year.ReferenceField',
+    'Extgui.Ygg.Acao.Invoice',
+  ],
+
+  extguiObject: 'Extgui.Ygg.Acao.Membership',
+
+  tabs: [
+   {
+    xtype: 'panel',
+    title: i18n('extgui.ygg.acao.membership.object_panel.object_tab'),
+    padding: 10,
+    layout: 'anchor',
+    items: [
+     {
+      xtype: 'acao_year',
+      name: 'reference_year_id',
+     },
+     {
+      xtype: 'core_person',
+      name: 'person_id',
+     },
+     {
+      xtype: 'textfield',
+      name: 'status',
+      width: 400,
+     },
+     {
+      xtype: 'datetimefield',
+      name: 'valid_from',
+     },
+     {
+      xtype: 'datetimefield',
+      name: 'valid_to',
+     },
+     {
+      xtype: 'checkboxfield',
+      name: 'email_allowed',
+     },
+     {
+      xtype: 'checkboxfield',
+      name: 'tug_pilot',
+     },
+     {
+      xtype: 'checkboxfield',
+      name: 'board_member',
+     },
+     {
+      xtype: 'checkboxfield',
+      name: 'instructor',
+     },
+     {
+      xtype: 'checkboxfield',
+      name: 'fireman',
+     },
+    ],
+   },
+  ],
+
+  nav: [
+   { dataIndex: 'person', },
+   {
+    i18nText: 'ygg.acao.invoice',
+    handler: function() {
+      var me = this;
+      me.fireEvent('openuri', me.getRecord().getinvoice_detail().getinvoice().extguiUri());
+    }
+   },
+
+  ],
+
+  reports: [],
+});

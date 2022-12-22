@@ -1,0 +1,60 @@
+/*
+ * Copyright (C) 2017-2017, Daniele Orlandi
+ *
+ * Author:: Daniele Orlandi <daniele@orlandi.com>
+ *
+ * License:: You can redistribute it and/or modify it under the terms of the LICENSE file.
+ *
+ */
+
+Ext.define('Extgui.Ygg.Acao.KeyFob.ObjectPanel', {
+  extend: 'Extgui.object.panel.Base',
+  requires: [
+    'Extgui.Ygg.Acao.Plugin',
+    'Extgui.Ygg.Acao.KeyFob',
+    'Extgui.Ygg.Acao.Aircraft.ReferenceField',
+    'Extgui.Ygg.Core.Person.ReferenceField',
+  ],
+
+  extguiObject: 'Extgui.Ygg.Acao.KeyFob',
+
+  replicasForceButton: true,
+  requestDeletionButton: true,
+
+  tabs: [
+   {
+    xtype: 'panel',
+    title: i18n('extgui.ygg.acao.key_fob.object_panel.object_tab'),
+    padding: 10,
+    layout: 'anchor',
+    items: [
+     {
+      xtype: 'core_person',
+      name: 'person_id',
+     },
+     {
+      xtype: 'textfield',
+      name: 'code',
+     },
+     {
+      xtype: 'textfield',
+      name: 'descr',
+      anchor: '100%',
+     },
+     {
+      xtype: 'textarea',
+      name: 'notes',
+      anchor: '100%',
+      height: 200,
+      maxWidth: 1000,
+      labelAlign: 'top',
+     },
+    ],
+   },
+  ],
+
+  nav: [
+  ],
+
+  reports: [],
+});

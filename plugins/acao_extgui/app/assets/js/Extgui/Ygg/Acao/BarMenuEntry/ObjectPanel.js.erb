@@ -1,0 +1,50 @@
+/*
+ * Copyright (C) 2017-2018, Daniele Orlandi
+ *
+ * Author:: Daniele Orlandi <daniele@orlandi.com>
+ *
+ * License:: You can redistribute it and/or modify it under the terms of the LICENSE file.
+ *
+ */
+
+Ext.define('Extgui.Ygg.Acao.BarMenuEntry.ObjectPanel', {
+  extend: 'Extgui.object.panel.Base',
+  requires: [
+    'Extgui.Ygg.Acao.Plugin',
+    'Extgui.form.field.DateTime',
+    'Extgui.Ygg.Acao.BarMenuEntry',
+    'Extgui.form.field.DecimalNumber',
+  ],
+
+  extguiObject: 'Extgui.Ygg.Acao.BarMenuEntry',
+
+  tabs: [
+   {
+    xtype: 'panel',
+    title: i18n('extgui.ygg.acao.bar_menu_entry.object_panel.object_tab'),
+    padding: 10,
+    layout: 'anchor',
+    items: [
+     {
+      xtype: 'textfield',
+      name: 'descr',
+     },
+     {
+      xtype: 'decimalnumberfield',
+      name: 'price',
+      unit: '€',
+      minValue: 0,
+     },
+     {
+      xtype: 'checkboxfield',
+      name: 'on_sale',
+     },
+    ],
+   },
+  ],
+
+  nav: [
+  ],
+
+  reports: [],
+});
