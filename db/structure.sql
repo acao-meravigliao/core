@@ -434,12 +434,12 @@ ALTER SEQUENCE acao.acao_medicals_id_seq OWNED BY acao.medicals.id_old;
 --
 
 CREATE TABLE acao.memberships (
-    id integer NOT NULL,
-    uuid uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    person_id integer NOT NULL,
+    id_old integer NOT NULL,
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    person_id_old integer,
     status character varying(32),
     email_allowed boolean DEFAULT true NOT NULL,
-    payment_id integer,
+    payment_id_old integer,
     tug_pilot boolean DEFAULT false,
     board_member boolean DEFAULT false,
     instructor boolean DEFAULT false,
@@ -447,9 +447,12 @@ CREATE TABLE acao.memberships (
     possible_roster_chief boolean DEFAULT false NOT NULL,
     valid_from timestamp with time zone NOT NULL,
     valid_to timestamp with time zone NOT NULL,
-    reference_year_id integer NOT NULL,
+    reference_year_id_old integer,
     invoice_detail_id uuid,
-    student boolean DEFAULT false
+    student boolean DEFAULT false,
+    person_id uuid NOT NULL,
+    payment_id uuid,
+    reference_year_id uuid NOT NULL
 );
 
 
@@ -469,7 +472,7 @@ CREATE SEQUENCE acao.acao_memberships_id_seq
 -- Name: acao_memberships_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
 --
 
-ALTER SEQUENCE acao.acao_memberships_id_seq OWNED BY acao.memberships.id;
+ALTER SEQUENCE acao.acao_memberships_id_seq OWNED BY acao.memberships.id_old;
 
 
 --
@@ -1218,25 +1221,6 @@ CREATE TABLE acao.airfield_circuits (
 
 
 --
--- Name: autocam_camera_events; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.autocam_camera_events (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    event_type character varying(32) NOT NULL,
-    ts timestamp without time zone,
-    aircraft_id uuid,
-    name character varying,
-    flarm_id character varying(32),
-    data text NOT NULL,
-    lat double precision,
-    lng double precision,
-    alt double precision,
-    hgt double precision
-);
-
-
---
 -- Name: bar_menu_entries; Type: TABLE; Schema: acao; Owner: -
 --
 
@@ -1245,6 +1229,24 @@ CREATE TABLE acao.bar_menu_entries (
     descr character varying(255) NOT NULL,
     price numeric(14,6) NOT NULL,
     on_sale boolean DEFAULT false NOT NULL
+);
+
+
+--
+-- Name: camera_events; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.camera_events (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    event_type character varying(32) NOT NULL,
+    ts timestamp without time zone,
+    aircraft_id uuid,
+    name character varying,
+    flarm_id character varying(32),
+    lat double precision,
+    lng double precision,
+    alt double precision,
+    hgt double precision
 );
 
 
@@ -1456,6 +1458,21 @@ CREATE SEQUENCE acao.trk_events_id_seq
 --
 
 ALTER SEQUENCE acao.trk_events_id_seq OWNED BY acao.radar_events.id;
+
+
+--
+-- Name: wol_targets; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.wol_targets (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    symbol character varying(32),
+    name character varying(64) NOT NULL,
+    interface character varying(64) NOT NULL,
+    mac macaddr NOT NULL
+);
 
 
 --
@@ -2008,7 +2025,8 @@ CREATE TABLE core.sessions (
     sti_type character varying(255) NOT NULL,
     auth_person_id uuid,
     auth_credential_id uuid,
-    language_id uuid
+    language_id uuid,
+    expires timestamp with time zone
 );
 
 
@@ -4021,7 +4039,7 @@ ALTER SEQUENCE ml.ml_msg_lists_id_seq OWNED BY ml.msg_lists.id_old;
 CREATE TABLE ml.msg_objects (
     id_old integer NOT NULL,
     msg_id_old integer,
-    object_id_old integer NOT NULL,
+    object_id_old integer,
     object_type character varying NOT NULL,
     msg_id uuid NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
@@ -4233,6 +4251,108 @@ CREATE TABLE ml.msg_events (
 
 
 --
+-- Name: acao_bar_transactions_acl; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.acao_bar_transactions_acl (
+    id bigint NOT NULL,
+    obj_id bigint NOT NULL,
+    person_id bigint,
+    group_id bigint,
+    capability character varying(64) NOT NULL,
+    owner_type character varying,
+    owner_id bigint
+);
+
+
+--
+-- Name: acao_bar_transactions_acl_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.acao_bar_transactions_acl_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: acao_bar_transactions_acl_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.acao_bar_transactions_acl_id_seq OWNED BY public.acao_bar_transactions_acl.id;
+
+
+--
+-- Name: acao_memberships_acl; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.acao_memberships_acl (
+    id bigint NOT NULL,
+    obj_id bigint NOT NULL,
+    person_id bigint,
+    group_id bigint,
+    capability character varying(64) NOT NULL,
+    owner_type character varying,
+    owner_id bigint
+);
+
+
+--
+-- Name: acao_memberships_acl_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.acao_memberships_acl_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: acao_memberships_acl_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.acao_memberships_acl_id_seq OWNED BY public.acao_memberships_acl.id;
+
+
+--
+-- Name: acao_payments_acl; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.acao_payments_acl (
+    id bigint NOT NULL,
+    obj_id bigint NOT NULL,
+    person_id bigint,
+    group_id bigint,
+    capability character varying(64) NOT NULL,
+    owner_type character varying,
+    owner_id bigint
+);
+
+
+--
+-- Name: acao_payments_acl_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.acao_payments_acl_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: acao_payments_acl_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.acao_payments_acl_id_seq OWNED BY public.acao_payments_acl.id;
+
+
+--
 -- Name: active_planes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4277,6 +4397,74 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: core_organizations_acl; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.core_organizations_acl (
+    id bigint NOT NULL,
+    obj_id bigint NOT NULL,
+    person_id bigint,
+    group_id bigint,
+    role character varying(64) NOT NULL,
+    owner_type character varying,
+    owner_id bigint
+);
+
+
+--
+-- Name: core_organizations_acl_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.core_organizations_acl_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: core_organizations_acl_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.core_organizations_acl_id_seq OWNED BY public.core_organizations_acl.id;
+
+
+--
+-- Name: core_people_acl; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.core_people_acl (
+    id bigint NOT NULL,
+    obj_id bigint NOT NULL,
+    person_id bigint,
+    group_id bigint,
+    role character varying(64) NOT NULL,
+    owner_type character varying,
+    owner_id bigint
+);
+
+
+--
+-- Name: core_people_acl_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.core_people_acl_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: core_people_acl_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.core_people_acl_id_seq OWNED BY public.core_people_acl.id;
+
+
+--
 -- Name: flights; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4307,6 +4495,38 @@ CREATE TABLE public.flights (
     num_att integer,
     data_att timestamp without time zone
 );
+
+
+--
+-- Name: flights_acl; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.flights_acl (
+    id integer NOT NULL,
+    obj_id integer NOT NULL,
+    identity_id integer,
+    group_id integer,
+    capability character varying(64) NOT NULL
+);
+
+
+--
+-- Name: flights_acl_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.flights_acl_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: flights_acl_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.flights_acl_id_seq OWNED BY public.flights_acl.id;
 
 
 --
@@ -4946,10 +5166,10 @@ ALTER TABLE ONLY acao.member_services ALTER COLUMN id_old SET DEFAULT nextval('a
 
 
 --
--- Name: memberships id; Type: DEFAULT; Schema: acao; Owner: -
+-- Name: memberships id_old; Type: DEFAULT; Schema: acao; Owner: -
 --
 
-ALTER TABLE ONLY acao.memberships ALTER COLUMN id SET DEFAULT nextval('acao.acao_memberships_id_seq'::regclass);
+ALTER TABLE ONLY acao.memberships ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_memberships_id_seq'::regclass);
 
 
 --
@@ -5590,6 +5810,27 @@ ALTER TABLE ONLY ml.templates ALTER COLUMN id_old SET DEFAULT nextval('ml.ml_tem
 
 
 --
+-- Name: acao_bar_transactions_acl id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.acao_bar_transactions_acl ALTER COLUMN id SET DEFAULT nextval('public.acao_bar_transactions_acl_id_seq'::regclass);
+
+
+--
+-- Name: acao_memberships_acl id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.acao_memberships_acl ALTER COLUMN id SET DEFAULT nextval('public.acao_memberships_acl_id_seq'::regclass);
+
+
+--
+-- Name: acao_payments_acl id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.acao_payments_acl ALTER COLUMN id SET DEFAULT nextval('public.acao_payments_acl_id_seq'::regclass);
+
+
+--
 -- Name: active_planes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -5597,10 +5838,31 @@ ALTER TABLE ONLY public.active_planes ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: core_organizations_acl id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_organizations_acl ALTER COLUMN id SET DEFAULT nextval('public.core_organizations_acl_id_seq'::regclass);
+
+
+--
+-- Name: core_people_acl id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_people_acl ALTER COLUMN id SET DEFAULT nextval('public.core_people_acl_id_seq'::regclass);
+
+
+--
 -- Name: flights id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.flights ALTER COLUMN id SET DEFAULT nextval('public.flights_id_seq'::regclass);
+
+
+--
+-- Name: flights_acl id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.flights_acl ALTER COLUMN id SET DEFAULT nextval('public.flights_acl_id_seq'::regclass);
 
 
 --
@@ -5734,14 +5996,6 @@ ALTER TABLE ONLY acao.airfields
 
 
 --
--- Name: autocam_camera_events autocam_camera_events_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.autocam_camera_events
-    ADD CONSTRAINT autocam_camera_events_pkey PRIMARY KEY (id);
-
-
---
 -- Name: bar_menu_entries bar_menu_entries_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -5755,6 +6009,14 @@ ALTER TABLE ONLY acao.bar_menu_entries
 
 ALTER TABLE ONLY acao.bar_transactions
     ADD CONSTRAINT bar_transactions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: camera_events camera_events_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.camera_events
+    ADD CONSTRAINT camera_events_pkey PRIMARY KEY (id);
 
 
 --
@@ -6003,6 +6265,14 @@ ALTER TABLE ONLY acao.trackers
 
 ALTER TABLE ONLY acao.trailers
     ADD CONSTRAINT trailers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: wol_targets wol_targets_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.wol_targets
+    ADD CONSTRAINT wol_targets_pkey PRIMARY KEY (id);
 
 
 --
@@ -6606,6 +6876,30 @@ ALTER TABLE ONLY ml.templates
 
 
 --
+-- Name: acao_bar_transactions_acl acao_bar_transactions_acl_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.acao_bar_transactions_acl
+    ADD CONSTRAINT acao_bar_transactions_acl_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: acao_memberships_acl acao_memberships_acl_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.acao_memberships_acl
+    ADD CONSTRAINT acao_memberships_acl_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: acao_payments_acl acao_payments_acl_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.acao_payments_acl
+    ADD CONSTRAINT acao_payments_acl_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: active_planes active_planes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6619,6 +6913,30 @@ ALTER TABLE ONLY public.active_planes
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: core_organizations_acl core_organizations_acl_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_organizations_acl
+    ADD CONSTRAINT core_organizations_acl_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: core_people_acl core_people_acl_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.core_people_acl
+    ADD CONSTRAINT core_people_acl_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: flights_acl flights_acl_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.flights_acl
+    ADD CONSTRAINT flights_acl_pkey PRIMARY KEY (id);
 
 
 --
@@ -6930,6 +7248,34 @@ CREATE INDEX "index_acao.airfields_on_location_id" ON acao.airfields USING btree
 --
 
 CREATE INDEX "index_acao.invoices_on_person_id" ON acao.invoices USING btree (person_id);
+
+
+--
+-- Name: index_acao.memberships_on_id_old; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX "index_acao.memberships_on_id_old" ON acao.memberships USING btree (id_old);
+
+
+--
+-- Name: index_acao.memberships_on_payment_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX "index_acao.memberships_on_payment_id" ON acao.memberships USING btree (payment_id);
+
+
+--
+-- Name: index_acao.memberships_on_person_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX "index_acao.memberships_on_person_id" ON acao.memberships USING btree (person_id);
+
+
+--
+-- Name: index_acao.memberships_on_reference_year_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX "index_acao.memberships_on_reference_year_id" ON acao.memberships USING btree (reference_year_id);
 
 
 --
@@ -7311,31 +7657,17 @@ CREATE INDEX index_memberships_on_invoice_detail_id ON acao.memberships USING bt
 
 
 --
--- Name: index_memberships_on_person_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_memberships_on_person_id ON acao.memberships USING btree (person_id);
-
-
---
 -- Name: index_memberships_on_person_id_and_reference_year_id; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE UNIQUE INDEX index_memberships_on_person_id_and_reference_year_id ON acao.memberships USING btree (person_id, reference_year_id);
-
-
---
--- Name: index_memberships_on_reference_year_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_memberships_on_reference_year_id ON acao.memberships USING btree (reference_year_id);
+CREATE UNIQUE INDEX index_memberships_on_person_id_and_reference_year_id ON acao.memberships USING btree (person_id_old, reference_year_id_old);
 
 
 --
 -- Name: index_memberships_on_uuid; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE UNIQUE INDEX index_memberships_on_uuid ON acao.memberships USING btree (uuid);
+CREATE UNIQUE INDEX index_memberships_on_uuid ON acao.memberships USING btree (id);
 
 
 --
@@ -7798,6 +8130,13 @@ CREATE INDEX index_trailers_on_person_id ON acao.trailers USING btree (person_id
 --
 
 CREATE UNIQUE INDEX index_trailers_on_uuid ON acao.trailers USING btree (id);
+
+
+--
+-- Name: index_wol_targets_on_symbol; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_wol_targets_on_symbol ON acao.wol_targets USING btree (symbol);
 
 
 --
@@ -9229,6 +9568,202 @@ CREATE INDEX msgs_status_idx ON ml.msgs USING btree (status);
 
 
 --
+-- Name: flights_acl_ogc; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX flights_acl_ogc ON public.flights_acl USING btree (obj_id, group_id, capability);
+
+
+--
+-- Name: flights_acl_oic; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX flights_acl_oic ON public.flights_acl USING btree (obj_id, identity_id, capability);
+
+
+--
+-- Name: index_acao_bar_transactions_acl_on_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_acao_bar_transactions_acl_on_group_id ON public.acao_bar_transactions_acl USING btree (group_id);
+
+
+--
+-- Name: index_acao_bar_transactions_acl_on_obj_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_acao_bar_transactions_acl_on_obj_id ON public.acao_bar_transactions_acl USING btree (obj_id);
+
+
+--
+-- Name: index_acao_bar_transactions_acl_on_owner_type_and_owner_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_acao_bar_transactions_acl_on_owner_type_and_owner_id ON public.acao_bar_transactions_acl USING btree (owner_type, owner_id);
+
+
+--
+-- Name: index_acao_bar_transactions_acl_on_person_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_acao_bar_transactions_acl_on_person_id ON public.acao_bar_transactions_acl USING btree (person_id);
+
+
+--
+-- Name: index_acao_memberships_acl_on_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_acao_memberships_acl_on_group_id ON public.acao_memberships_acl USING btree (group_id);
+
+
+--
+-- Name: index_acao_memberships_acl_on_obj_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_acao_memberships_acl_on_obj_id ON public.acao_memberships_acl USING btree (obj_id);
+
+
+--
+-- Name: index_acao_memberships_acl_on_owner_type_and_owner_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_acao_memberships_acl_on_owner_type_and_owner_id ON public.acao_memberships_acl USING btree (owner_type, owner_id);
+
+
+--
+-- Name: index_acao_memberships_acl_on_person_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_acao_memberships_acl_on_person_id ON public.acao_memberships_acl USING btree (person_id);
+
+
+--
+-- Name: index_acao_payments_acl_on_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_acao_payments_acl_on_group_id ON public.acao_payments_acl USING btree (group_id);
+
+
+--
+-- Name: index_acao_payments_acl_on_obj_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_acao_payments_acl_on_obj_id ON public.acao_payments_acl USING btree (obj_id);
+
+
+--
+-- Name: index_acao_payments_acl_on_owner_type_and_owner_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_acao_payments_acl_on_owner_type_and_owner_id ON public.acao_payments_acl USING btree (owner_type, owner_id);
+
+
+--
+-- Name: index_acao_payments_acl_on_person_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_acao_payments_acl_on_person_id ON public.acao_payments_acl USING btree (person_id);
+
+
+--
+-- Name: index_core_organizations_acl_on_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_core_organizations_acl_on_group_id ON public.core_organizations_acl USING btree (group_id);
+
+
+--
+-- Name: index_core_organizations_acl_on_obj_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_core_organizations_acl_on_obj_id ON public.core_organizations_acl USING btree (obj_id);
+
+
+--
+-- Name: index_core_organizations_acl_on_owner_type_and_owner_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_core_organizations_acl_on_owner_type_and_owner_id ON public.core_organizations_acl USING btree (owner_type, owner_id);
+
+
+--
+-- Name: index_core_organizations_acl_on_person_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_core_organizations_acl_on_person_id ON public.core_organizations_acl USING btree (person_id);
+
+
+--
+-- Name: index_core_organizations_acl_on_role; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_core_organizations_acl_on_role ON public.core_organizations_acl USING btree (role);
+
+
+--
+-- Name: index_core_people_acl_on_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_core_people_acl_on_group_id ON public.core_people_acl USING btree (group_id);
+
+
+--
+-- Name: index_core_people_acl_on_obj_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_core_people_acl_on_obj_id ON public.core_people_acl USING btree (obj_id);
+
+
+--
+-- Name: index_core_people_acl_on_owner_type_and_owner_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_core_people_acl_on_owner_type_and_owner_id ON public.core_people_acl USING btree (owner_type, owner_id);
+
+
+--
+-- Name: index_core_people_acl_on_person_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_core_people_acl_on_person_id ON public.core_people_acl USING btree (person_id);
+
+
+--
+-- Name: index_core_people_acl_on_role; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_core_people_acl_on_role ON public.core_people_acl USING btree (role);
+
+
+--
+-- Name: index_flights_acl_on_capability; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_flights_acl_on_capability ON public.flights_acl USING btree (capability);
+
+
+--
+-- Name: index_flights_acl_on_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_flights_acl_on_group_id ON public.flights_acl USING btree (group_id);
+
+
+--
+-- Name: index_flights_acl_on_identity_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_flights_acl_on_identity_id ON public.flights_acl USING btree (identity_id);
+
+
+--
+-- Name: index_flights_acl_on_obj_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_flights_acl_on_obj_id ON public.flights_acl USING btree (obj_id);
+
+
+--
 -- Name: index_flights_on_plane_pilot1_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -9536,6 +10071,14 @@ ALTER TABLE ONLY acao.token_transactions
 
 
 --
+-- Name: memberships fk_rails_287365f203; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.memberships
+    ADD CONSTRAINT fk_rails_287365f203 FOREIGN KEY (reference_year_id) REFERENCES acao.years(id);
+
+
+--
 -- Name: gates fk_rails_30dd971076; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -9648,6 +10191,14 @@ ALTER TABLE ONLY acao.key_fobs
 
 
 --
+-- Name: memberships fk_rails_6f634e203a; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.memberships
+    ADD CONSTRAINT fk_rails_6f634e203a FOREIGN KEY (person_id) REFERENCES core.people(id);
+
+
+--
 -- Name: token_transactions fk_rails_7966149e81; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -9717,6 +10268,14 @@ ALTER TABLE ONLY acao.invoice_details
 
 ALTER TABLE ONLY acao.timetable_entries
     ADD CONSTRAINT fk_rails_a5efa5524a FOREIGN KEY (towed_by_id) REFERENCES acao.timetable_entries(id);
+
+
+--
+-- Name: memberships fk_rails_a81f85748a; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.memberships
+    ADD CONSTRAINT fk_rails_a81f85748a FOREIGN KEY (invoice_detail_id) REFERENCES acao.invoice_details(id);
 
 
 --
@@ -9853,6 +10412,14 @@ ALTER TABLE ONLY acao.aircrafts
 
 ALTER TABLE ONLY acao.timetable_entries
     ADD CONSTRAINT fk_rails_df75379011 FOREIGN KEY (tow_release_location_id) REFERENCES core.locations(id);
+
+
+--
+-- Name: memberships fk_rails_e04a443b4d; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.memberships
+    ADD CONSTRAINT fk_rails_e04a443b4d FOREIGN KEY (payment_id) REFERENCES acao.payments(id);
 
 
 --
@@ -10502,6 +11069,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210329231036'),
 ('20210329235808'),
 ('20210330120030'),
-('20220123150235');
+('20220123150235'),
+('20221222191301');
 
 

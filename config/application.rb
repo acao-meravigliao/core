@@ -54,7 +54,13 @@ module AcaoCore
       }
     )
 
-    config.acao.satispay_callback_url = 'https://servizi.acao.it/ygg/acao/payments/satispay_callback'
+    if config.respond_to?(:acao)
+      config.acao.satispay_callback_url = 'https://servizi.acao.it/ygg/acao/payments/satispay_callback'
+
+      config.acao.wol_key_path = '/opt/lino-wol'
+      config.acao.wol_username = 'lino-wol'
+      config.acao.wol_host = 'rutterone.acao.it'
+    end
 
     if config.respond_to?(:amqp_ws_gw)
       config.amqp_ws_gw.debug = 2
