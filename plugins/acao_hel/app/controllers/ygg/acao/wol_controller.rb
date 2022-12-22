@@ -19,14 +19,11 @@ class WolController < Ygg::Hel::BaseController
 #
 #    raise "Föra di ball" unless aaa_context.has_global_roles?(:superuser)
 
-    mac = case json_request[:name]
-    when 'dt-daniela' ; '90:8D:6E:8D:38:3B'
-    when 'figo' ; '70:54:D2:19:3B:17'
-    else
-      raise "Not found"
-    end
+    mac = json_request[:mac]
 
-    system('ssh',  '-i', '/opt/lino-wol', 'lino-wol@rutterone.acao.it', "\"/tool wol interface=vlan10-office mac=#{mac}\"")
+    raise "Wrong MAC format" if !(mac =~ /[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}/)
+
+    system('ssh', '-i', '/opt/lino-wol', 'lino-wol@rutterone.acao.it', "/tool wol interface=vlan10-office mac=#{json_request[:mac]}")
 
     # key_manager = AM::SSH::KeyManager.new
     # key_manager.add_keyfile(priv_filename: "/opt/lino-wol")
