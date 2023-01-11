@@ -143,11 +143,13 @@ class Pilot < Ygg::Core::Person
       high_season: 1,
     }
 
-    if !with_cav
-      needed[:total] = 0
-      needed[:high_season] = 0
-      needed[:reason] = 'cav_not_paid'
-    elsif birth_date && compute_completed_years(birth_date, ym.renew_opening_time) >= 65
+    # As by request from Treccilubba roster enrollment is needed for anybody, including people not paying CAV
+    #
+    #if !with_cav
+    #  needed[:total] = 0
+    #  needed[:high_season] = 0
+    #  needed[:reason] = 'cav_not_paid'
+    if birth_date && compute_completed_years(birth_date, ym.renew_opening_time) >= 65
       needed[:total] = 0
       needed[:high_season] = 0
       needed[:reason] = 'older_than_65'
