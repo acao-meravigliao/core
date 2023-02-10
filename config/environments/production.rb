@@ -72,6 +72,7 @@ Rails.application.configure do
       'https://servizi-lilc.acao.it',
       'https://servizi-staging.acao.it',
       'https://pub.acao.it',
+      'https://dash.acao.it',
     ]
 
     config.amqp_ws_gw.routes.merge!({
