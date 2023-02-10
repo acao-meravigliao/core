@@ -57,6 +57,7 @@ Rails.application.configure do
       'http://linobis.acao.it:3332',
       'http://linobis.acao.it:4200',
       'http://linobis.acao.it:4201',
+      'http://linobis.acao.it:4242',
       'http://dashboard-linobis.acao.it:3330',
       'http://dashboard-linobis.acao.it:3331',
       'http://dashboard-linobis.acao.it:3332',
