@@ -880,7 +880,8 @@ CREATE TABLE acao.service_types (
     onda_1_cnt integer,
     onda_2_cnt integer,
     onda_1_type integer,
-    onda_2_type integer
+    onda_2_type integer,
+    is_association boolean
 );
 
 
@@ -11070,6 +11071,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210329235808'),
 ('20210330120030'),
 ('20220123150235'),
-('20221222191301');
+('20221222191301'),
+('20230211165223');
 
 
