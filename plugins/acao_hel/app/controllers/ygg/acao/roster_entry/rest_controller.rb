@@ -123,7 +123,6 @@ class RosterEntry::RestController < Ygg::Hel::RestController
   # Request:
   # - person (implicit in aaa_context)
   # - year
-  # - with_cav
   #
   # Response:
   # - needed_entries_high_season
@@ -132,11 +131,9 @@ class RosterEntry::RestController < Ygg::Hel::RestController
   def get_policy
     person = aaa_context.auth_person.becomes(Ygg::Acao::Pilot)
 
-# TODO implement with_cav
-
     year = Ygg::Acao::Year.find_by!(year: json_request[:year])
 
-    ar_respond_with(person.roster_entries_needed(year: year.year, with_cav: json_request[:with_cav]))
+    ar_respond_with(person.roster_entries_needed(year: year.year))
   end
 
   def offer

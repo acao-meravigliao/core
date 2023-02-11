@@ -135,7 +135,7 @@ class Pilot < Ygg::Core::Person
 
   # Implementazione dei criteri che stabiliscono il numero di turni di linea da fare
   #
-  def roster_entries_needed(year: Time.now.year, with_cav: true)
+  def roster_entries_needed(year: Time.now.year)
     ym = Ygg::Acao::Year.find_by!(year: year)
 
     needed = {
