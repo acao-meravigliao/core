@@ -238,7 +238,7 @@ class Membership < Ygg::PublicModel
     ass_invoice_detail = nil
 
     services.each do |service|
-      service_type = Ygg::Acao::ServiceType.find(service[:type_id])
+      service_type = Ygg::Acao::ServiceType.find(service[:service_type_id])
 
       if service[:enabled]
         invoice_detail = Ygg::Acao::Invoice::Detail.new(
