@@ -37,7 +37,7 @@ gem 'prawn-table'
 
 gem 'airbrake'
 
-source 'https://gems.sevio.it/' do
+source 'https://gems.vihai.it/' do
   gem 'vihai-password', '>= 1.2.0'
   gem 'active_rest', '~> 10.0'#, path: '../active_rest'
   gem 'rails_active_rest', '~> 1.0'#, path: '../rails_active_rest'

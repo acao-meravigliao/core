@@ -135,7 +135,7 @@ class Pilot < Ygg::Core::Person
 
   # Implementazione dei criteri che stabiliscono il numero di turni di linea da fare
   #
-  def roster_entries_needed(year: Time.now.year, with_cav: true)
+  def roster_entries_needed(year: Time.now.year)
     ym = Ygg::Acao::Year.find_by!(year: year)
 
     needed = {
@@ -176,6 +176,10 @@ class Pilot < Ygg::Core::Person
 
   def active?(time: Time.now)
     acao_memberships.any? { |x| time > x.valid_from && time < x.valid_to }
+  end
+
+  def is_student
+    acao_licenses.where(type: [ 'SPL', 'GPL' ]).none?
   end
 
   # Verifica che i turni di linea necessari siano stati selezionati

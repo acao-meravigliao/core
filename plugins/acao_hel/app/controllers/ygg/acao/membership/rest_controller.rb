@@ -101,7 +101,8 @@ class Membership::RestController < Ygg::Hel::RestController
         announce_time: current_year.renew_announce_time,
         opening_time: current_year.renew_opening_time,
         blocked: person.acao_debtor,
-      }.merge(Ygg::Acao::Membership.determine_base_context(person: person, year: current_year))
+        services: Ygg::Acao::Membership.determine_base_services(person: person, year: current_year),
+      }
     end
 
     if next_year
@@ -111,7 +112,8 @@ class Membership::RestController < Ygg::Hel::RestController
         announce_time: next_year.renew_announce_time,
         opening_time: next_year.renew_opening_time,
         blocked: person.acao_debtor,
-      }.merge(Ygg::Acao::Membership.determine_base_context(person: person, year: next_year))
+        services: Ygg::Acao::Membership.determine_base_services(person: person, year: next_year),
+      }
     end
 
     render(json: res)
@@ -129,7 +131,6 @@ class Membership::RestController < Ygg::Hel::RestController
         person: aaa_context.auth_person,
         payment_method: json_request[:payment_method],
         enable_email: json_request[:enable_email],
-        with_cav: json_request[:with_cav],
         services: json_request[:services],
         selected_roster_days: json_request[:selected_roster_days],
       )

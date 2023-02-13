@@ -72,41 +72,72 @@ class Membership < Ygg::PublicModel
     completed_years
   end
 
-  def self.determine_base_context(person:, year:)
-    if !person.birth_date
-      return { ass_type: 'ASS_STANDARD', cav_type: 'CAV_STANDARD' }
-    end
+  def self.determine_base_services(person:, year:, now: Time.now)
+    ass_type = 'ASS_STANDARD'
+    cav_type = 'CAV_STANDARD'
 
-    age = compute_completed_years(person.birth_date, year.renew_opening_time)
+    if person.birth_date
+      age = compute_completed_years(person.birth_date, year.renew_opening_time)
 
-    if age < 23
-      ass_type = 'ASS_23'
-      cav_type = nil
-    elsif age <= 26
-      ass_type = 'ASS_STANDARD'
-      cav_type = 'CAV_26'
-    elsif age >= 75
-      ass_type = 'ASS_STANDARD'
-      cav_type = 'CAV_75'
-    elsif person.acao_has_disability
-      # This supposes CAV_DIS is always equal or more expensive than CAV_75 a CAV_26
-      ass_type = 'ASS_STANDARD'
-      cav_type = 'CAV_DIS'
-    else
-      #if person.residence_location &&
-      #   Geocoder::Calculations.distance_between(
-      #     [ person.residence_location.lat, person.residence_location.lng ],
-      #     [ 45.810189, 8.770963 ]) > 300000
+      if age < 23
+        ass_type = 'ASS_23'
+        cav_type = nil
+      elsif age <= 26
+        ass_type = 'ASS_STANDARD'
+        cav_type = 'CAV_26'
+      elsif age >= 75
+        ass_type = 'ASS_STANDARD'
+        cav_type = 'CAV_75'
+      elsif person.acao_has_disability
+        # This supposes CAV_DIS is always equal or more expensive than CAV_75 a CAV_26
+        ass_type = 'ASS_STANDARD'
+        cav_type = 'CAV_DIS'
+      else
+        #if person.residence_location &&
+        #   Geocoder::Calculations.distance_between(
+        #     [ person.residence_location.lat, person.residence_location.lng ],
+        #     [ 45.810189, 8.770963 ]) > 300000
 
-      #  cav_amount = 700.00
-      #  cav_type = 'CAV residenti oltre 300 km'
-      #else
+        #  cav_amount = 700.00
+        #  cav_type = 'CAV residenti oltre 300 km'
+        #else
 
-      ass_type = 'ASS_STANDARD'
-      cav_type = 'CAV_STANDARD'
+        ass_type = 'ASS_STANDARD'
+        cav_type = 'CAV_STANDARD'
+      end
     end
 
     services = []
+
+    services << {
+      service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'ASS_STANDARD').id,
+      removable: false,
+      toggable: false,
+      enabled: true,
+    }
+
+    if !person.is_student && now > year.late_renewal_deadline
+      services << {
+        service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'ASS_LATE').id,
+        removable: false,
+        toggable: false,
+        enabled: true,
+      }
+    end
+
+    services << {
+      service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'CAV_STANDARD').id,
+      removable: false,
+      toggable: true,
+      enabled: true,
+    }
+
+    services << {
+      service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'DUAL_FORFAIT').id,
+      removable: false,
+      toggable: true,
+      enabled: false,
+    }
 
     pilot = person.becomes(Ygg::Acao::Pilot)
 
@@ -139,7 +170,13 @@ class Membership < Ygg::PublicModel
           end
         end
 
-        services << { service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: srvt).id, extra_info: x.registration }
+        services << {
+          service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: srvt).id,
+          removable: true,
+          toggable: false,
+          enabled: true,
+          extra_info: x.registration,
+        }
       end
     end
 
@@ -150,23 +187,39 @@ class Membership < Ygg::PublicModel
         'TRAILER_BC'
       end
 
-      services << { service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: srvt).id, extra_info: x.aircraft && x.aircraft.registration }
+      services << {
+        service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: srvt).id,
+        removable: true,
+        toggable: false,
+        enabled: true,
+        extra_info: x.aircraft && x.aircraft.registration
+      }
     end
 
-
-    {
-     ass_type: ass_type,
-     cav_type: cav_type,
-     services: services,
-    }
+    services
   end
 
-  def self.renew(person:, payment_method:, services:, enable_email:, with_cav:, selected_roster_days:)
+  def self.renew(person:, payment_method:, services:, enable_email:, selected_roster_days:)
     payment = nil
 
     renewal_year = Ygg::Acao::Year.renewal_year
-    context = determine_base_context(person: person, year: renewal_year)
+    base_services = determine_base_services(person: person, year: renewal_year)
     member = person.becomes(Ygg::Acao::Pilot)
+
+    # Check that every non-removable service is still present, non toggable service has the previous state
+
+    base_services.each do |bs|
+      svc = services.find { |x| x[:service_type_id] == bs[:service_type_id] }
+      if !bs[:removable] && !svc
+        raise "Non removable service has been removed"
+      end
+
+      if !bs[:toggable] && svc && svc[:enabled] != bs[:enabled]
+        raise "Non toggable service enable state has been changed"
+      end
+    end
+
+    # Objects creation
 
     # Invoice -----------------
     invoice = Ygg::Acao::Invoice.create!(
@@ -176,21 +229,52 @@ class Membership < Ygg::PublicModel
 
     member.acao_email_allowed = enable_email
 
-    # Association --------------
-    ass_service_type = Ygg::Acao::ServiceType.find_by!(symbol: context[:ass_type])
 
     if person.acao_memberships.find_by(reference_year: renewal_year)
       raise "Membership already present"
     end
 
-    ass_invoice_detail = Ygg::Acao::Invoice::Detail.new(
-      service_type: ass_service_type,
-      count: 1,
-      price: ass_service_type.price,
-      descr: ass_service_type.name,
-    )
-    invoice.details << ass_invoice_detail
+    # Services
 
+    ass_invoice_detail = nil
+
+    services.each do |service|
+      service_type = Ygg::Acao::ServiceType.find(service[:type_id])
+
+      if service[:enabled]
+        invoice_detail = Ygg::Acao::Invoice::Detail.new(
+          count: 1,
+          service_type: service_type,
+          price: service_type.price,
+          descr: service_type.name,
+          data: service[:extra_info],
+        )
+        invoice.details << invoice_detail
+
+        if service_type.is_association
+          if ass_invoice_detail
+            raise "More than one association item in services"
+          end
+
+          ass_invoice_detail = invoice_detail
+        end
+
+        Ygg::Acao::MemberService.create!(
+          person: person,
+          service_type: service_type,
+          invoice_detail: invoice_detail,
+          valid_from: Time.new(renewal_year.year).beginning_of_year,
+          valid_to: Time.new(renewal_year.year).end_of_year,
+          service_data: service[:extra_info],
+        )
+      end
+    end
+
+    if !ass_invoice_detail
+      raise "Missing association item in services"
+    end
+
+    # Membership
     membership = Ygg::Acao::Membership.create!(
       person: person,
       reference_year: renewal_year,
@@ -205,51 +289,6 @@ class Membership < Ygg::PublicModel
       instructor: person.acao_is_instructor,
       fireman: person.acao_is_fireman,
     )
-
-    # CAV --------------
-
-    if with_cav && context[:cav_type]
-      cav_service_type = Ygg::Acao::ServiceType.find_by!(symbol: context[:cav_type])
-
-      cav_invoice_detail = Ygg::Acao::Invoice::Detail.new(
-        count: 1,
-        service_type: cav_service_type,
-        price: cav_service_type.price,
-        descr: cav_service_type.name,
-      )
-      invoice.details << cav_invoice_detail
-
-      cav_member_service = Ygg::Acao::MemberService.create(
-        person: person,
-        service_type: cav_service_type,
-        invoice_detail: cav_invoice_detail,
-        valid_from: Time.new(renewal_year.year).beginning_of_year,
-        valid_to: Time.new(renewal_year.year).end_of_year,
-      )
-    end
-
-    # Services
-    services.each do |service|
-      service_type = Ygg::Acao::ServiceType.find(service[:type_id])
-
-      invoice_detail = Ygg::Acao::Invoice::Detail.new(
-        count: 1,
-        service_type: service_type,
-        price: service_type.price,
-        descr: service_type.name,
-        data: service[:extra_info],
-      )
-      invoice.details << invoice_detail
-
-      Ygg::Acao::MemberService.create!(
-        person: person,
-        service_type: service_type,
-        invoice_detail: invoice_detail,
-        valid_from: Time.new(renewal_year.year).beginning_of_year,
-        valid_to: Time.new(renewal_year.year).end_of_year,
-        service_data: service[:extra_info],
-      )
-    end
 
     # Roster entries
 
