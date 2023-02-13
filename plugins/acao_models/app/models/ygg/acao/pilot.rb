@@ -178,6 +178,10 @@ class Pilot < Ygg::Core::Person
     acao_memberships.any? { |x| time > x.valid_from && time < x.valid_to }
   end
 
+  def is_student
+    acao_licenses.where(type: [ 'SPL', 'GPL' ]).none?
+  end
+
   # Verifica che i turni di linea necessari siano stati selezionati
   #
   def roster_needed_entries_present(year: Time.now.year)

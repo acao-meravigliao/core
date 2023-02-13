@@ -72,7 +72,7 @@ class Membership < Ygg::PublicModel
     completed_years
   end
 
-  def self.determine_base_services(person:, year:)
+  def self.determine_base_services(person:, year:, now: Time.now)
     ass_type = 'ASS_STANDARD'
     cav_type = 'CAV_STANDARD'
 
@@ -116,7 +116,7 @@ class Membership < Ygg::PublicModel
       enabled: true,
     }
 
-    if true
+    if !person.is_student && now > year.late_renewal_deadline
       services << {
         service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'ASS_LATE').id,
         removable: false,

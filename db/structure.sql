@@ -1186,7 +1186,8 @@ CREATE TABLE acao.years (
     year integer NOT NULL,
     renew_opening_time timestamp with time zone,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    renew_announce_time timestamp with time zone
+    renew_announce_time timestamp with time zone,
+    late_renewal_deadline timestamp without time zone NOT NULL
 );
 
 
@@ -11072,6 +11073,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20210330120030'),
 ('20220123150235'),
 ('20221222191301'),
-('20230211165223');
+('20230211165223'),
+('20230212160016');
 
 
