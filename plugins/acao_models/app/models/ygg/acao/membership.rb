@@ -76,6 +76,8 @@ class Membership < Ygg::PublicModel
     ass_type = 'ASS_STANDARD'
     cav_type = 'CAV_STANDARD'
 
+    pilot = person.becomes(Ygg::Acao::Pilot)
+
     if person.birth_date
       age = compute_completed_years(person.birth_date, year.renew_opening_time)
 
@@ -116,7 +118,7 @@ class Membership < Ygg::PublicModel
       enabled: true,
     }
 
-    if !person.is_student && now > year.late_renewal_deadline
+    if !pilot.is_student && now > year.late_renewal_deadline
       services << {
         service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'ASS_LATE').id,
         removable: false,
@@ -139,10 +141,7 @@ class Membership < Ygg::PublicModel
       enabled: false,
     }
 
-    pilot = person.becomes(Ygg::Acao::Pilot)
-
     pilot.acao_aircrafts.each do |x|
-
       srvt = if x.hangar
         if x.aircraft_type.is_vintage
           'HANGAR_VNT'
