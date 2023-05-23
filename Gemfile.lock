@@ -140,7 +140,7 @@ GEM
       am-sockets (~> 0.17)
       amazing_print
       rubynary
-    am-http (0.30.2)
+    am-http (0.30.4)
       actor_model (~> 1.6)
       addressable
       am-sockets (~> 0.17)
@@ -166,6 +166,11 @@ GEM
       amazing_print
       rubynary
       ygg-exception
+    am-ws (1.7.1)
+      actor_model (~> 1.6)
+      am-http
+      am-io-buffer
+      am-sockets (>= 0.18)
     deep_open_struct (2.0.2)
     hel_together (1.6.1)
       rack (>= 1.5.2)
@@ -194,6 +199,10 @@ GEM
       ffi
     vihai-password-rails (1.0.1)
       vihai-password
+    ygg-diffable (0.5.2)
+      activesupport
+      bigdecimal
+      json
     ygg-exception (0.4.0)
     ygg_agent (2.12.2)
       activesupport
@@ -216,53 +225,48 @@ GEM
 GEM
   remote: https://rubygems.org/
   specs:
-    actionpack (6.1.7.2)
-      actionview (= 6.1.7.2)
-      activesupport (= 6.1.7.2)
+    actionpack (6.1.7.3)
+      actionview (= 6.1.7.3)
+      activesupport (= 6.1.7.3)
       rack (~> 2.0, >= 2.0.9)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.2.0)
-    actionview (6.1.7.2)
-      activesupport (= 6.1.7.2)
+    actionview (6.1.7.3)
+      activesupport (= 6.1.7.3)
       builder (~> 3.1)
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.1, >= 1.2.0)
-    activemodel (6.1.7.2)
-      activesupport (= 6.1.7.2)
-    activerecord (6.1.7.2)
-      activemodel (= 6.1.7.2)
-      activesupport (= 6.1.7.2)
+    activemodel (6.1.7.3)
+      activesupport (= 6.1.7.3)
+    activerecord (6.1.7.3)
+      activemodel (= 6.1.7.3)
+      activesupport (= 6.1.7.3)
     activerecord-sqlserver-adapter (6.1.2.1)
       activerecord (~> 6.1.0)
       tiny_tds
-    activesupport (6.1.7.2)
+    activesupport (6.1.7.3)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
       zeitwerk (~> 2.3)
-    addressable (2.8.1)
+    addressable (2.8.4)
       public_suffix (>= 2.0.2, < 6.0)
     aes_key_wrap (1.1.0)
     airbrake (13.0.3)
       airbrake-ruby (~> 6.0)
-    airbrake-ruby (6.2.0)
-      rbtree3 (~> 0.5)
-    am-ws (1.6.3)
-      actor_model (~> 1.6)
-      am-http
-      am-io-buffer
-      am-sockets (>= 0.18)
+    airbrake-ruby (6.2.1)
+      rbtree3 (~> 0.6)
     amazing_print (1.4.0)
-    bigdecimal (3.1.3)
+    bigdecimal (3.1.4)
     bindata (2.4.15)
     builder (3.2.4)
     byebug (11.1.3)
     coderay (1.1.3)
     colorize (0.8.1)
-    concurrent-ruby (1.2.0)
+    concurrent-ruby (1.2.2)
     crass (1.0.6)
     date (3.3.3)
     dkim (1.1.0)
@@ -286,7 +290,7 @@ GEM
       bindata
       faraday (~> 2.0)
       faraday-follow_redirects
-    loofah (2.19.1)
+    loofah (2.20.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mail (2.8.1)
@@ -294,24 +298,25 @@ GEM
       net-imap
       net-pop
       net-smtp
+    matrix (0.4.2)
     method_source (1.0.0)
     mini_mime (1.1.2)
-    minitest (5.17.0)
+    minitest (5.18.0)
     net-imap (0.3.4)
       date
       net-protocol
-    net-ldap (0.17.1)
+    net-ldap (0.18.0)
     net-pop (0.1.2)
       net-protocol
     net-protocol (0.2.1)
       timeout
     net-smtp (0.3.3)
       net-protocol
-    nio4r (2.5.8)
-    nokogiri (1.14.1-x86_64-linux)
+    nio4r (2.5.9)
+    nokogiri (1.14.3-x86_64-linux)
       racc (~> 1.4)
     pdf-core (0.9.0)
-    pg (1.4.5)
+    pg (1.4.6)
     pg_search (2.3.6)
       activerecord (>= 5.2)
       activesupport (>= 5.2)
@@ -333,33 +338,33 @@ GEM
       json
       puma (>= 3.6, < 5)
     racc (1.6.2)
-    rack (2.2.6.2)
-    rack-test (2.0.2)
+    rack (2.2.6.4)
+    rack-test (2.1.0)
       rack (>= 1.3)
     rails-dom-testing (2.0.3)
       activesupport (>= 4.2.0)
       nokogiri (>= 1.6)
     rails-html-sanitizer (1.5.0)
       loofah (~> 2.19, >= 2.19.1)
-    railties (6.1.7.2)
-      actionpack (= 6.1.7.2)
-      activesupport (= 6.1.7.2)
+    railties (6.1.7.3)
+      actionpack (= 6.1.7.3)
+      activesupport (= 6.1.7.3)
       method_source
       rake (>= 12.2)
       thor (~> 1.0)
     rake (13.0.6)
     rb-readline (0.5.5)
-    rbtree3 (0.7.0)
+    rbtree3 (0.7.1)
     roxml (4.2.0)
       activesupport (>= 4.0)
       nokogiri (>= 1.3.3)
     ruby2_keywords (0.0.5)
     sleepy_penguin (3.5.2)
     spring (4.1.1)
-    sqlite3 (1.6.0-x86_64-linux)
+    sqlite3 (1.6.2-x86_64-linux)
     structured_warnings (0.4.0)
     thor (1.2.1)
-    timeout (0.3.1)
+    timeout (0.3.2)
     tiny_tds (2.1.5)
     ttfunk (1.7.0)
     tzinfo (2.0.6)
@@ -367,10 +372,6 @@ GEM
     uber (0.0.15)
     unindent (1.0)
     uuidtools (2.2.0)
-    ygg-diffable (0.5.2)
-      activesupport
-      bigdecimal
-      json
     zeitwerk (2.6.7)
 
 PLATFORMS
@@ -394,6 +395,7 @@ DEPENDENCIES
   am-satispay!
   am-smtp!
   am-ssh!
+  am-ws!
   amazing_print
   amqp_ws_gw!
   byebug
@@ -409,6 +411,7 @@ DEPENDENCIES
   i18n_models!
   json_exceptions!
   mail
+  matrix
   ml_hel!
   ml_heltog!
   ml_models!
@@ -433,6 +436,7 @@ DEPENDENCIES
   tiny_tds
   vihai-password (>= 1.2.0)!
   vihai-password-rails!
+  ygg-diffable!
 
 BUNDLED WITH
-   2.3.26
+   2.4.12

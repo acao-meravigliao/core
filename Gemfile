@@ -34,6 +34,7 @@ gem 'mail'
 gem 'phone'
 gem 'prawn'
 gem 'prawn-table'
+gem 'matrix'
 
 gem 'airbrake'
 
@@ -50,6 +51,8 @@ source 'https://gems.vihai.it/' do
   gem 'am-smtp'
   gem 'am-satispay'
   gem 'am-ssh'
+  gem 'am-ws'
+  gem 'ygg-diffable'
 
   group :hel_together do
     #gem 'hel_together', '~> 1.5.2' # For rails 6.0
