@@ -2,7 +2,7 @@ acao_sql_server:
   adapter: sqlserver
   mode: dblib
   dataserver: acao_sql_server
-  database:
+  database: acao_pro
   username: lino
   password: PMXNbfJP4QbfXpv5
 
