@@ -85,6 +85,15 @@ class Pilot < Ygg::Core::Person
            class_name: '::Ygg::Acao::KeyFob',
            foreign_key: 'person_id'
 
+  has_many :ml_list_members,
+           class_name: '::Ygg::Ml::List::Member',
+           as: :owner
+
+  has_many :ml_lists,
+           class_name: '::Ygg::Ml::List',
+           source: 'list',
+           through: :ml_list_members
+
   # Old DB
   belongs_to :acao_socio,
              class_name: '::Ygg::Acao::MainDb::Socio',
@@ -259,7 +268,7 @@ class Pilot < Ygg::Core::Person
 
     transaction do
       sync_mailman!(list_name: 'soci', symbol: 'ACTIVE_MEMBERS')
-#      sync_mailman!(list_name: 'allievi', symbol: 'STUDENTS')
+      sync_mailman!(list_name: 'scuola', symbol: 'STUDENTS')
       sync_mailman!(list_name: 'istruttori', symbol: 'INSTRUCTORS')
 #      sync_mailman!(list_name: 'consiglio', symbol: 'BOARD_MEMBERS')
       sync_mailman!(list_name: 'trainatori', symbol: 'TUG_PILOTS')
