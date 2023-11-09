@@ -118,7 +118,7 @@ class Membership < Ygg::PublicModel
       enabled: true,
     }
 
-    if !pilot.is_student && now > year.late_renewal_deadline
+    if now > year.late_renewal_deadline && !pilot.is_student # && pilot.was_member_previous_year(year: year)
       services << {
         service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'ASS_LATE').id,
         removable: false,
@@ -136,6 +136,13 @@ class Membership < Ygg::PublicModel
 
     services << {
       service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'DUAL_FORFAIT').id,
+      removable: false,
+      toggable: true,
+      enabled: false,
+    }
+
+    services << {
+      service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'SKYSIGHT').id,
       removable: false,
       toggable: true,
       enabled: false,
