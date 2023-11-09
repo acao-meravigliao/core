@@ -243,6 +243,7 @@ class Pilot < Ygg::Core::Person
     where.not('acao_sleeping').each do |person|
       person.run_chores!
     end
+  end
 
   def self.sync_mailing_lists!
     transaction do
