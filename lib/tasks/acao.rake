@@ -78,6 +78,16 @@ namespace :acao do
       TimeoutActor.new(tout: 100)
       Ygg::Acao::Pilot.run_chores!
     end
+
+    task(:sync_ml => :environment) do
+      TimeoutActor.new(tout: 100)
+      Ygg::Acao::Pilot.sync_mailing_lists!
+    end
+
+    task(:sync_wp => :environment) do
+      TimeoutActor.new(tout: 100)
+      Ygg::Acao::Pilot.sync_wordpress!
+    end
   end
 
   namespace :payments do

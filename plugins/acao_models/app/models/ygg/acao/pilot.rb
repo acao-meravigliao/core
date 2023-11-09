@@ -244,6 +244,7 @@ class Pilot < Ygg::Core::Person
       person.run_chores!
     end
 
+  def self.sync_mailing_lists!
     transaction do
       act = active_members.to_a
       act << Ygg::Core::Person.find_by(acao_code: 7002) # Special entry for Daniela
@@ -273,7 +274,9 @@ class Pilot < Ygg::Core::Person
 #      sync_mailman!(list_name: 'consiglio', symbol: 'BOARD_MEMBERS')
       sync_mailman!(list_name: 'trainatori', symbol: 'TUG_PILOTS')
     end
+  end
 
+  def self.sync_wordpress!
     sync_to_acao_for_wp!
   end
 
@@ -304,9 +307,23 @@ class Pilot < Ygg::Core::Person
       when_during_day = now.beginning_of_day # Midnight
 
       if when_during_day.between?(last_run, now)
-        send_bar_transactions!(from: last_run, to: now.end_of_day)
+        send_bar_summary!(from: last_run, to: now.end_of_day)
 
         self.acao_bar_last_summary = now
+        save!
+      end
+    end
+
+    transaction do
+      now = Time.now
+      last_run = acao_flights_last_summary || Time.new(0)
+
+      when_during_day = now.beginning_of_day # Midnight
+
+      if when_during_day.between?(last_run, now)
+        send_flight_summary!(from: last_run, to: now.end_of_day)
+
+        self.acao_flights_last_summary = now
         save!
       end
     end
@@ -444,7 +461,7 @@ class Pilot < Ygg::Core::Person
     nil
   end
 
-  def send_bar_transactions!(from:, to:)
+  def send_bar_summary!(from:, to:)
     xacts = acao_bar_transactions.where(recorded_at: from..to).order(recorded_at: :asc)
 
     return if xacts.count == 0
@@ -453,6 +470,28 @@ class Pilot < Ygg::Core::Person
     starting_credit = acao_bar_credit - acao_bar_transactions.where('recorded_at > ?', from).reduce(0) { |a,x| a + x.amount }
 
     Ygg::Ml::Msg::Email.notify(destinations: self, template: 'BAR_SUMMARY', template_context: {
+      first_name: first_name,
+      date: xacts.first.recorded_at.strftime('%d-%m-%Y'),
+      starting_credit: starting_credit,
+      xacts: xacts,
+    })
+  end
+
+  def send_flights_summary!(from:, to:)
+
+
+
+                     
+
+
+    xacts = acao_bar_transactions.where(recorded_at: from..to).order(recorded_at: :asc)
+
+    return if xacts.count == 0
+
+    # To be removed when log entries have credit,prev_credit chain
+    starting_credit = acao_bar_credit - acao_bar_transactions.where('recorded_at > ?', from).reduce(0) { |a,x| a + x.amount }
+
+    Ygg::Ml::Msg::Email.notify(destinations: self, template: 'FLIGHTS_SUMMARY', template_context: {
       first_name: first_name,
       date: xacts.first.recorded_at.strftime('%d-%m-%Y'),
       starting_credit: starting_credit,
