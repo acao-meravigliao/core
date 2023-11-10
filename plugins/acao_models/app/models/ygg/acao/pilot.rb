@@ -315,19 +315,19 @@ class Pilot < Ygg::Core::Person
       end
     end
 
-    transaction do
-      now = Time.now
-      last_run = acao_flights_last_summary || Time.new(0)
-
-      when_during_day = now.beginning_of_day # Midnight
-
-      if when_during_day.between?(last_run, now)
-        send_flight_summary!(from: last_run, to: now.end_of_day)
-
-        self.acao_flights_last_summary = now
-        save!
-      end
-    end
+#    transaction do
+#      now = Time.now
+#      last_run = acao_flights_last_summary || Time.new(0)
+#
+#      when_during_day = now.beginning_of_day # Midnight
+#
+#      if when_during_day.between?(last_run, now)
+#        send_flight_summary!(from: last_run, to: now.end_of_day)
+#
+#        self.acao_flights_last_summary = now
+#        save!
+#      end
+#    end
   end
 
   def run_roster_notification(now:, last_run:)
