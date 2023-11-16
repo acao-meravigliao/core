@@ -615,7 +615,7 @@ class Pilot < Ygg::Core::Person
     merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| l.acao_code.to_s <=> r[:user_login] },
     l_to_r: lambda { |l|
-      puts "CREATE: #{l.acao_code}"
+ #     puts "CREATE: #{l.acao_code}"
 
       updates << [
         l.acao_code.to_s,
@@ -629,10 +629,10 @@ class Pilot < Ygg::Core::Person
       ]
     },
     r_to_l: lambda { |r|
-      puts "REMOVE: #{r[:user_login]}"
+      #puts "REMOVE: #{r[:user_login]}"
     },
     lr_update: lambda { |l,r|
-      puts "UPDATE #{l.acao_code}"
+#      puts "UPDATE #{l.acao_code}"
 
       # All current roles
       r_roles = r[:roles].split(',').sort
@@ -692,7 +692,7 @@ class Pilot < Ygg::Core::Person
         end
       end
 
-      puts "OUT: #{import_out}"
+      #puts "OUT: #{import_out}"
     end
   end
 
