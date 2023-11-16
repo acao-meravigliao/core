@@ -153,7 +153,12 @@ class Flight < Ygg::PublicModel
     # Do towplane flight (first, so that we can look it up for towed_by later)
 
     # ============================== TOW ==================================
-    r_relation = Ygg::Acao::Flight.where(source: 'OLDDB').where('source_id IS NOT NULL').where(source_expansion: 'TOW').where('source_id > ?', start).order(source_id: :asc)
+    r_relation = Ygg::Acao::Flight.
+                   where(source: 'OLDDB').
+                   where('source_id IS NOT NULL').
+                   where(source_expansion: 'TOW').
+                   where('source_id > ?', start).
+                   order(source_id: :asc)
     r_relation = r_relation.where('source_id >= ?', l_relation.first.id_voli) if limit
 
     merge(
@@ -161,6 +166,8 @@ class Flight < Ygg::PublicModel
     r: r_relation,
     l_cmp_r: lambda { |l,r| l.id_voli <=> r.source_id },
     l_to_r: lambda { |l|
+      puts "UPD #{l.id_voli}"
+
       begin
         if !l.marche_aereo.blank? &&
            l.marche_aereo.strip != 'NO' &&
@@ -181,7 +188,7 @@ class Flight < Ygg::PublicModel
           end
         end
       rescue InvalidRecord => e
-        puts "OOOOOOOOOOOOOOOOHHHHHHHHH In record #{l.id_voli} (GL): #{e.to_s}"
+        puts "OOOOOOOOOOOOOOOOHHHHHHHHH In record #{l.id_voli} (TOW): #{e.to_s}"
       end
     },
     r_to_l: lambda { |r|
@@ -200,7 +207,12 @@ class Flight < Ygg::PublicModel
     })
 
     # ============================== GL ==================================
-    r_relation = Ygg::Acao::Flight.where(source: 'OLDDB').where('source_id IS NOT NULL').where(source_expansion: 'GL').where('source_id > ?', start).order(source_id: :asc)
+    r_relation = Ygg::Acao::Flight.
+                   where(source: 'OLDDB').
+                   where('source_id IS NOT NULL').
+                   where(source_expansion: 'GL').
+                   where('source_id > ?', start).
+                   order(source_id: :asc)
     r_relation = r_relation.where('source_id >= ?', l_relation.first.id_voli) if limit
 
     merge(
@@ -231,12 +243,14 @@ class Flight < Ygg::PublicModel
           end
         end
       rescue InvalidRecord => e
-        puts "OOOOOOOOOOOOOOOOHHHHHHHHH In record #{l.id_voli} (TOW): #{e.to_s}"
+        puts "OOOOOOOOOOOOOOOOHHHHHHHHH In record #{l.id_voli} (GL): #{e.to_s}"
       end
     },
     r_to_l: lambda { |r|
+      puts "DEL #{l.id_voli}"
     },
     lr_update: lambda { |l,r|
+      puts "UPD #{l.id_voli}"
 
       transaction do
         r.sync_from_maindb_as_gl(l)
