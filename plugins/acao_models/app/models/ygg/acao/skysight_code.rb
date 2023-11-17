@@ -9,7 +9,7 @@
 module Ygg
 module Acao
 
-class SkysightCodes < Ygg::PublicModel
+class SkysightCode < Ygg::PublicModel
   self.table_name = 'acao.skysight_codes'
   self.inheritance_column = false
 
