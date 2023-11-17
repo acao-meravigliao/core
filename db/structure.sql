@@ -52,6 +52,13 @@ CREATE SCHEMA ml;
 
 
 --
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+--
 -- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -190,7 +197,10 @@ CREATE TABLE acao.airfields (
     radius integer NOT NULL,
     icao_code character(4),
     symbol character varying(16),
-    location_id uuid NOT NULL
+    location_id uuid NOT NULL,
+    range integer NOT NULL,
+    range_alt integer NOT NULL,
+    name_short character varying(32)
 );
 
 
@@ -905,59 +915,6 @@ ALTER SEQUENCE acao.acao_service_types_id_seq OWNED BY acao.service_types.id_old
 
 
 --
--- Name: timetable_entries; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.timetable_entries (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    pilot_id_old integer,
-    takeoff_at timestamp with time zone,
-    landing_at timestamp with time zone,
-    tow_height integer,
-    towed_by_id_old integer,
-    landing_location_id_old integer,
-    takeoff_location_id_old integer,
-    takeoff_airfield_id_old integer,
-    landing_airfield_id_old integer,
-    flying_state character varying(32),
-    reception_state character varying(32),
-    tow_state character varying(32),
-    tow_duration integer,
-    created_at timestamp without time zone DEFAULT now(),
-    tow_release_at timestamp without time zone,
-    tow_release_location_id_old integer,
-    aircraft_id uuid,
-    pilot_id uuid,
-    towed_by_id uuid,
-    landing_location_id uuid,
-    takeoff_location_id uuid,
-    takeoff_airfield_id uuid,
-    landing_airfield_id uuid,
-    tow_release_location_id uuid
-);
-
-
---
--- Name: acao_timetable_entries_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_timetable_entries_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_timetable_entries_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_timetable_entries_id_seq OWNED BY acao.timetable_entries.id_old;
-
-
---
 -- Name: token_transactions; Type: TABLE; Schema: acao; Owner: -
 --
 
@@ -1419,7 +1376,9 @@ CREATE TABLE acao.radar_points (
     srcs character varying,
     src character varying(16),
     aircraft_id uuid NOT NULL,
-    last_rep timestamp with time zone
+    last_rep timestamp with time zone,
+    freshness double precision,
+    hgt double precision
 );
 
 
@@ -1440,6 +1399,59 @@ CREATE TABLE acao.radar_raw_points (
     tr double precision,
     cr double precision,
     aircraft_id uuid NOT NULL
+);
+
+
+--
+-- Name: skysight_codes; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.skysight_codes (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    code character varying(20) NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    assigned_at timestamp without time zone,
+    assigned_to uuid
+);
+
+
+--
+-- Name: timetable_entries; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.timetable_entries (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    created_at timestamp without time zone DEFAULT now(),
+    aircraft_id uuid,
+    pilot_id uuid,
+    takeoff_at timestamp with time zone,
+    takeoff_at_detected timestamp with time zone,
+    takeoff_location_id uuid,
+    takeoff_lat double precision,
+    takeoff_lng double precision,
+    takeoff_alt double precision,
+    takeoff_airfield_id uuid,
+    takeoff_runway character varying(32),
+    landing_at timestamp with time zone,
+    landing_at_detected timestamp with time zone,
+    landing_location_id uuid,
+    landing_airfield_id uuid,
+    landing_lat double precision,
+    landing_lng double precision,
+    landing_alt double precision,
+    landing_runway character varying(32),
+    landing_circuit character varying(32),
+    towed_by_id uuid,
+    tow_release_at timestamp without time zone,
+    tow_release_at_detected timestamp without time zone,
+    tow_release_location_id uuid,
+    tow_release_lat double precision,
+    tow_release_lng double precision,
+    tow_release_alt double precision,
+    tow_height integer,
+    tow_duration integer,
+    takeoff_method character varying(32),
+    landing_method character varying(32)
 );
 
 
@@ -2689,7 +2701,8 @@ CREATE TABLE core.people (
     birth_location_id uuid,
     invoicing_location_id uuid,
     residence_location_id uuid,
-    preferred_language_id uuid
+    preferred_language_id uuid,
+    acao_flights_last_summary timestamp without time zone
 );
 
 
@@ -5259,13 +5272,6 @@ ALTER TABLE ONLY acao.service_types ALTER COLUMN id_old SET DEFAULT nextval('aca
 
 
 --
--- Name: timetable_entries id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.timetable_entries ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_timetable_entries_id_seq'::regclass);
-
-
---
 -- Name: token_transactions id_old; Type: DEFAULT; Schema: acao; Owner: -
 --
 
@@ -6211,6 +6217,14 @@ ALTER TABLE ONLY acao.roster_entries
 
 ALTER TABLE ONLY acao.service_types
     ADD CONSTRAINT service_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: skysight_codes skysight_codes_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.skysight_codes
+    ADD CONSTRAINT skysight_codes_pkey PRIMARY KEY (id);
 
 
 --
@@ -7918,10 +7932,10 @@ CREATE UNIQUE INDEX index_service_types_on_uuid ON acao.service_types USING btre
 
 
 --
--- Name: index_timetable_entries_on_id_old; Type: INDEX; Schema: acao; Owner: -
+-- Name: index_skysight_codes_on_code; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE INDEX index_timetable_entries_on_id_old ON acao.timetable_entries USING btree (id_old);
+CREATE UNIQUE INDEX index_skysight_codes_on_code ON acao.skysight_codes USING btree (code);
 
 
 --
@@ -10269,7 +10283,7 @@ ALTER TABLE ONLY acao.invoice_details
 --
 
 ALTER TABLE ONLY acao.timetable_entries
-    ADD CONSTRAINT fk_rails_a5efa5524a FOREIGN KEY (towed_by_id) REFERENCES acao.timetable_entries(id);
+    ADD CONSTRAINT fk_rails_a5efa5524a FOREIGN KEY (towed_by_id) REFERENCES acao.timetable_entries(id) ON DELETE SET NULL;
 
 
 --
@@ -11074,6 +11088,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20220123150235'),
 ('20221222191301'),
 ('20230211165223'),
-('20230212160016');
+('20230212160016'),
+('20230217111552'),
+('20230719131931'),
+('20231116215432');
 
 
