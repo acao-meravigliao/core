@@ -36,6 +36,10 @@ class Year < Ygg::PublicModel
   def self.next_renewal_year
     Ygg::Acao::Year.where('renew_announce_time < ?', Time.now).order(year: :desc).first
   end
+
+  def previous
+    self.class.find_by(year: year - 1)
+  end
 end
 
 end
