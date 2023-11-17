@@ -14,7 +14,8 @@ class SkysightCode < Ygg::PublicModel
   self.inheritance_column = false
 
   belongs_to :person,
-             class_name: 'Ygg::Core::Person'
+             class_name: 'Ygg::Core::Person',
+             optional: true
 
   include Ygg::Core::Loggable
   define_default_log_controller(self)
