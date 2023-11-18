@@ -113,6 +113,10 @@ class Invoice < Ygg::PublicModel
     details.all.each do |detail|
       detail.membership.payment_completed!  if detail.membership
       detail.member_service.payment_completed!  if detail.member_service
+
+      if detail.service_type.symbol == 'SKYSIGHT'
+        Ygg::Acao::SkysightCode.assign_and_send!(person: person)
+      end
     end
 
     if onda_export_status == nil

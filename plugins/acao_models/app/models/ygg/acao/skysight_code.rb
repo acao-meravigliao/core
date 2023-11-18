@@ -19,6 +19,18 @@ class SkysightCode < Ygg::PublicModel
 
   include Ygg::Core::Loggable
   define_default_log_controller(self)
+
+  def self.assign_and_send!(person:)
+    ss_code = self.lock.order(:created_at).first
+    ss_code.assigned_to = person
+    ss_code.assigned_at = Time.now
+    ss_code.save!
+
+    Ygg::Ml::Msg.notify(destinations: person, template: 'SKYSIGHT_COUPON', template_context: {
+      first_name: person.first_name,
+      skysight_code: ss_code.code,
+    }, objects: ss_code)
+  end
 end
 
 end
