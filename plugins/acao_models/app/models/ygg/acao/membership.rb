@@ -112,7 +112,7 @@ class Membership < Ygg::PublicModel
     services = []
 
     services << {
-      service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'ASS_STANDARD').id,
+      service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: ass_type).id,
       removable: false,
       toggable: false,
       enabled: true,
@@ -127,12 +127,14 @@ class Membership < Ygg::PublicModel
       }
     end
 
-    services << {
-      service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'CAV_STANDARD').id,
-      removable: false,
-      toggable: true,
-      enabled: true,
-    }
+    if cav_type
+      services << {
+        service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: cav_type).id,
+        removable: false,
+        toggable: true,
+        enabled: true,
+      }
+    end
 
     services << {
       service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'DUAL_FORFAIT').id,
@@ -143,6 +145,13 @@ class Membership < Ygg::PublicModel
 
     services << {
       service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'SKYSIGHT').id,
+      removable: false,
+      toggable: true,
+      enabled: false,
+    }
+
+    services << {
+      service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'METEOWIND').id,
       removable: false,
       toggable: true,
       enabled: false,
