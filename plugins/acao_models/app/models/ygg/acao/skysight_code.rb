@@ -21,7 +21,7 @@ class SkysightCode < Ygg::PublicModel
   define_default_log_controller(self)
 
   def self.assign_and_send!(person:)
-    ss_code = self.lock.order(:created_at).first
+    ss_code = self.lock.where('assigned_at IS NOT NULL').order(:created_at).first
     ss_code.assigned_to = person
     ss_code.assigned_at = Time.now
     ss_code.save!
