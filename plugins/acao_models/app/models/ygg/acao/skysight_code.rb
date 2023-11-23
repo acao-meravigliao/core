@@ -29,6 +29,7 @@ class SkysightCode < Ygg::PublicModel
     Ygg::Ml::Msg.notify(destinations: person, template: 'SKYSIGHT_COUPON', template_context: {
       first_name: person.first_name,
       skysight_code: ss_code.code,
+      expires_at: ss_code.expires_at,
     }, objects: ss_code)
   end
 end
