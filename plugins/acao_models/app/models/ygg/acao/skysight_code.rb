@@ -13,7 +13,7 @@ class SkysightCode < Ygg::PublicModel
   self.table_name = 'acao.skysight_codes'
   self.inheritance_column = false
 
-  belongs_to :person,
+  belongs_to :assigned_to,
              class_name: 'Ygg::Core::Person',
              optional: true
 
