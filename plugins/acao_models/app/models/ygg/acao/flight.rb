@@ -247,7 +247,7 @@ class Flight < Ygg::PublicModel
       end
     },
     r_to_l: lambda { |r|
-      puts "DEL #{l.id_voli}"
+      puts "DEL #{r.id_voli}"
     },
     lr_update: lambda { |l,r|
       puts "UPD #{l.id_voli}"
