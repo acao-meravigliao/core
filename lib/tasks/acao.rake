@@ -62,7 +62,7 @@ namespace :acao do
       ff = Ygg::Acao::Flight.order(takeoff_time: :asc).where('takeoff_time > ?', Time.now - 30.days).first
       start_id = ff ? ff.source_id : 0
 
-      Ygg::Acao::Flight.sync_from_maindb!(start: start_id, limit: 1000)
+      Ygg::Acao::Flight.sync_from_maindb!(start: start_id)
 
       Ygg::Acao::MainDb::Volo.update_last_update!
     end
