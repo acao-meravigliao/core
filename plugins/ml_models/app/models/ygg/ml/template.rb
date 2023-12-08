@@ -47,13 +47,13 @@ class Template < Ygg::PublicModel
     context = DeepOpenStruct.new(context)
 
     result = {
-      subject: ERB.new(subject, 0, trim_mode: '-').result(context.instance_eval { binding }),
-      body: ERB.new(body, 0, trim_mode: '-').result(context.instance_eval { binding }),
+      subject: ERB.new(subject, trim_mode: '-').result(context.instance_eval { binding }),
+      body: ERB.new(body, trim_mode: '-').result(context.instance_eval { binding }),
       email_headers: {},
     }
 
     if additional_headers
-      h = ERB.new(additional_headers, 0, trim_mode: '-').result(context.instance_eval { binding })
+      h = ERB.new(additional_headers, trim_mode: '-').result(context.instance_eval { binding })
       result[:email_headers] = Hash[h.split('\n').map { |x| x.split(':', 2) }]
     end
 
