@@ -857,7 +857,7 @@ class Pilot < Ygg::Core::Person
       self.acao_lastmod = other.lastmod
 
       puts "PILOT CHANGED"
-      puts r.deep_changes.awesome_inspect(plain: true)
+      puts deep_changes.awesome_inspect(plain: true)
 
       save!
     end

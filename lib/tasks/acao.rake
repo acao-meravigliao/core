@@ -39,7 +39,10 @@ namespace :acao do
 
       #puts "Updating Ygg::Acao::Pilot"
 
-      Ygg::Acao::Pilot.sync_from_maindb!(with_logbar: Ygg::Acao::MainDb::LogBar2.has_been_updated? || Ygg::Acao::MainDb::CassettaBarLocale.has_been_updated?, with_logbollini: Ygg::Acao::MainDb::LogBollini.has_been_updated?)
+      Ygg::Acao::Pilot.sync_from_maindb!(
+         with_logbar: Ygg::Acao::MainDb::LogBar2.has_been_updated? || Ygg::Acao::MainDb::CassettaBarLocale.has_been_updated?,
+         with_logbollini: Ygg::Acao::MainDb::LogBollini.has_been_updated?,
+         debug: 1)
 
       Ygg::Acao::MainDb::Socio.update_last_update!
       Ygg::Acao::MainDb::SociDatiLicenza.update_last_update!
@@ -62,7 +65,7 @@ namespace :acao do
       ff = Ygg::Acao::Flight.order(takeoff_time: :asc).where('takeoff_time > ?', Time.now - 30.days).first
       start_id = ff ? ff.source_id : 0
 
-      Ygg::Acao::Flight.sync_from_maindb!(start: start_id)
+      Ygg::Acao::Flight.sync_from_maindb!(start: start_id, debug: 1)
 
       Ygg::Acao::MainDb::Volo.update_last_update!
     end
