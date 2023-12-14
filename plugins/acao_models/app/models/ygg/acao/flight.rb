@@ -145,10 +145,11 @@ class Flight < Ygg::PublicModel
 
   class InvalidRecord < StandardError ; end
 
-  def self.sync_from_maindb!(start: 0, limit: 300)
+  def self.sync_from_maindb!(start: nil, stop: nil, debug: 0)
 
-    l_relation = Ygg::Acao::MainDb::Volo.where('id_voli > ?', start).order(id_voli: :asc)
-    l_relation = l_relation.limit(limit) if limit
+    l_relation = Ygg::Acao::MainDb::Volo.all.order(id_voli: :asc)
+    l_relation = l_relation.where('id_voli >= ?', start) if start
+    l_relation = l_relation.where('id_voli <= ?', stop) if stop
 
     # Do towplane flight (first, so that we can look it up for towed_by later)
 
@@ -157,16 +158,16 @@ class Flight < Ygg::PublicModel
                    where(source: 'OLDDB').
                    where('source_id IS NOT NULL').
                    where(source_expansion: 'TOW').
-                   where('source_id > ?', start).
                    order(source_id: :asc)
-    r_relation = r_relation.where('source_id >= ?', l_relation.first.id_voli) if limit
+    r_relation = r_relation.where('source_id >= ?', start) if start
+    r_relation = r_relation.where('source_id <= ?', stop) if stop
 
     merge(
     l: l_relation,
     r: r_relation,
     l_cmp_r: lambda { |l,r| l.id_voli <=> r.source_id },
     l_to_r: lambda { |l|
-      puts "UPD #{l.id_voli}"
+      puts "TOW CHK ADD #{l.id_voli}" if debug >= 2
 
       begin
         if !l.marche_aereo.blank? &&
@@ -174,7 +175,7 @@ class Flight < Ygg::PublicModel
            l.marche_aereo.strip != 'AUTO' &&
            l.marche_aereo.strip != 'I-ALTRI'
 
-          puts "ADDING TOW FLIGHT ID=#{l.id_voli}"
+          puts "ADDING TOW FLIGHT ID=#{l.id_voli}" if debug >= 1
 
           transaction do
             tow_flight = Ygg::Acao::Flight.new(
@@ -192,14 +193,17 @@ class Flight < Ygg::PublicModel
       end
     },
     r_to_l: lambda { |r|
+      puts "TOW DEL #{r.source_id}" if debug >= 1
+      r.destroy!
     },
     lr_update: lambda { |l,r|
+      puts "TOW CMP #{l.id_voli}" if debug >= 2
 
       transaction do
         r.sync_from_maindb_as_tow(l)
 
         if r.deep_changed?
-          puts "UPDATING TOW FLIGHT ID=#{l.id_voli}"
+          puts "UPDATING TOW FLIGHT ID=#{l.id_voli}" if debug >= 1
           puts r.deep_changes.awesome_inspect(plain: true)
           r.save!
         end
@@ -211,15 +215,17 @@ class Flight < Ygg::PublicModel
                    where(source: 'OLDDB').
                    where('source_id IS NOT NULL').
                    where(source_expansion: 'GL').
-                   where('source_id > ?', start).
                    order(source_id: :asc)
-    r_relation = r_relation.where('source_id >= ?', l_relation.first.id_voli) if limit
+    r_relation = r_relation.where('source_id >= ?', start) if start
+    r_relation = r_relation.where('source_id <= ?', stop) if stop
 
     merge(
     l: l_relation,
     r: r_relation,
     l_cmp_r: lambda { |l,r| l.id_voli <=> r.source_id },
     l_to_r: lambda { |l|
+      puts "GL CHK ADD #{l.id_voli}" if debug >= 2
+
       begin
         if !l.marche_aliante.blank? &&
             l.marche_aliante.strip != 'NO' &&
@@ -229,9 +235,10 @@ class Flight < Ygg::PublicModel
             l.marche_aliante.strip != 'DG1000' &&
             l.marche_aliante.strip != 'I-ALTRI'
 
-          transaction do
-            puts "ADDING GL FLIGHT ID=#{l.id_voli}"
+          puts "GL ADD FLIGHT ID=#{l.id_voli}" if debug >= 1
 
+
+          transaction do
             gl_flight = Ygg::Acao::Flight.new(
               source: 'OLDDB',
               source_id: l.id_voli,
@@ -247,16 +254,17 @@ class Flight < Ygg::PublicModel
       end
     },
     r_to_l: lambda { |r|
-      puts "DEL #{l.id_voli}"
+      puts "GL DEL #{r.source_id}" if debug >= 1
+      r.destroy!
     },
     lr_update: lambda { |l,r|
-      puts "UPD #{l.id_voli}"
+      puts "GL CMP #{l.id_voli}" if debug >= 2
 
       transaction do
         r.sync_from_maindb_as_gl(l)
 
         if r.deep_changed?
-          puts "UPDATING GL FLIGHT #{l.id_voli}"
+          puts "GL UPD FLIGHT #{l.id_voli}" if debug >= 1
           puts r.deep_changes.awesome_inspect(plain: true)
           r.save!
         end

@@ -1,102 +1,4 @@
 PATH
-  remote: ../yggdra/plugins/amqp_ws_gw
-  specs:
-    amqp_ws_gw (1.0.0)
-      am-amqp (~> 2.0)
-      am-ws
-      ygg-diffable
-
-PATH
-  remote: ../yggdra/plugins/ca_hel
-  specs:
-    ca_hel (1.0.0)
-      active_rest (>= 6.6.0)
-
-PATH
-  remote: ../yggdra/plugins/ca_models
-  specs:
-    ca_models (1.0.0)
-      active_rest (>= 6.6.0)
-      json-jwt (>= 1.9.4)
-
-PATH
-  remote: ../yggdra/plugins/core_hel
-  specs:
-    core_hel (1.0.0)
-      active_rest (>= 6.6.0)
-
-PATH
-  remote: ../yggdra/plugins/core_heltog
-  specs:
-    core_heltog (0.0.1)
-
-PATH
-  remote: ../yggdra/plugins/core_models
-  specs:
-    core_models (1.0.0)
-      active_rest (>= 7.0.0)
-      am-amqp
-      deep_open_struct
-      geocoder
-      hooks
-      pg_search
-      uuidtools
-      vihai-password-rails
-
-PATH
-  remote: ../yggdra/plugins/hel
-  specs:
-    hel (1.0.0)
-
-PATH
-  remote: ../yggdra/plugins/i18n_hel
-  specs:
-    i18n_hel (1.0.0)
-      active_rest (>= 6.6.0)
-
-PATH
-  remote: ../yggdra/plugins/i18n_models
-  specs:
-    i18n_models (1.0.0)
-      active_rest (>= 6.6.0)
-
-PATH
-  remote: ../yggdra/plugins/ml_hel
-  specs:
-    ml_hel (1.0.0)
-      active_rest (>= 6.6.0)
-
-PATH
-  remote: ../yggdra/plugins/ml_heltog
-  specs:
-    ml_heltog (1.0.0)
-
-PATH
-  remote: ../yggdra/plugins/ml_models
-  specs:
-    ml_models (1.0.0)
-      active_rest (>= 6.6.0)
-      am-http
-      am-smtp
-      dkim
-      mail
-
-PATH
-  remote: ../yggdra/plugins/nisse_hel
-  specs:
-    nisse_hel (1.0.0)
-
-PATH
-  remote: ../yggdra/plugins/streaming_hel
-  specs:
-    streaming_hel (1.0.0)
-
-PATH
-  remote: ../yggdra/plugins/streaming_models
-  specs:
-    streaming_models (1.0.0)
-
-PATH
   remote: plugins/acao_hel
   specs:
     acao_hel (1.0.0)
@@ -123,6 +25,104 @@ PATH
   remote: plugins/acao_onda_models
   specs:
     acao_onda_models (1.0.0)
+
+PATH
+  remote: plugins/amqp_ws_gw
+  specs:
+    amqp_ws_gw (1.0.0)
+      am-amqp (~> 2.0)
+      am-ws
+      ygg-diffable
+
+PATH
+  remote: plugins/ca_hel
+  specs:
+    ca_hel (1.0.0)
+      active_rest (>= 6.6.0)
+
+PATH
+  remote: plugins/ca_models
+  specs:
+    ca_models (1.0.0)
+      active_rest (>= 6.6.0)
+      json-jwt (>= 1.9.4)
+
+PATH
+  remote: plugins/core_hel
+  specs:
+    core_hel (1.0.0)
+      active_rest (>= 6.6.0)
+
+PATH
+  remote: plugins/core_heltog
+  specs:
+    core_heltog (0.0.1)
+
+PATH
+  remote: plugins/core_models
+  specs:
+    core_models (1.0.0)
+      active_rest (>= 7.0.0)
+      am-amqp
+      deep_open_struct
+      geocoder
+      hooks
+      pg_search
+      uuidtools
+      vihai-password-rails
+
+PATH
+  remote: plugins/hel
+  specs:
+    hel (1.0.0)
+
+PATH
+  remote: plugins/i18n_hel
+  specs:
+    i18n_hel (1.0.0)
+      active_rest (>= 6.6.0)
+
+PATH
+  remote: plugins/i18n_models
+  specs:
+    i18n_models (1.0.0)
+      active_rest (>= 6.6.0)
+
+PATH
+  remote: plugins/ml_hel
+  specs:
+    ml_hel (1.0.0)
+      active_rest (>= 6.6.0)
+
+PATH
+  remote: plugins/ml_heltog
+  specs:
+    ml_heltog (1.0.0)
+
+PATH
+  remote: plugins/ml_models
+  specs:
+    ml_models (1.0.0)
+      active_rest (>= 6.6.0)
+      am-http
+      am-smtp
+      dkim
+      mail
+
+PATH
+  remote: plugins/nisse_hel
+  specs:
+    nisse_hel (1.0.0)
+
+PATH
+  remote: plugins/streaming_hel
+  specs:
+    streaming_hel (1.0.0)
+
+PATH
+  remote: plugins/streaming_models
+  specs:
+    streaming_models (1.0.0)
 
 GEM
   remote: https://gems.vihai.it/
@@ -209,7 +209,7 @@ GEM
       am-amqp (~> 2.0)
       ygg-exception (~> 0.0)
       ygg_app (~> 1.7)
-    ygg_app (1.13.1)
+    ygg_app (1.14.0)
       actor_model
       airbrake-ruby
       am-io-buffer
@@ -252,16 +252,16 @@ GEM
       minitest (>= 5.1)
       tzinfo (~> 2.0)
       zeitwerk (~> 2.3)
-    addressable (2.8.5)
+    addressable (2.8.6)
       public_suffix (>= 2.0.2, < 6.0)
     aes_key_wrap (1.1.0)
-    airbrake (13.0.3)
+    airbrake (13.0.4)
       airbrake-ruby (~> 6.0)
     airbrake-ruby (6.2.2)
       rbtree3 (~> 0.6)
     amazing_print (1.5.0)
     base64 (0.2.0)
-    bigdecimal (3.1.4)
+    bigdecimal (3.1.5)
     bindata (2.4.15)
     builder (3.2.4)
     byebug (11.1.3)
@@ -272,7 +272,7 @@ GEM
     date (3.3.4)
     dkim (1.1.0)
     erubi (1.12.0)
-    faraday (2.7.11)
+    faraday (2.7.12)
       base64
       faraday-net_http (>= 2.0, < 3.1)
       ruby2_keywords (>= 0.0.4)
@@ -285,7 +285,7 @@ GEM
       uber (~> 0.0.14)
     i18n (1.14.1)
       concurrent-ruby (~> 1.0)
-    json (2.6.3)
+    json (2.7.1)
     json-jwt (1.16.3)
       activesupport (>= 4.2)
       aes_key_wrap
@@ -304,7 +304,7 @@ GEM
     method_source (1.0.0)
     mini_mime (1.1.5)
     minitest (5.20.0)
-    net-imap (0.4.5)
+    net-imap (0.4.8)
       date
       net-protocol
     net-ldap (0.18.0)
@@ -314,7 +314,7 @@ GEM
       timeout
     net-smtp (0.4.0)
       net-protocol
-    nio4r (2.6.0)
+    nio4r (2.7.0)
     nokogiri (1.15.5-x86_64-linux)
       racc (~> 1.4)
     pdf-core (0.9.0)
@@ -364,12 +364,12 @@ GEM
       nokogiri (>= 1.3.3)
     ruby2_keywords (0.0.5)
     sleepy_penguin (3.5.2)
-    spring (4.1.2)
-    sqlite3 (1.6.8-x86_64-linux)
+    spring (4.1.3)
+    sqlite3 (1.6.9-x86_64-linux)
     structured_warnings (0.4.0)
     thor (1.3.0)
     timeout (0.4.1)
-    tiny_tds (2.1.5)
+    tiny_tds (2.1.6)
     ttfunk (1.7.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)

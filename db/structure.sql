@@ -1411,7 +1411,8 @@ CREATE TABLE acao.skysight_codes (
     code character varying(20) NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     assigned_at timestamp without time zone,
-    assigned_to uuid
+    assigned_to_id uuid,
+    expires_at timestamp without time zone
 );
 
 
@@ -11091,6 +11092,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230212160016'),
 ('20230217111552'),
 ('20230719131931'),
-('20231116215432');
+('20231116215432'),
+('20231123132257'),
+('20231123133007');
 
 
