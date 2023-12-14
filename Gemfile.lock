@@ -209,7 +209,7 @@ GEM
       am-amqp (~> 2.0)
       ygg-exception (~> 0.0)
       ygg_app (~> 1.7)
-    ygg_app (1.13.1)
+    ygg_app (1.14.0)
       actor_model
       airbrake-ruby
       am-io-buffer
@@ -252,7 +252,7 @@ GEM
       minitest (>= 5.1)
       tzinfo (~> 2.0)
       zeitwerk (~> 2.3)
-    addressable (2.8.5)
+    addressable (2.8.6)
       public_suffix (>= 2.0.2, < 6.0)
     aes_key_wrap (1.1.0)
     airbrake (13.0.4)
@@ -261,7 +261,7 @@ GEM
       rbtree3 (~> 0.6)
     amazing_print (1.5.0)
     base64 (0.2.0)
-    bigdecimal (3.1.4)
+    bigdecimal (3.1.5)
     bindata (2.4.15)
     builder (3.2.4)
     byebug (11.1.3)
@@ -304,7 +304,7 @@ GEM
     method_source (1.0.0)
     mini_mime (1.1.5)
     minitest (5.20.0)
-    net-imap (0.4.7)
+    net-imap (0.4.8)
       date
       net-protocol
     net-ldap (0.18.0)
