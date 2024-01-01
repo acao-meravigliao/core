@@ -1,11 +1,12 @@
 source 'https://rubygems.org'
 
-#gem 'activerecord', '~> 7.0.0'
-#gem 'activemodel', '~> 7.0.0'
-#gem 'actionpack', '~> 7.0.0'
-#gem 'actionview', '~> 7.0.0'
-#gem 'activesupport', '~> 7.0.0'
-#gem 'railties', '~> 7.0.0'
+#gem 'activerecord', '~> 7.1.0'
+#gem 'activemodel', '~> 7.1.0'
+#gem 'actionpack', '~> 7.1.0'
+#gem 'actionview', '~> 7.1.0'
+#gem 'activesupport', '~> 7.1.0'
+#gem 'railties', '~> 7.1.0'
+##gem 'sprockets-rails'
 
 gem 'activerecord', '~> 6.1.0'
 gem 'activemodel', '~> 6.1.0'
@@ -16,6 +17,7 @@ gem 'railties', '~> 6.1.0'
 
 gem 'pg'
 gem 'tiny_tds'#, '~> 1.1.0'
+#gem 'activerecord-sqlserver-adapter', '~> 7.1.0'
 gem 'activerecord-sqlserver-adapter', '~> 6.1.2.1'
 #gem 'activerecord-sqlserver-adapter'#, git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git'
 
@@ -53,6 +55,7 @@ source 'https://gems.vihai.it/' do
   gem 'am-ssh'
   gem 'am-ws'
   gem 'ygg-diffable'
+  gem 'iarray'
 
   group :hel_together do
     #gem 'hel_together', '~> 1.5.2' # For rails 6.0
@@ -85,6 +88,7 @@ group :controllers do
   #gem 'trk_hel', path: '../acao-plugins/trk_hel'
   gem 'streaming_hel', path: 'plugins/streaming_hel'
   gem 'amqp_ws_gw', path: 'plugins/amqp_ws_gw'
+  gem 'rails_vos', path: 'plugins/rails_vos'
 end
 
 gem 'core_models', path: 'plugins/core_models'

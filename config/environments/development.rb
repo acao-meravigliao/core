@@ -50,6 +50,45 @@ Rails.application.configure do
 
   config.acao.soci_ml_dry_run = true
 
+  if config.respond_to?(:rails_vos)
+    config.rails_vos.allowed_request_origins = [
+      'http://linobis.acao.it:3330',
+      'http://linobis.acao.it:3331',
+      'http://linobis.acao.it:3332',
+      'http://linobis.acao.it:4200',
+      'http://linobis.acao.it:4201',
+      'http://linobis.acao.it:4242',
+      'http://dashboard-linobis.acao.it:3330',
+      'http://dashboard-linobis.acao.it:3331',
+      'http://dashboard-linobis.acao.it:3332',
+      'http://dashboard-linobis.acao.it:4200',
+      'http://dashboard-linobis.acao.it:4201',
+      'http://services-linobis.acao.it:3330',
+      'http://services-linobis.acao.it:3331',
+      'http://services-linobis.acao.it:3332',
+      'http://services-linobis.acao.it:4200',
+      'http://services-linobis.acao.it:4201',
+      'https://servizi-dev.acao.it',
+    ]
+
+    config.rails_vos.safe_receiver = true
+
+    config.rails_vos.routes.merge!({
+      'ygg.glideradar.processed_traffic.live.linobis': {
+        type: :topic,
+        durable: true,
+        auto_delete: false,
+        anonymous_access: true,
+      },
+      'ygg.autocam.state.linobis': {
+        type: :topic,
+        durable: true,
+        auto_delete: false,
+        anonymous_access: true,
+      },
+    })
+  end
+
   if config.respond_to?(:amqp_ws_gw)
     config.amqp_ws_gw.allowed_request_origins = [
       'http://linobis.acao.it:3330',

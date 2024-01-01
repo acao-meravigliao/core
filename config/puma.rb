@@ -14,6 +14,7 @@ on_worker_boot do
     require 'rails_actor_model/logger'
     RailsActorModel::Logger.new
 
+    RailsVos.start
     Ygg::AmqpWsGw.start
 
     ActiveSupport.on_load(:active_record) do

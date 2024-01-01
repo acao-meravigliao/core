@@ -115,6 +115,15 @@ PATH
     nisse_hel (1.0.0)
 
 PATH
+  remote: plugins/rails_vos
+  specs:
+    rails_vos (1.0.0)
+      am-amqp (~> 2.0)
+      am-ws
+      iarray
+      ygg-diffable
+
+PATH
   remote: plugins/streaming_hel
   specs:
     streaming_hel (1.0.0)
@@ -131,11 +140,11 @@ GEM
       activerecord
       rubytree
       ygg-exception
-    actor_model (1.26.1)
+    actor_model (1.27.1)
       activesupport
       sleepy_penguin
       ygg-exception
-    am-amqp (2.3.3)
+    am-amqp (2.4.0)
       actor_model
       am-sockets (~> 0.17)
       amazing_print
@@ -175,6 +184,7 @@ GEM
     hel_together (1.6.1)
       rack (>= 1.5.2)
       ygg_agent (~> 2.9)
+    iarray (0.1.1)
     json_exceptions (0.0.3)
       ygg-exception
     netbin (0.5.0)
@@ -272,7 +282,7 @@ GEM
     date (3.3.4)
     dkim (1.1.0)
     erubi (1.12.0)
-    faraday (2.7.12)
+    faraday (2.8.0)
       base64
       faraday-net_http (>= 2.0, < 3.1)
       ruby2_keywords (>= 0.0.4)
@@ -413,6 +423,7 @@ DEPENDENCIES
   hel_together (~> 1.6.1)!
   i18n_hel!
   i18n_models!
+  iarray!
   json_exceptions!
   mail
   matrix
@@ -432,6 +443,7 @@ DEPENDENCIES
   rails_active_rest (~> 1.0)!
   rails_actor_model!
   rails_amqp!
+  rails_vos!
   railties (~> 6.1.0)
   rb-readline
   spring
@@ -443,4 +455,4 @@ DEPENDENCIES
   ygg-diffable!
 
 BUNDLED WITH
-   2.4.22
+   2.5.1

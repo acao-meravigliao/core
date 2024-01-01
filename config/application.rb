@@ -62,6 +62,41 @@ module AcaoCore
       config.acao.wol_host = 'rutterone.acao.it'
     end
 
+    if config.respond_to?(:rails_vos)
+      config.rails_vos.debug = 2
+      config.rails_vos.authentication_needed = false
+
+      config.rails_vos.shared_queue = {
+        name: 'ygg.acao_core.' + Socket.gethostname,
+        durable: false,
+        auto_delete: true,
+        arguments: {
+          'x-message-ttl': 30000,
+        },
+      }
+
+      config.rails_vos.routes = {
+        'ygg.model.events': {
+          handler: :model,
+          type: :topic,
+          durable: true,
+          auto_delete: false,
+        },
+        'ygg.asgard.wall': {
+          type: :topic,
+          durable: true,
+          auto_delete: false,
+        },
+
+        'ygg.meteo.updates': {
+          type: :topic,
+          anonymous_access: true,
+          durable: true,
+          auto_delete: false,
+        },
+      }
+    end
+
     if config.respond_to?(:amqp_ws_gw)
       config.amqp_ws_gw.debug = 2
       config.amqp_ws_gw.authentication_needed = false
