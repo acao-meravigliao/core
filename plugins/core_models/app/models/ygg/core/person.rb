@@ -68,28 +68,29 @@ class Person < OrgaPerson
            class_name: '::Ygg::Core::Person::Contact',
            dependent: :destroy,
            embedded: true,
-           autosave: true
+           autosave: true,
+           foreign_key: :person_id
 
   has_many :credentials,
            class_name: '::Ygg::Core::Person::Credential',
            dependent: :destroy,
            embedded: true,
            autosave: true,
-           inverse_of: :person # Rails bug https://github.com/rails/rails/issues/25198
+           foreign_key: :person_id
 
   has_many :obfuscated_password_credentials,
            class_name: 'Ygg::Core::Person::Credential::ObfuscatedPassword',
            dependent: :destroy,
            embedded: true,
            autosave: true,
-           inverse_of: :person # Rails bug https://github.com/rails/rails/issues/25198
+           foreign_key: :person_id
 
   has_many :person_roles,
            class_name: '::Ygg::Core::Person::Role',
            dependent: :destroy,
            embedded: true,
            autosave: true,
-           inverse_of: :person # Rails bug https://github.com/rails/rails/issues/25198
+           foreign_key: :person_id
 
   has_many :roles,
            class_name: '::Ygg::Core::GlobalRole',
