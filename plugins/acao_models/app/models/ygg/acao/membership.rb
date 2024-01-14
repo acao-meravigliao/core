@@ -305,6 +305,35 @@ class Membership < Ygg::PublicModel
       fireman: person.acao_is_fireman,
     )
 
+    # Membership on old database
+
+    mdb_socio = Ygg::Acao::MainDb::Socio.find_by!(codice_socio_dati_generale: member.acao_code)
+
+    si_prev = mdb_socio.iscrizioni.find_by(anno_iscrizione: renewal_year.year - 1)
+
+    si = mdb_socio.iscrizioni.find_by(anno_iscrizione: renewal_year.year)
+    if !si
+      si = mdb_socio.iscrizioni.create!(
+        anno_iscrizione: renewal_year.year,
+        tipo_iscr: si_prev ? si_prev.tipo_iscr : 2,
+        data_scadenza: Time.new(renewal_year.year).end_of_year,
+        euro_pagati: invoice.total,
+        note: "Fattura #{invoice.identifier}",
+        temporanea: false,
+        data_iscrizione: Time.now,
+      )
+
+      si.servizi.where(anno: renewal_year.year - 1).each do |servizio|
+        if servizio.tipo.ricorrente == 1
+          si.servizi.create!(
+            codice_servizio: servizio.codice_servizio,
+            anno: renewal_year.year,
+            dati_aggiuntivi: dati_aggiuntivi,
+          )
+        end
+      end
+    end
+
     # Roster entries
 
     raise "Unexpected duplicate day" if selected_roster_days.uniq != selected_roster_days
