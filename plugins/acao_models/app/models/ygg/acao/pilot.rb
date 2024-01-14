@@ -94,6 +94,10 @@ class Pilot < Ygg::Core::Person
            source: 'list',
            through: :ml_list_members
 
+  has_many :skysight_codes,
+           class_name: 'Ygg::Acao::SkysightCode',
+           foreign_key: :assigned_to_id
+
   # Old DB
   belongs_to :acao_socio,
              class_name: '::Ygg::Acao::MainDb::Socio',

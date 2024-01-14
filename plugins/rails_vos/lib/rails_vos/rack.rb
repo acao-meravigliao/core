@@ -12,8 +12,6 @@ module RailsVos
 
 module Rack
   def self.call(env)
-puts "GGGGGGGGGGGGGGGGGGGGGGGGGGG 0"
-
     if !Rails.application.config.rails_vos.allowed_request_origins.any? { |allowed_origin| allowed_origin === env['HTTP_ORIGIN'] }
       Rails.logger.error("Request origin not allowed: #{env['HTTP_ORIGIN']}")
 
@@ -38,23 +36,20 @@ puts "GGGGGGGGGGGGGGGGGGGGGGGGGGG 0"
     env['rack.hijack'].call
     socket = env['rack.hijack_io']
 
-puts "GGGGGGGGGGGGGGGGGGGGGGGGGGG 1"
-begin
-    srv = AM::Registry[:rails_vos_server]
+    begin
+      srv = AM::Registry[:rails_vos_server]
 
-    srv.tell(RailsVos::Server::MsgNewConnection.new(
-      env: env,
-      session: sess,
-      headers: req.headers,
-      socket: socket,
-      routes_config: Rails.application.config.rails_vos.routes,
-      debug: Rails.application.config.rails_vos.debug,
-    ))
-
-rescue Exception => e
-  puts "EXCEPTION: #{e}"
-end
-puts "GGGGGGGGGGGGGGGGGGGGGGGGGGG 2"
+      srv.tell(RailsVos::Server::MsgNewConnection.new(
+        env: env,
+        session: sess,
+        headers: req.headers,
+        socket: socket,
+        routes_config: Rails.application.config.rails_vos.routes,
+        debug: Rails.application.config.rails_vos.debug,
+      ))
+    rescue Exception => e
+      puts "EXCEPTION: #{e}"
+    end
 
     [ -1, {}, [] ]
   end

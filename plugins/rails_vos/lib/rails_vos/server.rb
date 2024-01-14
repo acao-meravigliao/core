@@ -113,7 +113,6 @@ class Server
       return
     end
 
-puts "JJJJJJJJJJJJJJJJJJJJJJJJJ 3"
     begin
       open_channels
     rescue StandardError => e
@@ -129,7 +128,6 @@ puts "JJJJJJJJJJJJJJJJJJJJJJJJJ 3"
     end
 
     @online = true
-puts "JJJJJJJJJJJJJJJJJJJJJJJJJ 4"
   end
 
   def open_channels

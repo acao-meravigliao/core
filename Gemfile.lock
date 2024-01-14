@@ -144,7 +144,7 @@ GEM
       activesupport
       sleepy_penguin
       ygg-exception
-    am-amqp (2.4.0)
+    am-amqp (2.5.0)
       actor_model
       am-sockets (~> 0.17)
       amazing_print
@@ -282,7 +282,7 @@ GEM
     date (3.3.4)
     dkim (1.1.0)
     erubi (1.12.0)
-    faraday (2.8.0)
+    faraday (2.8.1)
       base64
       faraday-net_http (>= 2.0, < 3.1)
       ruby2_keywords (>= 0.0.4)
@@ -296,7 +296,7 @@ GEM
     i18n (1.14.1)
       concurrent-ruby (~> 1.0)
     json (2.7.1)
-    json-jwt (1.16.3)
+    json-jwt (1.16.4)
       activesupport (>= 4.2)
       aes_key_wrap
       bindata
@@ -314,7 +314,7 @@ GEM
     method_source (1.0.0)
     mini_mime (1.1.5)
     minitest (5.20.0)
-    net-imap (0.4.8)
+    net-imap (0.4.9)
       date
       net-protocol
     net-ldap (0.18.0)
@@ -325,7 +325,17 @@ GEM
     net-smtp (0.4.0)
       net-protocol
     nio4r (2.7.0)
-    nokogiri (1.15.5-x86_64-linux)
+    nokogiri (1.16.0-aarch64-linux)
+      racc (~> 1.4)
+    nokogiri (1.16.0-arm-linux)
+      racc (~> 1.4)
+    nokogiri (1.16.0-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.16.0-x86-linux)
+      racc (~> 1.4)
+    nokogiri (1.16.0-x86_64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.16.0-x86_64-linux)
       racc (~> 1.4)
     pdf-core (0.9.0)
     pg (1.5.4)
@@ -375,7 +385,12 @@ GEM
     ruby2_keywords (0.0.5)
     sleepy_penguin (3.5.2)
     spring (4.1.3)
-    sqlite3 (1.6.9-x86_64-linux)
+    sqlite3 (1.7.0-aarch64-linux)
+    sqlite3 (1.7.0-arm-linux)
+    sqlite3 (1.7.0-arm64-darwin)
+    sqlite3 (1.7.0-x86-linux)
+    sqlite3 (1.7.0-x86_64-darwin)
+    sqlite3 (1.7.0-x86_64-linux)
     structured_warnings (0.4.0)
     thor (1.3.0)
     timeout (0.4.1)
@@ -389,6 +404,11 @@ GEM
     zeitwerk (2.6.12)
 
 PLATFORMS
+  aarch64-linux
+  arm-linux
+  arm64-darwin
+  x86-linux
+  x86_64-darwin
   x86_64-linux
 
 DEPENDENCIES
@@ -455,4 +475,4 @@ DEPENDENCIES
   ygg-diffable!
 
 BUNDLED WITH
-   2.5.1
+   2.5.3

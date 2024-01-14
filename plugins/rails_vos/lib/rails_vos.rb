@@ -26,13 +26,10 @@ module RailsVos
       ex[:queue] ||= Rails.application.config.rails_vos.shared_queue
     end
 
-puts "IIIIIIIIIIIIIIIIIII 1"
-begin
-    Server.new(routes_config: routes.deep_dup)
-rescue Exception => e
-  puts "EXCEPTION: #{e}"
-end
-puts "IIIIIIIIIIIIIIIIIII 2"
-
+    begin
+        Server.new(routes_config: routes.deep_dup)
+    rescue Exception => e
+      puts "EXCEPTION: #{e}"
+    end
   end
 end
