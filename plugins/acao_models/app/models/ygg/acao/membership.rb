@@ -318,7 +318,7 @@ class Membership < Ygg::PublicModel
         tipo_iscr: si_prev ? si_prev.tipo_iscr : 2,
         data_scadenza: Time.new(renewal_year.year).end_of_year,
         euro_pagati: invoice.total,
-        note: '',
+        note: "Fattura #{invoice.identifier}",
         temporanea: false,
         data_iscrizione: Time.now,
       )
