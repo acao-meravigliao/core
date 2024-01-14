@@ -13,6 +13,11 @@ class Socio < ActiveRecord::Base
            primary_key: 'codice_socio_dati_generale',
            foreign_key: 'codice_iscritto'
 
+  has_many :servizi,
+           class_name: '::Ygg::Acao::MainDb::ServizioSocio',
+           primary_key: 'codice_socio_dati_generale',
+           foreign_key: 'codice_iscritto'
+
   has_one :licenza,
            class_name: '::Ygg::Acao::MainDb::SociDatiLicenza',
            primary_key: 'codice_socio_dati_generale',
