@@ -244,7 +244,6 @@ class Membership < Ygg::PublicModel
 
     member.acao_email_allowed = enable_email
 
-
     if person.acao_memberships.find_by(reference_year: renewal_year)
       raise "Membership already present"
     end
@@ -305,35 +304,6 @@ class Membership < Ygg::PublicModel
       fireman: person.acao_is_fireman,
     )
 
-    # Membership on old database
-
-    mdb_socio = Ygg::Acao::MainDb::Socio.find_by!(codice_socio_dati_generale: member.acao_code)
-
-    si_prev = mdb_socio.iscrizioni.find_by(anno_iscrizione: renewal_year.year - 1)
-
-    si = mdb_socio.iscrizioni.find_by(anno_iscrizione: renewal_year.year)
-    if !si
-      si = mdb_socio.iscrizioni.create!(
-        anno_iscrizione: renewal_year.year,
-        tipo_iscr: si_prev ? si_prev.tipo_iscr : 2,
-        data_scadenza: Time.new(renewal_year.year).end_of_year,
-        euro_pagati: invoice.total,
-        note: "Fattura #{invoice.identifier}",
-        temporanea: false,
-        data_iscrizione: Time.now,
-      )
-
-      mdb_socio.servizi.where(anno: renewal_year.year - 1).each do |servizio|
-        if servizio.tipo_servizio.ricorrente == 1
-          mdb_socio.servizi.create!(
-            codice_servizio: servizio.codice_servizio,
-            anno: renewal_year.year,
-            dati_aggiuntivi: dati_aggiuntivi,
-          )
-        end
-      end
-    end
-
     # Roster entries
 
     raise "Unexpected duplicate day" if selected_roster_days.uniq != selected_roster_days
@@ -366,6 +336,36 @@ class Membership < Ygg::PublicModel
 
   def payment_completed!
     self.status = 'MEMBER'
+
+    # Membership on old database
+
+    member = person.becomes(Ygg::Acao::Pilot)
+    mdb_socio = Ygg::Acao::MainDb::Socio.find_by!(codice_socio_dati_generale: member.acao_code)
+    si_prev = mdb_socio.iscrizioni.find_by(anno_iscrizione: reference_year.year - 1)
+
+    si = mdb_socio.iscrizioni.find_by(anno_iscrizione: reference_year.year)
+    if !si
+      si = mdb_socio.iscrizioni.create!(
+        anno_iscrizione: reference_year.year,
+        tipo_iscr: si_prev ? si_prev.tipo_iscr : 2,
+        data_scadenza: Time.new(reference_year.year).end_of_year,
+        euro_pagati: invoice_detail.invoice.total,
+        note: "Fattura #{invoice_detail.invoice.identifier}",
+        temporanea: false,
+        data_iscrizione: Time.now,
+      )
+
+      mdb_socio.servizi.where(anno: reference_year.year - 1).each do |servizio|
+        if servizio.tipo_servizio.ricorrente == 1
+          mdb_socio.servizi.create!(
+            codice_servizio: servizio.codice_servizio,
+            anno: reference_year.year,
+            dati_aggiuntivi: dati_aggiuntivi,
+          )
+        end
+      end
+    end
+
     save!
 
     Ygg::Ml::Msg.notify(destinations: person, template: 'MEMBERSHIP_COMPLETE', template_context: {
