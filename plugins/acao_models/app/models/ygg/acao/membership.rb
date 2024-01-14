@@ -323,9 +323,9 @@ class Membership < Ygg::PublicModel
         data_iscrizione: Time.now,
       )
 
-      si.servizi.where(anno: renewal_year.year - 1).each do |servizio|
-        if servizio.tipo.ricorrente == 1
-          si.servizi.create!(
+      mdb_socio.servizi.where(anno: renewal_year.year - 1).each do |servizio|
+        if servizio.tipo_servizio.ricorrente == 1
+          mdb_socio.servizi.create!(
             codice_servizio: servizio.codice_servizio,
             anno: renewal_year.year,
             dati_aggiuntivi: dati_aggiuntivi,
