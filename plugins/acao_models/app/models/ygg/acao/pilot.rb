@@ -285,6 +285,325 @@ class Pilot < Ygg::Core::Person
     sync_to_acao_for_wp!
   end
 
+
+
+
+
+
+
+  class FaacApi
+    def initialize(endpoint: 'https://ac-controller.acao.it/', debug: 0)
+      @http = AM::HTTP::BasicClient.new(
+        base_uri: endpoint,
+        tls_params: {
+          verify_mode: OpenSSL::SSL::VERIFY_NONE,
+          verify_hostname: false
+        },
+        debug: debug
+      )
+    end
+
+    def login
+      res = @http.post('keydom/api-external/authentication/login',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json',
+        },
+        body: {
+          username: 'acao',
+          passwordHash: Digest::MD5.hexdigest('4YpWPB4@J0QKYrwq').upcase
+        }.to_json
+      )
+
+      body = JSON.parse(res.body, symbolize_names: true)
+      @token = body[:data][:token]
+
+      @token
+    end
+
+    def users_get(page_index: 0, page_size: 1000)
+      res = @http.get('/keydom/api-external/users/internal/getPage',
+        query: { pageIndex: page_index, pageSize: page_size },
+        headers: { 'Accept': 'application/json', 'fio-access-token': @token }
+      )
+
+      body = JSON.parse(res.body, symbolize_names: true)
+
+      body[:data]
+    end
+
+    def users_get_all
+      page = 0
+      users = []
+
+      loop do
+        res = users_get(page_index: page, page_size: 1000)
+
+        if res.count > 1000
+          raise "FAAC API has changed, code needs update, res.count == #{res.count}"
+        end
+
+        users += res
+
+        if res.count < 1000
+          break
+        end
+
+        page += 1
+      end
+
+      users
+    end
+
+    def user_create(data:)
+      res = @http.post('/keydom/api-external/users/internal/insert',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json',
+          'fio-access-token': @token,
+        },
+        body: data.to_json
+      )
+
+      # WTF, there is a rate limit that make requests FAIL if sent within 100 ms
+      # "It has to pass 100 milliseconds between each call to this endpoint method"
+
+      sleep(0.1)
+    end
+
+    def user_update(data:)
+      res = @http.put('/keydom/api-external/users/internal/update',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json',
+          'fio-access-token': @token,
+        },
+        body: data.to_json
+      )
+
+      # WTF, there is a rate limit that make requests FAIL if sent within 100 ms
+      # "It has to pass 100 milliseconds between each call to this endpoint method"
+
+      sleep(0.1)
+    end
+
+    def user_delete(uuid:)
+      res = @http.put('/keydom/api-external/users/internal/delete',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json',
+          'fio-access-token': @token,
+        },
+        body: {
+          uuid: uuid,
+        }.to_json
+      )
+
+      # WTF, there is a rate limit that make requests FAIL if sent within 100 ms
+      # "It has to pass 100 milliseconds between each call to this endpoint method"
+
+      sleep(0.1)
+    end
+
+
+    def media_get(page_index: 0, page_size: 1000)
+      res = @http.get('/keydom/api-external/accessMedias/getPage',
+        query: { pageIndex: page_index, pageSize: page_size },
+        headers: { 'Accept': 'application/json', 'fio-access-token': @token }
+      )
+
+      body = JSON.parse(res.body, symbolize_names: true)
+
+      body[:data]
+    end
+
+    def medias_get_all
+      page = 0
+      users = []
+
+      loop do
+        res = media_get(page_index: page, page_size: 1000)
+
+        if res.count > 999
+          raise "FAAC API has changed, code needs update"
+        end
+
+        users += res
+
+        if res.count < 999
+          break
+        end
+
+        page += 1
+      end
+
+      users
+    end
+
+    def media_create(data:)
+      res = @http.post('/keydom/api-external/accessMedias/insert',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json',
+          'fio-access-token': @token,
+        },
+        body: data.to_json
+      )
+
+      sleep(0.1)
+    end
+
+    def media_update(data:)
+      res = @http.put('/keydom/api-external/accessMedias/update',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json',
+          'fio-access-token': @token,
+        },
+        body: data.to_json
+      )
+
+      sleep(0.1)
+    end
+  end
+
+
+
+
+  def self.sync_with_faac!
+    faac = FaacApi.new(debug: 2)
+    faac.login
+
+    r_records = faac.users_get_all.
+      select { |x| x[:uniqueCode] && x[:uniqueCode].start_with?('ACAO:') }.
+      sort_by { |x| x[:uniqueCode] }
+
+    l_records = self.alive_pilots.
+                 where('acao_code > 1').
+                 where('acao_code <> 4000').
+                 where('acao_code <> 4001').
+                 where('acao_code <> 7000').
+                 where('acao_code <> 9999').
+                 where('acao_code <> 9999').
+                 order(id: :asc)
+
+    users = Hash[l_records.map { |x| [ x.id, x ] }]
+
+    merge(l: l_records, r: r_records,
+    l_cmp_r: lambda { |l,r| "ACAO:#{l.id}" <=> r[:uniqueCode] },
+    l_to_r: lambda { |l|
+      puts "CREATE: #{l.acao_code} #{l.first_name} #{l.last_name}"
+
+      faac.user_create(data: {
+        uuid: l.id,
+        lastName: l.last_name,
+        firstName: l.first_name,
+        uniqueCode: "ACAO:#{l.id}",
+        parentUuid: nil,
+        qualification: nil,
+        registrationNumber: l.acao_code.to_s,
+#          address: l.residence_location && l.residence_location.full_address,
+        phone: l.contacts.where(type: 'phone').first.try(:value),
+        mobile: l.contacts.where(type: 'mobile').first.try(:value),
+#          email: l.contacts.where(type: 'email').first.try(:value),
+      })
+
+    },
+    r_to_l: lambda { |r|
+      puts "REMOVE: #{r[:firstName]} #{r[:lastName]}"
+    },
+    lr_update: lambda { |l,r|
+      puts "UPDATE CHECK #{l.acao_code} #{l.first_name} #{l.last_name}"
+
+      intended = {
+        firstName: l.first_name,
+        lastName: l.last_name,
+        registrationNumber: l.acao_code.to_s,
+#        address: (l.residence_location && l.residence_location.full_address),
+        phone: l.contacts.where(type: 'phone').first.try(:value),
+        mobile: l.contacts.where(type: 'mobile').first.try(:value),
+#        email: l.contacts.where(type: 'email').first.try(:value),
+      }
+
+      diff = intended.select { |k,v| v != r[k] }
+
+      if diff.any?
+        puts "UPDATEEEEEEEEE DIFF #{diff}"
+        puts "UPDATEEEEEEEEE INTENDED #{r} => #{intended}"
+        puts "UPDATE #{l.acao_code} #{l.first_name} #{l.last_name}"
+
+        faac.user_update(data: {
+          uuid: l.id,
+          uniqueCode: "ACAO:#{l.id}",
+        }.merge(intended))
+      end
+    })
+
+    # MEDIAS
+
+    r_records = faac.medias_get_all.
+      sort_by { |x| x[:uuid] }
+
+    l_records = Ygg::Acao::KeyFob.all.order(id: :asc).select { |x| !x.person.acao_sleeping }
+
+    merge(l: l_records, r: r_records,
+    l_cmp_r: lambda { |l,r| l.id <=> r[:uuid] },
+    l_to_r: lambda { |l|
+      puts "MEDIA CREATE: #{l.code}"
+
+      faac.media_create(data: {
+        uuid: l.id,
+        identifier: l.code.to_i(16).to_s(8).rjust(14, '0'),
+        mediaTypeCode: 0,
+#        number: l.code,
+        enabled: true,
+        validityStart: 0,
+        validityEnd: Time.now.end_of_year.to_i * 1000,
+        validityMode: 1,
+        antipassbackEnabled: false,
+        countingEnabled: true,
+        userUuid: l.person_id,
+        profileUuidOrName: 'eb3df410-0bbd-4eb7-ac86-389c177e065b',
+        lifeCycleMode: 0,
+      })
+    },
+    r_to_l: lambda { |r|
+      puts "MEDIA REMOVE: #{r[:uuid]}"
+    },
+    lr_update: lambda { |l,r|
+      puts "MEDIA UPDATE CHECK #{l.code}"
+
+      intended = {
+        identifier: l.code.to_i(16).to_s(8).rjust(14, '0'),
+        mediaTypeCode: 0,
+#        number: l.code,
+        enabled: true,
+        validityStart: 0,
+        validityEnd: Time.now.end_of_year.to_i * 1000,
+        validityMode: 1,
+        antipassbackEnabled: false,
+        countingEnabled: true,
+        userUuid: l.person_id,
+        lifeCycleMode: 0,
+      }
+
+      diff = intended.select { |k,v| v != r[k] }
+
+      if diff.any? || r[:profileUuid] != 'eb3df410-0bbd-4eb7-ac86-389c177e065b'
+        puts "UPDATEEEEEEEEE DIFF #{diff}"
+        puts "UPDATEEEEEEEEE INTENDED #{r} => #{intended}"
+        puts "UPDATE #{l.code}"
+
+        faac.media_update(data: {
+          uuid: l.id,
+          profileUuidOrName: 'eb3df410-0bbd-4eb7-ac86-389c177e065b'
+        }.merge(intended))
+      end
+    })
+
+  end
+
+
   def run_chores!
     transaction do
       now = Time.now
