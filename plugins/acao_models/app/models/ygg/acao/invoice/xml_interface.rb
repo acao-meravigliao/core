@@ -42,6 +42,7 @@ class Invoice::XmlInterface
           xml_accessor :partita_iva, from: 'PartitaIva'
           xml_accessor :ragione_sociale, from: 'RagioneSociale'
           xml_accessor :invio_mail, from: 'InvioMail'
+          xml_accessor :codice_destinatario, from: 'CodiceDestinatario'
         end
 
         xml_accessor :abbuono, from: 'Abbuono'

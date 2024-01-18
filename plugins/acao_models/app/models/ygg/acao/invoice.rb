@@ -200,6 +200,7 @@ class Invoice < Ygg::PublicModel
           testa.dati_controparte.indirizzo = person.residence_location.full_address
           testa.dati_controparte.partita_iva = person.vat_number || ''
           testa.dati_controparte.ragione_sociale = person.name
+          testa.dati_controparte.codice_destinatario = '0000000'
         end
 
         docu.righe = XmlInterface::RicFisc::Docu::Righe.new do |righe|
