@@ -394,13 +394,10 @@ class Pilot < Ygg::Core::Person
           'Accept': 'application/json',
           'fio-access-token': @token,
         },
-        body: {
+        query: {
           uuid: uuid,
-        }.to_json
+        },
       )
-
-      # WTF, there is a rate limit that make requests FAIL if sent within 100 ms
-      # "It has to pass 100 milliseconds between each call to this endpoint method"
 
       sleep(0.1)
     end
@@ -461,6 +458,37 @@ class Pilot < Ygg::Core::Person
           'fio-access-token': @token,
         },
         body: data.to_json
+      )
+
+      sleep(0.1)
+    end
+
+    def media_remove(uuid:)
+      res = @http.delete('/keydom/api-external/accessMedias/delete',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json',
+          'fio-access-token': @token,
+        },
+        query: {
+          uuid: uuid,
+        },
+      )
+
+      sleep(0.1)
+    end
+
+    def media_remove_range(from_number:, to_number:)
+      res = @http.delete('/keydom/api-external/accessMedias/deleteBy',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json',
+          'fio-access-token': @token,
+        },
+        body: {
+          startNumber: from_number,
+          endNumber: to_number,
+        },
       )
 
       sleep(0.1)
@@ -546,6 +574,18 @@ class Pilot < Ygg::Core::Person
 
     l_records = Ygg::Acao::KeyFob.all.order(id: :asc).select { |x| !x.person.acao_sleeping }
 
+    # Remove media before adding to avoid identifier uniqueness issues
+    merge(l: l_records, r: r_records,
+    l_cmp_r: lambda { |l,r| l.id <=> r[:uuid] },
+    l_to_r: lambda { |l| },
+    r_to_l: lambda { |r|
+      puts "MEDIA REMOVE: #{r[:uuid]}"
+
+      faac.media_remove(uuid: r[:uuid])
+    },
+    lr_update: lambda { |l,r| }
+    )
+
     merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| l.id <=> r[:uuid] },
     l_to_r: lambda { |l|
@@ -567,9 +607,7 @@ class Pilot < Ygg::Core::Person
         lifeCycleMode: 0,
       })
     },
-    r_to_l: lambda { |r|
-      puts "MEDIA REMOVE: #{r[:uuid]}"
-    },
+    r_to_l: lambda { |r| },
     lr_update: lambda { |l,r|
       puts "MEDIA UPDATE CHECK #{l.code}"
 
