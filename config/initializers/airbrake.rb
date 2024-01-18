@@ -12,11 +12,11 @@ Airbrake.configure do |c|
   # project_key navigate to your project's General Settings and copy the values
   # from the right sidebar.
   # https://github.com/airbrake/airbrake-ruby#project_id--project_key
-  c.host = 'https://errbit.sevio.it'
+  c.host = 'https://errbit.vihai.it'
   c.project_id = 1
   c.project_key = '817b733052ab2266c9396d693aa4bfb2'
 
-  c.error_host = 'https://errbit.sevio.it'
+  c.error_host = 'https://errbit.vihai.it'
   c.apm_host = nil
   c.remote_config = false
   c.remote_config_host = nil#'https://errbit.airbrake.io'
