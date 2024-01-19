@@ -5,6 +5,10 @@ Rails.application.routes.draw do
       get 'stats' => 'stats#all'
       post 'wol' => 'wol#wake'
 
+      namespace :gate do
+        post 'open'
+      end
+
       hel_resources :flights, controller: 'flight/rest' do
       end
 
