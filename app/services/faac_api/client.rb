@@ -9,6 +9,9 @@
 module FaacApi
 
 class Client
+  attr_reader :http
+  attr_reader :token
+
   def initialize(endpoint: Rails.application.config.acao.faac_endpoint, debug: Rails.application.config.acao.faac_debug)
     @http = AM::HTTP::BasicClient.new(
       base_uri: endpoint,
@@ -39,9 +42,8 @@ class Client
   end
 
   def users_get(page_index: 0, page_size: 1000)
-    res = @http.get('/keydom/api-external/users/internal/getPage',
+    res = genreq(verb: 'GET', uri: '/keydom/api-external/users/internal/getPage',
       query: { pageIndex: page_index, pageSize: page_size },
-      headers: { 'Accept': 'application/json', 'fio-access-token': @token }
     )
 
     body = JSON.parse(res.body, symbolize_names: true)
@@ -75,38 +77,19 @@ class Client
   def user_create(data:)
     rate_limit
 
-    res = @http.post('/keydom/api-external/users/internal/insert',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Accept': 'application/json',
-        'fio-access-token': @token,
-      },
+    res = genreq(verb: 'POST', uri: '/keydom/api-external/users/internal/insert',
       body: data.to_json
     )
   end
 
   def user_update(data:)
-    rate_limit
-
-    res = @http.put('/keydom/api-external/users/internal/update',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Accept': 'application/json',
-        'fio-access-token': @token,
-      },
+    genreq(verb: 'PUT', uri: '/keydom/api-external/users/internal/update',
       body: data.to_json
     )
   end
 
   def user_delete(uuid:)
-    rate_limit
-
-    res = @http.put('/keydom/api-external/users/internal/delete',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Accept': 'application/json',
-        'fio-access-token': @token,
-      },
+    genreq(verb: 'DELETE', uri: '/keydom/api-external/users/internal/delete',
       query: {
         uuid: uuid,
       },
@@ -115,9 +98,8 @@ class Client
 
 
   def media_get(page_index: 0, page_size: 1000)
-    res = @http.get('/keydom/api-external/accessMedias/getPage',
+    res = genreq(verb: 'GET', uri: '/keydom/api-external/accessMedias/getPage',
       query: { pageIndex: page_index, pageSize: page_size },
-      headers: { 'Accept': 'application/json', 'fio-access-token': @token }
     )
 
     body = JSON.parse(res.body, symbolize_names: true)
@@ -149,40 +131,19 @@ class Client
   end
 
   def media_create(data:)
-    rate_limit
-
-    res = @http.post('/keydom/api-external/accessMedias/insert',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Accept': 'application/json',
-        'fio-access-token': @token,
-      },
+    genreq(verb: 'POST', uri: '/keydom/api-external/accessMedias/insert',
       body: data.to_json
     )
   end
 
   def media_update(data:)
-    rate_limit
-
-    res = @http.put('/keydom/api-external/accessMedias/update',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Accept': 'application/json',
-        'fio-access-token': @token,
-      },
+    genreq(verb: 'pout', uri: '/keydom/api-external/accessMedias/update',
       body: data.to_json
     )
   end
 
   def media_remove(uuid:)
-    rate_limit
-
-    res = @http.delete('/keydom/api-external/accessMedias/delete',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Accept': 'application/json',
-        'fio-access-token': @token,
-      },
+    genreq(verb: 'DELETE', uri: '/keydom/api-external/accessMedias/delete',
       query: {
         uuid: uuid,
       },
@@ -190,14 +151,7 @@ class Client
   end
 
   def media_remove_range(from_number:, to_number:)
-    rate_limit
-
-    res = @http.delete('/keydom/api-external/accessMedias/deleteBy',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Accept': 'application/json',
-        'fio-access-token': @token,
-      },
+    genreq(verb: 'DELETE', uri: '/keydom/api-external/accessMedias/deleteBy',
       body: {
         startNumber: from_number,
         endNumber: to_number,
@@ -206,32 +160,35 @@ class Client
   end
 
   def action_get_all
-    rate_limit
-
-    res = @http.get('/keydom/api-external/actions/getAll',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Accept': 'application/json',
-        'fio-access-token': @token,
-      },
-    )
-
-    res
+    genreq(verb: 'GET', uri: '/keydom/api-external/actions/getAll')
   end
 
   def action_perform(uuid:)
-    rate_limit
-
-    res = @http.put('/keydom/api-external/actions/perform',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Accept': 'application/json',
-        'fio-access-token': @token,
-      },
+    genreq(verb: 'PUT', uri: '/keydom/api-external/actions/perform',
       query: {
         uuid: uuid,
       }
     )
+  end
+
+  def genreq(verb:, uri:, headers: {}, query: {}, body: nil)
+    headers = {
+      'Accept': 'application/json',
+      'fio-access-token': @token,
+    }.merge(headers)
+
+    # Workaround for buggy server
+    if verb != 'GET'
+      headers[:'Content-Type'] = 'application/json; charset=utf-8'
+    end
+
+    rate_limit do
+      @http.request(uri, verb: verb,
+        headers: headers,
+        query: query,
+        body: body,
+      )
+    end
   end
 
   def rate_limit
@@ -245,7 +202,11 @@ class Client
       end
     end
 
+    res = yield
+
     @last_req_ts = Time.now
+
+    res
   end
 end
 

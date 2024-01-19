@@ -65,6 +65,7 @@ Rails.application.configure do
 
   config.acao.soci_ml_dry_run = false
   config.acao.faac_endpoint = 'https://ac-controller.acao.it/'
+  config.acao.faac_generic_user = 'acao'
   config.acao.faac_debug = 0
   config.acao.faac_actions = {
     CANCELLO: '3870651b-3702-454c-ad30-42c16337ebbf',
