@@ -49,6 +49,13 @@ Rails.application.configure do
   config.ml.sms_skebby_debug = 2
 
   config.acao.soci_ml_dry_run = true
+  config.acao.faac_endpoint = 'https://ac-controller.acao.it/'
+  config.acao.faac_debug = 2
+  config.acao.faac_actions = {
+    CANCELLO: '3870651b-3702-454c-ad30-42c16337ebbf',
+    SBARRA: 'e4113bd9-c6b9-401b-a157-2c37b83b5155',
+    PEDONALE: 'a93e70a7-0e62-48bb-82be-5d6c769cb6a4',
+  }
 
   if config.respond_to?(:rails_vos)
     config.rails_vos.allowed_request_origins = [
