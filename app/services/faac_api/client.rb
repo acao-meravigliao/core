@@ -75,8 +75,6 @@ class Client
   end
 
   def user_create(data:)
-    rate_limit
-
     res = genreq(verb: 'POST', uri: '/keydom/api-external/users/internal/insert',
       body: data.to_json
     )
@@ -88,8 +86,8 @@ class Client
     )
   end
 
-  def user_delete(uuid:)
-    genreq(verb: 'DELETE', uri: '/keydom/api-external/users/internal/delete',
+  def user_remove(uuid:)
+    genreq(verb: 'DELETE', uri: '/keydom/api-external/users/delete',
       query: {
         uuid: uuid,
       },

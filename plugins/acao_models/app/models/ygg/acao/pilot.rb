@@ -85,6 +85,18 @@ class Pilot < Ygg::Core::Person
            class_name: '::Ygg::Acao::KeyFob',
            foreign_key: 'person_id'
 
+  has_many :acao_invoices,
+           class_name: '::Ygg::Acao::Invoice',
+           foreign_key: 'person_id'
+
+  has_many :acao_payments,
+           class_name: '::Ygg::Acao::Payment',
+           foreign_key: 'person_id'
+
+  has_many :acao_key_fobs,
+           class_name: '::Ygg::Acao::KeyFob',
+           foreign_key: 'person_id'
+
   has_many :ml_list_members,
            class_name: '::Ygg::Ml::List::Member',
            as: :owner
@@ -302,7 +314,8 @@ class Pilot < Ygg::Core::Person
       sort_by { |x| x[:uniqueCode] }
 
     l_records = self.alive_pilots.
-                 where('acao_code > 1').
+                 where('acao_code <> -1').
+                 where('acao_code <> 1').
                  where('acao_code <> 4000').
                  where('acao_code <> 4001').
                  where('acao_code <> 7000').
@@ -334,6 +347,8 @@ class Pilot < Ygg::Core::Person
     },
     r_to_l: lambda { |r|
       puts "REMOVE: #{r[:firstName]} #{r[:lastName]}"
+
+      faac.user_remove(uuid: r[:uuid])
     },
     lr_update: lambda { |l,r|
       puts "UPDATE CHECK #{l.acao_code} #{l.first_name} #{l.last_name}"
@@ -384,7 +399,7 @@ class Pilot < Ygg::Core::Person
     merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| l.id <=> r[:uuid] },
     l_to_r: lambda { |l|
-      puts "MEDIA CREATE: #{l.code}"
+      puts "MEDIA CREATE: #{l.id} #{l.code}"
 
       faac.media_create(data: {
         uuid: l.id,
@@ -404,7 +419,7 @@ class Pilot < Ygg::Core::Person
     },
     r_to_l: lambda { |r| },
     lr_update: lambda { |l,r|
-      puts "MEDIA UPDATE CHECK #{l.code}"
+      puts "MEDIA UPDATE CHECK #{l.id} #{l.code}"
 
       intended = {
         identifier: l.code.to_i(16).to_s(8).rjust(14, '0'),
@@ -1004,9 +1019,11 @@ class Pilot < Ygg::Core::Person
     self.acao_bar_credit = other.visita.acconto_bar_euro
 
     if other.tag_code &&  other.tag_code.strip != '0' && other.tag_code.strip != ''
-      acao_key_fobs.find_or_initialize_by(code: other.tag_code.strip.upcase)
-    else
-      acao_key_fobs.destroy_all
+      fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code.strip.upcase)
+      if !fob || fob.person != self
+        fob.destroy if fob
+        acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre')
+      end
     end
 
     if deep_changed?
