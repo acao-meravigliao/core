@@ -7,6 +7,7 @@ class Socio < ActiveRecord::Base
   establish_connection :acao_sql_server
 
   self.table_name = :soci_dati_generale
+  self.primary_key = 'codice_socio_dati_generale'
 
   has_many :iscrizioni,
            class_name: '::Ygg::Acao::MainDb::SocioIscritto',

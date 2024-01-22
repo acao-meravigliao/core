@@ -356,13 +356,35 @@ class Membership < Ygg::PublicModel
       )
 
       mdb_socio.servizi.where(anno: reference_year.year - 1).each do |servizio|
-        if servizio.tipo_servizio.ricorrente == 1
+        if servizio.tipo_servizio.ricorrente
           mdb_socio.servizi.create!(
             codice_servizio: servizio.codice_servizio,
             anno: reference_year.year,
             dati_aggiuntivi: dati_aggiuntivi,
+            pagato: false,
           )
         end
+      end
+
+      invoice_detail.invoice.details.each do |detail|
+        mdb_servizio = mdb_socio.servizi.find_by(codice_servizio: detail.service_type.onda_1_code)
+        if !mdb_servizio && detail.service_type.onda_1_code && detail.service_type.onda_1_code != ''
+          mdb_servizio = mdb_socio.servizi.build(codice_servizio: detail.service_type.onda_1_code, anno: reference_year.year)
+        end
+
+        mdb_servizio.pagato = true
+        mdb_servizio.data_pagamento = Time.now
+        mdb_servizio.numero_ricevuta = invoice_detail.invoice.identifier
+        mdb_servizio.save!
+
+        if !mdb_servizio && detail.service_type.onda_2_code && detail.service_type.onda_2_code != ''
+          mdb_servizio = mdb_socio.servizi.build(codice_servizio: detail.service_type.onda_2_code, anno: reference_year.year)
+        end
+
+        mdb_servizio.pagato = true
+        mdb_servizio.data_pagamento = Time.now
+        mdb_servizio.numero_ricevuta = invoice_detail.invoice.identifier
+        mdb_servizio.save!
       end
     end
 
