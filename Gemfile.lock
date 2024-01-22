@@ -22,11 +22,6 @@ PATH
       roxml
 
 PATH
-  remote: plugins/acao_onda_models
-  specs:
-    acao_onda_models (1.0.0)
-
-PATH
   remote: plugins/amqp_ws_gw
   specs:
     amqp_ws_gw (1.0.0)
@@ -418,7 +413,6 @@ DEPENDENCIES
   acao_heltog!
   acao_maindb_models!
   acao_models!
-  acao_onda_models!
   actionpack (~> 6.1.0)
   actionview (~> 6.1.0)
   active_rest (~> 10.0)!
