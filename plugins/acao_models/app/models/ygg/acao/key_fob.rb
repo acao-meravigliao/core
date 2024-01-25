@@ -41,6 +41,15 @@ class KeyFob < Ygg::PublicModel
     :person_id,
   ]
 
+  def code_for_faac
+    case media_type
+    when 'RFID'
+      code.to_i(16).to_s(8).rjust(14, '0')
+    when 'REMOTE'
+      code.to_i(16).to_s(8).rjust(8, '0')
+    end
+  end
+
   ################## Replica ###################
 
   include Ygg::Core::Replicable

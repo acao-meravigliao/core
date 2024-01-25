@@ -403,7 +403,7 @@ class Pilot < Ygg::Core::Person
 
       faac.media_create(data: {
         uuid: l.id,
-        identifier: l.code.to_i(16).to_s(8).rjust(14, '0'),
+        identifier: l.code_for_faac,
         mediaTypeCode: 0,
 #        number: l.code,
         enabled: true,
@@ -422,7 +422,7 @@ class Pilot < Ygg::Core::Person
       puts "MEDIA UPDATE CHECK #{l.id} #{l.code}"
 
       intended = {
-        identifier: l.code.to_i(16).to_s(8).rjust(14, '0'),
+        identifier: l.code_for_faac,
         mediaTypeCode: 0,
 #        number: l.code,
         enabled: true,
@@ -1022,7 +1022,7 @@ class Pilot < Ygg::Core::Person
       fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code.strip.upcase)
       if !fob || fob.person != self
         fob.destroy if fob
-        acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre')
+        acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID')
       end
     end
 
