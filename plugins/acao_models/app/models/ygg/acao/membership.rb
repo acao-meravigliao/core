@@ -335,65 +335,67 @@ class Membership < Ygg::PublicModel
   end
 
   def payment_completed!
-    self.status = 'MEMBER'
+    transaction do
+      self.status = 'MEMBER'
 
-    # Membership on old database
+      # Membership on old database
 
-    member = person.becomes(Ygg::Acao::Pilot)
-    mdb_socio = Ygg::Acao::MainDb::Socio.find_by!(codice_socio_dati_generale: member.acao_code)
-    si_prev = mdb_socio.iscrizioni.find_by(anno_iscrizione: reference_year.year - 1)
+      member = person.becomes(Ygg::Acao::Pilot)
+      mdb_socio = Ygg::Acao::MainDb::Socio.find_by!(codice_socio_dati_generale: member.acao_code)
+      si_prev = mdb_socio.iscrizioni.find_by(anno_iscrizione: reference_year.year - 1)
 
-    si = mdb_socio.iscrizioni.find_by(anno_iscrizione: reference_year.year)
-    if !si
-      si = mdb_socio.iscrizioni.create!(
-        anno_iscrizione: reference_year.year,
-        tipo_iscr: si_prev ? si_prev.tipo_iscr : 2,
-        data_scadenza: Time.new(reference_year.year).end_of_year,
-        euro_pagati: invoice_detail.invoice.total,
-        note: "Fattura #{invoice_detail.invoice.identifier}",
-        temporanea: false,
-        data_iscrizione: Time.now,
-      )
+      si = mdb_socio.iscrizioni.find_by(anno_iscrizione: reference_year.year)
+      if !si
+        si = mdb_socio.iscrizioni.create!(
+          anno_iscrizione: reference_year.year,
+          tipo_iscr: si_prev ? si_prev.tipo_iscr : 2,
+          data_scadenza: Time.new(reference_year.year).end_of_year,
+          euro_pagati: invoice_detail.invoice.total,
+          note: "Fattura #{invoice_detail.invoice.identifier}",
+          temporanea: false,
+          data_iscrizione: Time.now,
+        )
 
-      mdb_socio.servizi.where(anno: reference_year.year - 1).each do |servizio|
-        if servizio.tipo_servizio.ricorrente
-          mdb_socio.servizi.create!(
-            codice_servizio: servizio.codice_servizio,
-            anno: reference_year.year,
-            dati_aggiuntivi: dati_aggiuntivi,
-            pagato: false,
-          )
+        mdb_socio.servizi.where(anno: reference_year.year - 1).each do |servizio|
+          if servizio.tipo_servizio.ricorrente
+            mdb_socio.servizi.create!(
+              codice_servizio: servizio.codice_servizio,
+              anno: reference_year.year,
+              dati_aggiuntivi: servizio.dati_aggiuntivi,
+              pagato: false,
+            )
+          end
+        end
+
+        invoice_detail.invoice.details.each do |detail|
+          mdb_servizio = mdb_socio.servizi.find_by(codice_servizio: detail.service_type.onda_1_code)
+          if !mdb_servizio && detail.service_type.onda_1_code && detail.service_type.onda_1_code != ''
+            mdb_servizio = mdb_socio.servizi.build(codice_servizio: detail.service_type.onda_1_code, anno: reference_year.year)
+          end
+
+          mdb_servizio.pagato = true
+          mdb_servizio.data_pagamento = Time.now
+          mdb_servizio.numero_ricevuta = invoice_detail.invoice.identifier
+          mdb_servizio.save!
+
+          if !mdb_servizio && detail.service_type.onda_2_code && detail.service_type.onda_2_code != ''
+            mdb_servizio = mdb_socio.servizi.build(codice_servizio: detail.service_type.onda_2_code, anno: reference_year.year)
+          end
+
+          mdb_servizio.pagato = true
+          mdb_servizio.data_pagamento = Time.now
+          mdb_servizio.numero_ricevuta = invoice_detail.invoice.identifier
+          mdb_servizio.save!
         end
       end
 
-      invoice_detail.invoice.details.each do |detail|
-        mdb_servizio = mdb_socio.servizi.find_by(codice_servizio: detail.service_type.onda_1_code)
-        if !mdb_servizio && detail.service_type.onda_1_code && detail.service_type.onda_1_code != ''
-          mdb_servizio = mdb_socio.servizi.build(codice_servizio: detail.service_type.onda_1_code, anno: reference_year.year)
-        end
+      save!
 
-        mdb_servizio.pagato = true
-        mdb_servizio.data_pagamento = Time.now
-        mdb_servizio.numero_ricevuta = invoice_detail.invoice.identifier
-        mdb_servizio.save!
-
-        if !mdb_servizio && detail.service_type.onda_2_code && detail.service_type.onda_2_code != ''
-          mdb_servizio = mdb_socio.servizi.build(codice_servizio: detail.service_type.onda_2_code, anno: reference_year.year)
-        end
-
-        mdb_servizio.pagato = true
-        mdb_servizio.data_pagamento = Time.now
-        mdb_servizio.numero_ricevuta = invoice_detail.invoice.identifier
-        mdb_servizio.save!
-      end
+      Ygg::Ml::Msg.notify(destinations: person, template: 'MEMBERSHIP_COMPLETE', template_context: {
+        first_name: person.first_name,
+        year: reference_year.year,
+      }, objects: self)
     end
-
-    save!
-
-    Ygg::Ml::Msg.notify(destinations: person, template: 'MEMBERSHIP_COMPLETE', template_context: {
-      first_name: person.first_name,
-      year: reference_year.year,
-    }, objects: self)
   end
 
   def active?(time: Time.now)
