@@ -348,7 +348,7 @@ class Membership < Ygg::PublicModel
       if !si
         si = mdb_socio.iscrizioni.create!(
           anno_iscrizione: reference_year.year,
-          tipo_iscr: si_prev ? si_prev.tipo_iscr : 2,
+          tipo_iscr: si_prev ? si_prev.tipo_iscr : 1,
           data_scadenza: Time.new(reference_year.year).end_of_year,
           euro_pagati: invoice_detail.invoice.total,
           note: "Fattura #{invoice_detail.invoice.identifier}",
