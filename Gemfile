@@ -24,7 +24,7 @@ gem 'activerecord-sqlserver-adapter', '~> 6.1.2.1'
 gem 'puma'
 gem 'puma-plugin-systemd'
 
-#gem 'rbtrace'
+gem 'rbtrace'
 
 gem 'pry'
 gem 'pry-rails'
