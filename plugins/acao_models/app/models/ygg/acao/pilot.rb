@@ -389,9 +389,13 @@ class Pilot < Ygg::Core::Person
     l_cmp_r: lambda { |l,r| l.id <=> r[:uuid] },
     l_to_r: lambda { |l| },
     r_to_l: lambda { |r|
-      puts "MEDIA REMOVE: #{r[:uuid]}"
+      puts "MEDIA REMOVE: #{r[:uuid]} OCT=#{r[:identifier]}"
 
-      faac.media_remove(uuid: r[:uuid])
+      if users[r[:userUuid]]
+        faac.media_remove(uuid: r[:uuid])
+      else
+        puts "NOOOOOOOO, IT'S NOT OURS!"
+      end
     },
     lr_update: lambda { |l,r| }
     )
