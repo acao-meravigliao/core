@@ -315,6 +315,7 @@ class Pilot < Ygg::Core::Person
 
     l_records = self.alive_pilots.
                  where('acao_code <> -1').
+                 where('acao_code <> 0').
                  where('acao_code <> 1').
                  where('acao_code <> 4000').
                  where('acao_code <> 4001').
@@ -1024,7 +1025,7 @@ class Pilot < Ygg::Core::Person
 
     if other.tag_code &&  other.tag_code.strip != '0' && other.tag_code.strip != ''
       fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code.strip.upcase)
-      if !fob || fob.person != self
+      if !fob || fob.person_id != self.id
         fob.destroy if fob
         acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID')
       end
