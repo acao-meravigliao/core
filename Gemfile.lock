@@ -135,7 +135,7 @@ GEM
       activerecord
       rubytree
       ygg-exception
-    actor_model (1.27.1)
+    actor_model (1.27.2)
       activesupport
       sleepy_penguin
       ygg-exception
