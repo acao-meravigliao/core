@@ -203,6 +203,11 @@ class Pilot < Ygg::Core::Person
     acao_memberships.any? { |x| time > x.valid_from && time < x.valid_to }
   end
 
+  def active_to(time: Time.now)
+    m = acao_memberships.select { |x| time > x.valid_from && time < x.valid_to }.max { |x| x.valid_to }
+    m ? m.valid_to : nil
+  end
+
   def is_student
     acao_licenses.where(type: [ 'SPL', 'GPL' ]).none?
   end
@@ -298,10 +303,10 @@ class Pilot < Ygg::Core::Person
   end
 
 
-  def self.sync_with_faac!
+  def self.sync_with_faac!(grace_period: 1.month, debug: Rails.application.config.acao.faac_debug || 0)
     faac = FaacApi::Client.new(
       endpoint: Rails.application.config.acao.faac_endpoint,
-      debug: Rails.application.config.acao.faac_debug || 0
+      debug: debug - 2
     )
 
     faac.login(
@@ -329,7 +334,7 @@ class Pilot < Ygg::Core::Person
     merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| "ACAO:#{l.id}" <=> r[:uniqueCode] },
     l_to_r: lambda { |l|
-      puts "CREATE: #{l.acao_code} #{l.first_name} #{l.last_name}"
+      puts "User create: #{l.acao_code} #{l.first_name} #{l.last_name}" if debug > 0
 
       faac.user_create(data: {
         uuid: l.id,
@@ -347,12 +352,12 @@ class Pilot < Ygg::Core::Person
 
     },
     r_to_l: lambda { |r|
-      puts "REMOVE: #{r[:firstName]} #{r[:lastName]}"
+      puts "User remove: #{r[:firstName]} #{r[:lastName]}" if debug > 0
 
       faac.user_remove(uuid: r[:uuid])
     },
     lr_update: lambda { |l,r|
-      puts "UPDATE CHECK #{l.acao_code} #{l.first_name} #{l.last_name}"
+      puts "User update check: #{l.acao_code} #{l.first_name} #{l.last_name}" if debug > 1
 
       intended = {
         firstName: l.first_name,
@@ -367,9 +372,7 @@ class Pilot < Ygg::Core::Person
       diff = intended.select { |k,v| v != r[k] }
 
       if diff.any?
-        puts "UPDATEEEEEEEEE DIFF #{diff}"
-        puts "UPDATEEEEEEEEE INTENDED #{r} => #{intended}"
-        puts "UPDATE #{l.acao_code} #{l.first_name} #{l.last_name}"
+        puts "User update: #{l.acao_code} #{l.first_name} #{l.last_name} diff=#{diff} intended=#{r} => #{intended}" if debug > 0
 
         faac.user_update(data: {
           uuid: l.id,
@@ -390,12 +393,11 @@ class Pilot < Ygg::Core::Person
     l_cmp_r: lambda { |l,r| l.id <=> r[:uuid] },
     l_to_r: lambda { |l| },
     r_to_l: lambda { |r|
-      puts "MEDIA REMOVE: #{r[:uuid]} OCT=#{r[:identifier]}"
 
       if users[r[:userUuid]]
+        puts "Media remove: #{r[:uuid]} OCT=#{r[:identifier]}" if debug > 0
+
         faac.media_remove(uuid: r[:uuid])
-      else
-        puts "NOOOOOOOO, IT'S NOT OURS!"
       end
     },
     lr_update: lambda { |l,r| }
@@ -404,16 +406,19 @@ class Pilot < Ygg::Core::Person
     merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| l.id <=> r[:uuid] },
     l_to_r: lambda { |l|
-      puts "MEDIA CREATE: #{l.id} #{l.code}"
+      puts "Media create: #{l.id} #{l.code}" if debug > 0
+
+      valid_to = l.person.becomes(Ygg::Acao::Pilot).active_to
+      validity_end = valid_to ? ((valid_to + grace_period) * 1000) : 0
 
       faac.media_create(data: {
         uuid: l.id,
         identifier: l.code_for_faac,
         mediaTypeCode: 0,
-#        number: l.code,
-        enabled: true,
+#        number: ,
+        enabled: validity_end ? true : false,
         validityStart: 0,
-        validityEnd: Time.now.end_of_year.to_i * 1000,
+        validityEnd: validity_end,
         validityMode: 1,
         antipassbackEnabled: false,
         countingEnabled: true,
@@ -424,15 +429,18 @@ class Pilot < Ygg::Core::Person
     },
     r_to_l: lambda { |r| },
     lr_update: lambda { |l,r|
-      puts "MEDIA UPDATE CHECK #{l.id} #{l.code}"
+      puts "Media update check #{l.id} #{l.code}" if debug > 1
+
+      valid_to = l.person.becomes(Ygg::Acao::Pilot).active_to
+      validity_end = valid_to ? ((valid_to + grace_period) * 1000) : 0
 
       intended = {
         identifier: l.code_for_faac,
         mediaTypeCode: 0,
 #        number: l.code,
-        enabled: true,
+        enabled: validity_end ? true : false,
         validityStart: 0,
-        validityEnd: Time.now.end_of_year.to_i * 1000,
+        validityEnd: validity_end,
         validityMode: 1,
         antipassbackEnabled: false,
         countingEnabled: true,
@@ -443,9 +451,7 @@ class Pilot < Ygg::Core::Person
       diff = intended.select { |k,v| v != r[k] }
 
       if diff.any? || r[:profileUuid] != 'eb3df410-0bbd-4eb7-ac86-389c177e065b'
-        puts "UPDATEEEEEEEEE DIFF #{diff}"
-        puts "UPDATEEEEEEEEE INTENDED #{r} => #{intended}"
-        puts "UPDATE #{l.code}"
+        puts "Media update: #{l.code} diff=#{diff} intended=#{r} => #{intended}" if debug > 0
 
         faac.media_update(data: {
           uuid: l.id,
