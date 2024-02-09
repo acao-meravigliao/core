@@ -367,26 +367,26 @@ class Membership < Ygg::PublicModel
           end
         end
 
-        invoice_detail.invoice.details.each do |detail|
-          mdb_servizio = mdb_socio.servizi.find_by(codice_servizio: detail.service_type.onda_1_code)
-          if !mdb_servizio && detail.service_type.onda_1_code && detail.service_type.onda_1_code != ''
-            mdb_servizio = mdb_socio.servizi.build(codice_servizio: detail.service_type.onda_1_code, anno: reference_year.year)
-          end
-
-          mdb_servizio.pagato = true
-          mdb_servizio.data_pagamento = Time.now
-          mdb_servizio.numero_ricevuta = invoice_detail.invoice.identifier
-          mdb_servizio.save!
-
-          if !mdb_servizio && detail.service_type.onda_2_code && detail.service_type.onda_2_code != ''
-            mdb_servizio = mdb_socio.servizi.build(codice_servizio: detail.service_type.onda_2_code, anno: reference_year.year)
-          end
-
-          mdb_servizio.pagato = true
-          mdb_servizio.data_pagamento = Time.now
-          mdb_servizio.numero_ricevuta = invoice_detail.invoice.identifier
-          mdb_servizio.save!
-        end
+#        invoice_detail.invoice.details.each do |detail|
+#          mdb_servizio = mdb_socio.servizi.find_by(codice_servizio: detail.service_type.onda_1_code)
+#          if !mdb_servizio && detail.service_type.onda_1_code && detail.service_type.onda_1_code != ''
+#            mdb_servizio = mdb_socio.servizi.build(codice_servizio: detail.service_type.onda_1_code, anno: reference_year.year)
+#          end
+#
+#          mdb_servizio.pagato = true
+#          mdb_servizio.data_pagamento = Time.now
+#          mdb_servizio.numero_ricevuta = invoice_detail.invoice.identifier
+#          mdb_servizio.save!
+#
+#          if !mdb_servizio && detail.service_type.onda_2_code && detail.service_type.onda_2_code != ''
+#            mdb_servizio = mdb_socio.servizi.build(codice_servizio: detail.service_type.onda_2_code, anno: reference_year.year)
+#          end
+#
+#          mdb_servizio.pagato = true
+#          mdb_servizio.data_pagamento = Time.now
+#          mdb_servizio.numero_ricevuta = invoice_detail.invoice.identifier
+#          mdb_servizio.save!
+#        end
       end
 
       save!

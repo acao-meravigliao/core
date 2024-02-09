@@ -953,7 +953,7 @@ class Pilot < Ygg::Core::Person
     },
     lr_update: lambda { |l,r|
 
-      puts "UPD CHK #{l.id_soci_dati_generale} #{l.Nome} #{l.Cognome}" if debug >= 2
+      puts "UPD CHK #{l.id_soci_dati_generale} #{l.Nome} #{l.Cognome}" if debug >= 3
 
       if l.lastmod != r.acao_lastmod || l.visita.lastmod != r.acao_visita_lastmod
         transaction do
@@ -1031,9 +1031,27 @@ class Pilot < Ygg::Core::Person
 
     if other.tag_code &&  other.tag_code.strip != '0' && other.tag_code.strip != ''
       fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code.strip.upcase)
-      if !fob || fob.person_id != self.id
-        fob.destroy if fob
-        acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID')
+      if fob
+        if fob.person_id != self.id
+          puts "  keyfob #{fob.code} destroyed as it is not assigned to correct user" if debug >= 2
+          fob.destroy
+
+          puts "  keyfob #{fob.code} created" if debug >= 2
+          acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
+        end
+
+        if fob.src != 'ALIANDRE' || fob.src_id != other.id_soci_dati_generale
+          fob.src = 'ALIANDRE'
+          fob.src_id = other.id_soci_dati_generale
+          fob.descr = "From Aliandre, #{other.codice_socio_dati_generale}"
+
+          puts "  keyfob #{fob.code} updated #{keyfob.changes}" if debug >= 2
+
+          fob.save!
+        end
+      else
+        acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
+        puts "  keyfob #{fob.code} created" if debug >= 2
       end
     end
 
@@ -1135,7 +1153,7 @@ class Pilot < Ygg::Core::Person
         r.destroy
       },
       lr_update: lambda { |l,r|
-        puts "LBD CHK #{l.id_cassetta_bar_locale}" if debug >= 2
+        puts "LBD CHK #{l.id_cassetta_bar_locale}" if debug >= 3
 
         r.assign_attributes(
           recorded_at: troiano_datetime_to_utc(l.data_reg),
@@ -1177,7 +1195,7 @@ class Pilot < Ygg::Core::Person
         puts "LBOL DEL #{r.old_id}"
       },
       lr_update: lambda { |l,r|
-         puts "LBOL CHK #{l.id_log_bollini}" if debug >= 2
+         puts "LBOL CHK #{l.id_log_bollini}" if debug >= 3
 
         aircraft_reg = l.marche_mezzo.strip.upcase
         aircraft_reg = nil if aircraft_reg == 'NO' || aircraft_reg.blank?
