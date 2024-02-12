@@ -21,17 +21,19 @@ class DocTesta < ActiveRecord::Base
            class_name: '::Ygg::Acao::Onda::AnagraficaCliente',
            foreign_key: 'IdAnagrafica'
 
+  extend Ygg::Acao::Onda::LastUpdateTracker
+
   class DryRun < StandardError ; end
 
-  def self.trigger_replacement(from: nil, dry_run: false)
+  def self.trigger_replacement(from: nil, dry_run: false, debug: 0)
     transaction do
       sync_status = Ygg::Acao::SyncStatus.find_or_create_by(symbol: 'DOC_TESTA')
-      from ||= sync_status.synced_at
+      from ||= sync_status.synced_at - 24.hours
 
       docs = self.where('DataDocumento >= ?', from)
       docs.each do |doc|
         begin
-          doc.trigger_replacement(dry_run: dry_run)
+          doc.trigger_replacement(dry_run: dry_run, debug: debug)
         rescue DryRun
         end
       end
@@ -43,22 +45,22 @@ class DocTesta < ActiveRecord::Base
     end
   end
 
-  def trigger_replacement(dry_run: false)
+  def trigger_replacement(dry_run: false, debug: 0)
     transaction do
       changed = false
 
-      puts "-----------------------------------------------------------------------------------"
+      puts "-----------------------------------------------------------------------------------" if debug >= 1
 
       year = self.DataDocumento.year
 
-      puts "FATTURA = #{self.NumeroDocumento} #{self.DataDocumento}"
+      puts "DOCUMENTO NUMERO=#{self.NumeroDocumento} TIPO=#{self.TipoDocumento} #{self.DataDocumento}" if debug >= 1
 
       anagrafica = Ygg::Acao::Onda::Anagrafica.find(self.IdAnagrafica)
       anagrafica_cliente = Ygg::Acao::Onda::AnagraficaCliente.find(self.IdAnagrafica)
       mdb_socio = Ygg::Acao::MainDb::Socio.find_by(codice_socio_dati_generale: anagrafica_cliente.RifInterno)
 
       if !mdb_socio
-        puts "Socio #{anagrafica_cliente.RifInterno} non trovato"
+        puts "Socio #{anagrafica_cliente.RifInterno} non trovato" if debug >= 1
         return false
       end
 
@@ -72,7 +74,18 @@ class DocTesta < ActiveRecord::Base
         puts "Riga #{riga.CodArt} #{tipo_servizio && tipo_servizio.descrizione_servizio}"
 
         case riga.CodArt
-        #when '0001S' # Associazione annuale
+        when '0001S' # Associazione annuale
+          iscr = mdb_socio.iscrizioni.find_by(anno_iscrizione: self.DataDocumento.year)
+          if iscr
+            puts "  Iscrizione trovata" if debug >= 1
+            if iscr.note.include?(self.NumeroDocumento)
+              puts "  Iscrizione aggiunto NumeroDocumento #{self.NumeroDocumento}" if debug >= 1
+
+              iscr.note += " #{self.NumeroDocumento}"
+              iscr.save!
+            end
+          end
+
         when '0002S' # CAV
         when '0005S' # CAV ridotto
         when '0009S'
@@ -94,7 +107,7 @@ class DocTesta < ActiveRecord::Base
 
         if !mdb_servizio.pagato
           mdb_servizio.pagato = true
-          mdb_servizio.data_pagamento = Time.now
+          mdb_servizio.data_pagamento = self.DataDocumento
           mdb_servizio.numero_ricevuta = self.NumeroDocumento
 
           puts "  Servizio MODIFICATO #{mdb_servizio.changes}"

@@ -946,14 +946,14 @@ class Pilot < Ygg::Core::Person
       end
     },
     r_to_l: lambda { |r|
-      puts "REMOVED SOCIO ID=#{r.acao_ext_id} #{r.acao_code} #{r.first_name} #{r.last_name}" if debug >= 1
+      puts "REMOVED SOCIO ID=#{r.acao_ext_id} CODICE=#{r.acao_code} #{r.first_name} #{r.last_name}" if debug >= 1
 #          r.acao_ext_id = r.acao_ext_id
 #          r.acao_code = nil
 #          r.save!
     },
     lr_update: lambda { |l,r|
 
-      puts "UPD CHK #{l.id_soci_dati_generale} #{l.Nome} #{l.Cognome}" if debug >= 3
+      puts "UPD CHK #{l.codice_socio_dati_generale} #{l.Nome} #{l.Cognome}" if debug >= 3
 
       if l.lastmod != r.acao_lastmod || l.visita.lastmod != r.acao_visita_lastmod
         transaction do
@@ -1058,7 +1058,7 @@ class Pilot < Ygg::Core::Person
     if deep_changed?
       self.acao_lastmod = other.lastmod
 
-      puts "PILOT CHANGED"
+      puts "PILOT #{acao_code} #{first_name} #{last_name} CHANGED" if debug >= 1
       puts deep_changes.awesome_inspect(plain: true)
 
       save!
@@ -1069,13 +1069,13 @@ class Pilot < Ygg::Core::Person
     sync_credentials(other, debug: debug)
 
     if sync_licenses(other.licenza, debug: debug)
-      puts "PILOT #{id} LICENSES UPDATED"
+      puts "PILOT #{acao_code} #{first_name} #{last_name} LICENSES UPDATED" if debug >= 1
       self.acao_licenza_lastmod = other.licenza.lastmod
       save!
     end
 
     if sync_medicals(other.visita, debug: debug)
-      puts "PILOT #{id} MEDICALS UPDATED" if debug >= 1
+      puts "PILOT #{acao_code} #{first_name} #{last_name} MEDICALS UPDATED" if debug >= 1
       self.acao_visita_lastmod = other.visita.lastmod
       save!
     end
