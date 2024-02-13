@@ -68,7 +68,7 @@ loop do
        with_logbollini: Ygg::Acao::MainDb::LogBollini.has_been_updated?,
        debug: debug)
 
-    #Ygg::Acao::Pilot.sync_with_faac!(grace_period: 1.month)
+    Ygg::Acao::Pilot.sync_with_faac!(grace_period: 1.month, debug: 1)
 
     Ygg::Acao::MainDb::Socio.update_last_update!
     Ygg::Acao::MainDb::SociDatiLicenza.update_last_update!
