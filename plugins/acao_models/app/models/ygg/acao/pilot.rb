@@ -203,6 +203,11 @@ class Pilot < Ygg::Core::Person
     acao_memberships.any? { |x| time > x.valid_from && time < x.valid_to }
   end
 
+  def active_to(time: Time.now)
+    m = acao_memberships.select { |x| time > x.valid_from && time < x.valid_to }.max { |x| x.valid_to }
+    m ? m.valid_to : nil
+  end
+
   def is_student
     acao_licenses.where(type: [ 'SPL', 'GPL' ]).none?
   end
@@ -298,10 +303,10 @@ class Pilot < Ygg::Core::Person
   end
 
 
-  def self.sync_with_faac!
+  def self.sync_with_faac!(grace_period: 1.month, debug: Rails.application.config.acao.faac_debug || 0)
     faac = FaacApi::Client.new(
       endpoint: Rails.application.config.acao.faac_endpoint,
-      debug: Rails.application.config.acao.faac_debug || 0
+      debug: debug - 2
     )
 
     faac.login(
@@ -315,6 +320,7 @@ class Pilot < Ygg::Core::Person
 
     l_records = self.alive_pilots.
                  where('acao_code <> -1').
+                 where('acao_code <> 0').
                  where('acao_code <> 1').
                  where('acao_code <> 4000').
                  where('acao_code <> 4001').
@@ -328,7 +334,7 @@ class Pilot < Ygg::Core::Person
     merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| "ACAO:#{l.id}" <=> r[:uniqueCode] },
     l_to_r: lambda { |l|
-      puts "CREATE: #{l.acao_code} #{l.first_name} #{l.last_name}"
+      puts "User create: #{l.acao_code} #{l.first_name} #{l.last_name}" if debug > 0
 
       faac.user_create(data: {
         uuid: l.id,
@@ -346,12 +352,12 @@ class Pilot < Ygg::Core::Person
 
     },
     r_to_l: lambda { |r|
-      puts "REMOVE: #{r[:firstName]} #{r[:lastName]}"
+      puts "User remove: #{r[:firstName]} #{r[:lastName]}" if debug > 0
 
       faac.user_remove(uuid: r[:uuid])
     },
     lr_update: lambda { |l,r|
-      puts "UPDATE CHECK #{l.acao_code} #{l.first_name} #{l.last_name}"
+      puts "User update check: #{l.acao_code} #{l.first_name} #{l.last_name}" if debug > 1
 
       intended = {
         firstName: l.first_name,
@@ -366,9 +372,7 @@ class Pilot < Ygg::Core::Person
       diff = intended.select { |k,v| v != r[k] }
 
       if diff.any?
-        puts "UPDATEEEEEEEEE DIFF #{diff}"
-        puts "UPDATEEEEEEEEE INTENDED #{r} => #{intended}"
-        puts "UPDATE #{l.acao_code} #{l.first_name} #{l.last_name}"
+        puts "User update: #{l.acao_code} #{l.first_name} #{l.last_name} diff=#{diff} intended=#{r} => #{intended}" if debug > 0
 
         faac.user_update(data: {
           uuid: l.id,
@@ -389,9 +393,12 @@ class Pilot < Ygg::Core::Person
     l_cmp_r: lambda { |l,r| l.id <=> r[:uuid] },
     l_to_r: lambda { |l| },
     r_to_l: lambda { |r|
-      puts "MEDIA REMOVE: #{r[:uuid]}"
 
-      faac.media_remove(uuid: r[:uuid])
+      if users[r[:userUuid]]
+        puts "Media remove: #{r[:uuid]} OCT=#{r[:identifier]}" if debug > 0
+
+        faac.media_remove(uuid: r[:uuid])
+      end
     },
     lr_update: lambda { |l,r| }
     )
@@ -399,17 +406,21 @@ class Pilot < Ygg::Core::Person
     merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| l.id <=> r[:uuid] },
     l_to_r: lambda { |l|
-      puts "MEDIA CREATE: #{l.id} #{l.code}"
+      puts "Media create: #{l.id} #{l.code}" if debug > 0
+
+      valid_to = l.person.becomes(Ygg::Acao::Pilot).active_to
+      validity_end = valid_to ? ((valid_to + grace_period).to_i * 1000) : 0
+      always_valid = true
 
       faac.media_create(data: {
         uuid: l.id,
-        identifier: l.code.to_i(16).to_s(8).rjust(14, '0'),
+        identifier: l.code_for_faac,
         mediaTypeCode: 0,
-#        number: l.code,
-        enabled: true,
+#        number: ,
+        enabled: always_valid ? true : (validity_end ? true : false),
         validityStart: 0,
-        validityEnd: Time.now.end_of_year.to_i * 1000,
-        validityMode: 1,
+        validityEnd: validity_end,
+        validityMode: always_valid ? 0 : 1,
         antipassbackEnabled: false,
         countingEnabled: true,
         userUuid: l.person_id,
@@ -419,16 +430,20 @@ class Pilot < Ygg::Core::Person
     },
     r_to_l: lambda { |r| },
     lr_update: lambda { |l,r|
-      puts "MEDIA UPDATE CHECK #{l.id} #{l.code}"
+      puts "Media update check #{l.id} #{l.code}" if debug > 1
+
+      valid_to = l.person.becomes(Ygg::Acao::Pilot).active_to
+      validity_end = valid_to ? ((valid_to + grace_period).to_i * 1000) : 0
+      always_valid = true
 
       intended = {
-        identifier: l.code.to_i(16).to_s(8).rjust(14, '0'),
+        identifier: l.code_for_faac,
         mediaTypeCode: 0,
 #        number: l.code,
-        enabled: true,
+        enabled: always_valid ? true : (validity_end ? true : false),
         validityStart: 0,
-        validityEnd: Time.now.end_of_year.to_i * 1000,
-        validityMode: 1,
+        validityEnd: validity_end,
+        validityMode: always_valid ? 0 : 1,
         antipassbackEnabled: false,
         countingEnabled: true,
         userUuid: l.person_id,
@@ -438,9 +453,7 @@ class Pilot < Ygg::Core::Person
       diff = intended.select { |k,v| v != r[k] }
 
       if diff.any? || r[:profileUuid] != 'eb3df410-0bbd-4eb7-ac86-389c177e065b'
-        puts "UPDATEEEEEEEEE DIFF #{diff}"
-        puts "UPDATEEEEEEEEE INTENDED #{r} => #{intended}"
-        puts "UPDATE #{l.code}"
+        puts "Media update: #{l.code} diff=#{diff} intended=#{r} => #{intended}" if debug > 0
 
         faac.media_update(data: {
           uuid: l.id,
@@ -935,14 +948,14 @@ class Pilot < Ygg::Core::Person
       end
     },
     r_to_l: lambda { |r|
-      puts "REMOVED SOCIO ID=#{r.acao_ext_id} #{r.acao_code} #{r.first_name} #{r.last_name}" if debug >= 1
+      puts "REMOVED SOCIO ID=#{r.acao_ext_id} CODICE=#{r.acao_code} #{r.first_name} #{r.last_name}" if debug >= 1
 #          r.acao_ext_id = r.acao_ext_id
 #          r.acao_code = nil
 #          r.save!
     },
     lr_update: lambda { |l,r|
 
-      puts "UPD CHK #{l.id_soci_dati_generale} #{l.Nome} #{l.Cognome}" if debug >= 2
+      puts "UPD CHK #{l.codice_socio_dati_generale} #{l.Nome} #{l.Cognome}" if debug >= 3
 
       if l.lastmod != r.acao_lastmod || l.visita.lastmod != r.acao_visita_lastmod
         transaction do
@@ -1020,16 +1033,34 @@ class Pilot < Ygg::Core::Person
 
     if other.tag_code &&  other.tag_code.strip != '0' && other.tag_code.strip != ''
       fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code.strip.upcase)
-      if !fob || fob.person != self
-        fob.destroy if fob
-        acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre')
+      if fob
+        if fob.person_id != self.id
+          puts "  keyfob #{fob.code} destroyed as it is not assigned to correct user" if debug >= 2
+          fob.destroy
+
+          puts "  keyfob #{fob.code} created" if debug >= 2
+          acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
+        end
+
+        if fob.src != 'ALIANDRE' || fob.src_id != other.id_soci_dati_generale
+          fob.src = 'ALIANDRE'
+          fob.src_id = other.id_soci_dati_generale
+          fob.descr = "From Aliandre, #{other.codice_socio_dati_generale}"
+
+          puts "  keyfob #{fob.code} updated #{keyfob.changes}" if debug >= 2
+
+          fob.save!
+        end
+      else
+        acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
+        puts "  keyfob #{fob.code} created" if debug >= 2
       end
     end
 
     if deep_changed?
       self.acao_lastmod = other.lastmod
 
-      puts "PILOT CHANGED"
+      puts "PILOT #{acao_code} #{first_name} #{last_name} CHANGED" if debug >= 1
       puts deep_changes.awesome_inspect(plain: true)
 
       save!
@@ -1040,13 +1071,13 @@ class Pilot < Ygg::Core::Person
     sync_credentials(other, debug: debug)
 
     if sync_licenses(other.licenza, debug: debug)
-      puts "PILOT #{id} LICENSES UPDATED"
+      puts "PILOT #{acao_code} #{first_name} #{last_name} LICENSES UPDATED" if debug >= 1
       self.acao_licenza_lastmod = other.licenza.lastmod
       save!
     end
 
     if sync_medicals(other.visita, debug: debug)
-      puts "PILOT #{id} MEDICALS UPDATED" if debug >= 1
+      puts "PILOT #{acao_code} #{first_name} #{last_name} MEDICALS UPDATED" if debug >= 1
       self.acao_visita_lastmod = other.visita.lastmod
       save!
     end
@@ -1124,7 +1155,7 @@ class Pilot < Ygg::Core::Person
         r.destroy
       },
       lr_update: lambda { |l,r|
-        puts "LBD CHK #{l.id_cassetta_bar_locale}" if debug >= 2
+        puts "LBD CHK #{l.id_cassetta_bar_locale}" if debug >= 3
 
         r.assign_attributes(
           recorded_at: troiano_datetime_to_utc(l.data_reg),
@@ -1166,7 +1197,7 @@ class Pilot < Ygg::Core::Person
         puts "LBOL DEL #{r.old_id}"
       },
       lr_update: lambda { |l,r|
-         puts "LBOL CHK #{l.id_log_bollini}" if debug >= 2
+         puts "LBOL CHK #{l.id_log_bollini}" if debug >= 3
 
         aircraft_reg = l.marche_mezzo.strip.upcase
         aircraft_reg = nil if aircraft_reg == 'NO' || aircraft_reg.blank?

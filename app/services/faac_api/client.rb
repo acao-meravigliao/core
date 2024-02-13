@@ -58,10 +58,6 @@ class Client
     loop do
       res = users_get(page_index: page, page_size: 1000)
 
-      if res.count > 1000
-        raise "FAAC API has changed, code needs update, res.count == #{res.count}"
-      end
-
       users += res
 
       if res.count < 1000
@@ -112,13 +108,9 @@ class Client
     loop do
       res = media_get(page_index: page, page_size: 1000)
 
-      if res.count > 999
-        raise "FAAC API has changed, code needs update"
-      end
-
       users += res
 
-      if res.count < 999
+      if res.count < 1000
         break
       end
 
@@ -135,7 +127,7 @@ class Client
   end
 
   def media_update(data:)
-    genreq(verb: 'pout', uri: '/keydom/api-external/accessMedias/update',
+    genreq(verb: 'PUT', uri: '/keydom/api-external/accessMedias/update',
       body: data.to_json
     )
   end

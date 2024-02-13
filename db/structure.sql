@@ -199,8 +199,7 @@ CREATE TABLE acao.airfields (
     symbol character varying(16),
     location_id uuid NOT NULL,
     range integer NOT NULL,
-    range_alt integer NOT NULL,
-    name_short character varying(32)
+    range_alt integer NOT NULL
 );
 
 
@@ -1302,7 +1301,8 @@ CREATE TABLE acao.key_fobs (
     notes text,
     version integer DEFAULT 0 NOT NULL,
     condemned boolean DEFAULT false NOT NULL,
-    person_id uuid NOT NULL
+    person_id uuid NOT NULL,
+    media_type character varying(16) NOT NULL
 );
 
 
@@ -2702,8 +2702,7 @@ CREATE TABLE core.people (
     birth_location_id uuid,
     invoicing_location_id uuid,
     residence_location_id uuid,
-    preferred_language_id uuid,
-    acao_flights_last_summary timestamp without time zone
+    preferred_language_id uuid
 );
 
 
@@ -4407,8 +4406,8 @@ ALTER SEQUENCE public.active_planes_id_seq OWNED BY public.active_planes.id;
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -4932,7 +4931,7 @@ CREATE TABLE public.radusergroup (
 --
 
 CREATE TABLE public.schema_migrations (
-    version character varying(255) NOT NULL
+    version character varying NOT NULL
 );
 
 
@@ -5008,6 +5007,17 @@ CREATE SEQUENCE public.str_channels_id_seq
 --
 
 ALTER SEQUENCE public.str_channels_id_seq OWNED BY public.str_channels.id;
+
+
+--
+-- Name: sync_status; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sync_status (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    symbol character varying(255) NOT NULL,
+    synced_at timestamp without time zone DEFAULT now() NOT NULL
+);
 
 
 --
@@ -7053,6 +7063,14 @@ ALTER TABLE ONLY public.radreply
 
 
 --
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
 -- Name: str_channel_variants str_channel_variants_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -7066,6 +7084,14 @@ ALTER TABLE ONLY public.str_channel_variants
 
 ALTER TABLE ONLY public.str_channels
     ADD CONSTRAINT str_channels_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: sync_status sync_status_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sync_status
+    ADD CONSTRAINT sync_status_pkey PRIMARY KEY (id);
 
 
 --
@@ -10340,7 +10366,7 @@ ALTER TABLE ONLY acao.trailers
 --
 
 ALTER TABLE ONLY acao.flights
-    ADD CONSTRAINT fk_rails_be11b218e4 FOREIGN KEY (towed_by_id) REFERENCES acao.flights(id);
+    ADD CONSTRAINT fk_rails_be11b218e4 FOREIGN KEY (towed_by_id) REFERENCES acao.flights(id) ON DELETE SET NULL;
 
 
 --
@@ -11090,10 +11116,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20221222191301'),
 ('20230211165223'),
 ('20230212160016'),
-('20230217111552'),
-('20230719131931'),
 ('20231116215432'),
 ('20231123132257'),
-('20231123133007');
+('20231123133007'),
+('20240208140120');
 
 

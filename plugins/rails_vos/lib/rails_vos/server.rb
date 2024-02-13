@@ -254,21 +254,21 @@ class Server
           obj = nil
         end
 
-        @conns.each do |conn|
-          conn.tell(Connection::MsgModelPublish.new(
-            routing_key: msg.routing_key,
-            exchange: msg.exchange,
-            headers: msg.headers,
-            object: obj.freeze,
-            object_type: payload['model'],
-            object_id: payload['object_id'],
-            events: payload['events'],
-            xact_id: payload['xact_id'],
-            person_id: payload['person_id'],
-            credential_id: payload['credential_id'],
-            http_request_id: payload['http_request_id'],
-          ))
-        end
+###        @conns.each do |conn|
+###          conn.tell(Connection::MsgModelPublish.new(
+###            routing_key: msg.routing_key,
+###            exchange: msg.exchange,
+###            headers: msg.headers,
+###            object: obj.freeze,
+###            object_type: payload['model'],
+###            object_id: payload['object_id'],
+###            events: payload['events'],
+###            xact_id: payload['xact_id'],
+###            person_id: payload['person_id'],
+###            credential_id: payload['credential_id'],
+###            http_request_id: payload['http_request_id'],
+###          ))
+###        end
       else
         @conns.each do |conn|
           conn.tell(Connection::MsgDeliver.new(
