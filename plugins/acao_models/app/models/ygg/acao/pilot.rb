@@ -409,17 +409,18 @@ class Pilot < Ygg::Core::Person
       puts "Media create: #{l.id} #{l.code}" if debug > 0
 
       valid_to = l.person.becomes(Ygg::Acao::Pilot).active_to
-      validity_end = valid_to ? ((valid_to + grace_period) * 1000) : 0
+      validity_end = valid_to ? ((valid_to + grace_period).to_i * 1000) : 0
+      always_valid = true
 
       faac.media_create(data: {
         uuid: l.id,
         identifier: l.code_for_faac,
         mediaTypeCode: 0,
 #        number: ,
-        enabled: validity_end ? true : false,
+        enabled: always_valid ? true : (validity_end ? true : false),
         validityStart: 0,
         validityEnd: validity_end,
-        validityMode: 1,
+        validityMode: always_valid ? 0 : 1,
         antipassbackEnabled: false,
         countingEnabled: true,
         userUuid: l.person_id,
@@ -432,16 +433,17 @@ class Pilot < Ygg::Core::Person
       puts "Media update check #{l.id} #{l.code}" if debug > 1
 
       valid_to = l.person.becomes(Ygg::Acao::Pilot).active_to
-      validity_end = valid_to ? ((valid_to + grace_period) * 1000) : 0
+      validity_end = valid_to ? ((valid_to + grace_period).to_i * 1000) : 0
+      always_valid = true
 
       intended = {
         identifier: l.code_for_faac,
         mediaTypeCode: 0,
 #        number: l.code,
-        enabled: validity_end ? true : false,
+        enabled: always_valid ? true : (validity_end ? true : false),
         validityStart: 0,
         validityEnd: validity_end,
-        validityMode: 1,
+        validityMode: always_valid ? 0 : 1,
         antipassbackEnabled: false,
         countingEnabled: true,
         userUuid: l.person_id,
