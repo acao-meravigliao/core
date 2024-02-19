@@ -41,12 +41,16 @@ class KeyFob < Ygg::PublicModel
     :person_id,
   ]
 
+  def self.code_from_faac(code)
+    code ? code.to_i(8).to_s(16).rjust(10, '0') : nil
+  end
+
   def code_for_faac
     case media_type
     when 'RFID'
-      code.to_i(16).to_s(8).rjust(14, '0')
+      code ? code.to_i(16).to_s(8).rjust(14, '0') : nil
     when 'REMOTE'
-      code.to_i(16).to_s(8).rjust(8, '0')
+      code ? code.to_i(16).to_s(8).rjust(8, '0') : nil
     end
   end
 
