@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2017-2017, Daniele Orlandi
+# Copyright (C) 2017-2024, Daniele Orlandi
 #
 # Author:: Daniele Orlandi <daniele@orlandi.com>
 #
@@ -14,6 +14,26 @@ module Ygg
 module Acao
 
 class Pilot < Ygg::Core::Person
+
+  FAAC_ACTIVE = [
+    554,  # Fabio
+    7002, # Daniela
+    7024, # Chicca
+    7017, # Matteo Negri
+    1088, # Francois
+    7011, # Paola Bellora
+    113,  # Adriano Sandri
+    7023, # Clara Ridolfi
+    87,   # Nicolini
+    7013, # Castelnovo
+    6077, # Grinza
+    1141, # Elio Cresci
+    7014, # Michele Roberto Martignoni
+    7008, # Alessandra Caraffini
+    7010, # Nuri Palomino Pulizie
+    500,  # Piera Bagnus
+    403,  # Antonio Zanini (docente)
+  ]
 
   self.porn_migration += [
     [ :must_have_column, {name: "acao_ext_id", type: :integer, default: nil, limit: 4, null: true}],
@@ -208,10 +228,6 @@ class Pilot < Ygg::Core::Person
     m ? m.valid_to : nil
   end
 
-  def is_student
-    acao_licenses.where(type: [ 'SPL', 'GPL' ]).none?
-  end
-
   # Verifica che i turni di linea necessari siano stati selezionati
   #
   def roster_needed_entries_present(year: Time.now.year)
@@ -269,12 +285,10 @@ class Pilot < Ygg::Core::Person
   def self.sync_mailing_lists!
     transaction do
       act = active_members.to_a
-      act << Ygg::Core::Person.find_by(acao_code: 7002) # Special entry for Daniela
-      act << Ygg::Core::Person.find_by(acao_code: 7020) # Special entry for Annalisa
       act << Ygg::Core::Person.find_by(acao_code: 554) # Special entry for Fabio
-      act << Ygg::Core::Person.find_by(acao_code: 7006) # Special entry for Ale
+      act << Ygg::Core::Person.find_by(acao_code: 7002) # Special entry for Daniela
+      act << Ygg::Core::Person.find_by(acao_code: 7024) # Special entry for Chicca
       act << Ygg::Core::Person.find_by(acao_code: 7017) # Special entry for Matteo Negri
-      act << Ygg::Core::Person.find_by(acao_code: 7016) # Special entry for Alessandro
 
       sync_ml!(symbol: 'ACTIVE_MEMBERS', members: act.compact.uniq)
 
@@ -410,14 +424,14 @@ class Pilot < Ygg::Core::Person
 
       valid_to = l.person.becomes(Ygg::Acao::Pilot).active_to
       validity_end = valid_to ? ((valid_to + grace_period).to_i * 1000) : 0
-      always_valid = true
+      always_valid = FAAC_ACTIVE.include?(l.person.acao_code)
 
       faac.media_create(data: {
         uuid: l.id,
         identifier: l.code_for_faac,
         mediaTypeCode: 0,
 #        number: ,
-        enabled: always_valid ? true : (validity_end ? true : false),
+        enabled: always_valid || !!valid_to,
         validityStart: 0,
         validityEnd: validity_end,
         validityMode: always_valid ? 0 : 1,
@@ -434,13 +448,13 @@ class Pilot < Ygg::Core::Person
 
       valid_to = l.person.becomes(Ygg::Acao::Pilot).active_to
       validity_end = valid_to ? ((valid_to + grace_period).to_i * 1000) : 0
-      always_valid = true
+      always_valid = FAAC_ACTIVE.include?(l.person.acao_code)
 
       intended = {
         identifier: l.code_for_faac,
         mediaTypeCode: 0,
 #        number: l.code,
-        enabled: always_valid ? true : (validity_end ? true : false),
+        enabled: always_valid || !!valid_to,
         validityStart: 0,
         validityEnd: validity_end,
         validityMode: always_valid ? 0 : 1,
