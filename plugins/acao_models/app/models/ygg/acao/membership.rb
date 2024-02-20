@@ -118,7 +118,7 @@ class Membership < Ygg::PublicModel
       enabled: true,
     }
 
-    if now > year.late_renewal_deadline && !pilot.is_student # && pilot.was_member_previous_year(year: year)
+    if now > year.late_renewal_deadline && !pilot.acao_is_student # && pilot.was_member_previous_year(year: year)
       services << {
         service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'ASS_LATE').id,
         removable: false,
@@ -366,6 +366,8 @@ class Membership < Ygg::PublicModel
             )
           end
         end
+
+        # Moved into trigger replacement
 
 #        invoice_detail.invoice.details.each do |detail|
 #          mdb_servizio = mdb_socio.servizi.find_by(codice_servizio: detail.service_type.onda_1_code)

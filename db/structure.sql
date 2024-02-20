@@ -1167,6 +1167,21 @@ ALTER SEQUENCE acao.acao_years_id_seq OWNED BY acao.years.id_old;
 
 
 --
+-- Name: access_remotes; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.access_remotes (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    symbol character varying(32),
+    ch1_code character varying(32),
+    ch2_code character varying(32),
+    ch3_code character varying(32),
+    ch4_code character varying(32),
+    descr character varying
+);
+
+
+--
 -- Name: airfield_circuits; Type: TABLE; Schema: acao; Owner: -
 --
 
@@ -1302,7 +1317,22 @@ CREATE TABLE acao.key_fobs (
     version integer DEFAULT 0 NOT NULL,
     condemned boolean DEFAULT false NOT NULL,
     person_id uuid NOT NULL,
-    media_type character varying(16) NOT NULL
+    media_type character varying(16) NOT NULL,
+    src character varying(32),
+    src_id integer
+);
+
+
+--
+-- Name: person_access_remotes; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.person_access_remotes (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    symbol character varying(32),
+    person_id uuid NOT NULL,
+    remote_id uuid NOT NULL,
+    descr character varying
 );
 
 
@@ -5983,6 +6013,14 @@ ALTER TABLE ONLY public.trk_day_aircrafts ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: access_remotes access_remotes_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.access_remotes
+    ADD CONSTRAINT access_remotes_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: aircraft_types aircraft_types_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -6180,6 +6218,14 @@ ALTER TABLE ONLY acao.payment_services
 
 ALTER TABLE ONLY acao.payments
     ADD CONSTRAINT payments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: person_access_remotes person_access_remotes_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.person_access_remotes
+    ADD CONSTRAINT person_access_remotes_pkey PRIMARY KEY (id);
 
 
 --
@@ -7350,6 +7396,13 @@ CREATE INDEX index_acao_trailers_on_aircraft_id ON acao.trailers USING btree (ai
 
 
 --
+-- Name: index_access_remotes_on_symbol; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_access_remotes_on_symbol ON acao.access_remotes USING btree (symbol);
+
+
+--
 -- Name: index_aircraft_types_on_id_old; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -7865,6 +7918,13 @@ CREATE INDEX index_payments_on_person_id ON acao.payments USING btree (person_id
 --
 
 CREATE UNIQUE INDEX index_payments_on_uuid ON acao.payments USING btree (id);
+
+
+--
+-- Name: index_person_access_remotes_on_remote_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_person_access_remotes_on_remote_id ON acao.person_access_remotes USING btree (remote_id);
 
 
 --
@@ -11119,6 +11179,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231116215432'),
 ('20231123132257'),
 ('20231123133007'),
-('20240208140120');
+('20240208140120'),
+('20240219112218'),
+('20240219133727');
 
 

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2017-2017, Daniele Orlandi
+# Copyright (C) 2017-2024, Daniele Orlandi
 #
 # Author:: Daniele Orlandi <daniele@orlandi.com>
 #
@@ -14,6 +14,26 @@ module Ygg
 module Acao
 
 class Pilot < Ygg::Core::Person
+
+  FAAC_ACTIVE = [
+    554,  # Fabio
+    7002, # Daniela
+    7024, # Chicca
+    7017, # Matteo Negri
+    1088, # Francois
+    7011, # Paola Bellora
+    113,  # Adriano Sandri
+    7023, # Clara Ridolfi
+    87,   # Nicolini
+    7013, # Castelnovo
+    6077, # Grinza
+    1141, # Elio Cresci
+    7014, # Michele Roberto Martignoni
+    7008, # Alessandra Caraffini
+    7010, # Nuri Palomino Pulizie
+    500,  # Piera Bagnus
+    403,  # Antonio Zanini (docente)
+  ]
 
   self.porn_migration += [
     [ :must_have_column, {name: "acao_ext_id", type: :integer, default: nil, limit: 4, null: true}],
@@ -81,10 +101,6 @@ class Pilot < Ygg::Core::Person
            class_name: '::Ygg::Acao::Trailer',
            foreign_key: 'person_id'
 
-  has_many :acao_key_fobs,
-           class_name: '::Ygg::Acao::KeyFob',
-           foreign_key: 'person_id'
-
   has_many :acao_invoices,
            class_name: '::Ygg::Acao::Invoice',
            foreign_key: 'person_id'
@@ -96,6 +112,15 @@ class Pilot < Ygg::Core::Person
   has_many :acao_key_fobs,
            class_name: '::Ygg::Acao::KeyFob',
            foreign_key: 'person_id'
+
+  has_many :acao_person_access_remotes,
+           class_name: '::Ygg::Acao::PersonAccessRemote',
+           foreign_key: 'person_id'
+
+  has_many :acao_access_remotes,
+           class_name: '::Ygg::Acao::AccessRemote',
+           through: :acao_person_access_remotes,
+           source: :remote
 
   has_many :ml_list_members,
            class_name: '::Ygg::Ml::List::Member',
@@ -208,10 +233,6 @@ class Pilot < Ygg::Core::Person
     m ? m.valid_to : nil
   end
 
-  def is_student
-    acao_licenses.where(type: [ 'SPL', 'GPL' ]).none?
-  end
-
   # Verifica che i turni di linea necessari siano stati selezionati
   #
   def roster_needed_entries_present(year: Time.now.year)
@@ -269,12 +290,10 @@ class Pilot < Ygg::Core::Person
   def self.sync_mailing_lists!
     transaction do
       act = active_members.to_a
-      act << Ygg::Core::Person.find_by(acao_code: 7002) # Special entry for Daniela
-      act << Ygg::Core::Person.find_by(acao_code: 7020) # Special entry for Annalisa
       act << Ygg::Core::Person.find_by(acao_code: 554) # Special entry for Fabio
-      act << Ygg::Core::Person.find_by(acao_code: 7006) # Special entry for Ale
+      act << Ygg::Core::Person.find_by(acao_code: 7002) # Special entry for Daniela
+      act << Ygg::Core::Person.find_by(acao_code: 7024) # Special entry for Chicca
       act << Ygg::Core::Person.find_by(acao_code: 7017) # Special entry for Matteo Negri
-      act << Ygg::Core::Person.find_by(acao_code: 7016) # Special entry for Alessandro
 
       sync_ml!(symbol: 'ACTIVE_MEMBERS', members: act.compact.uniq)
 
@@ -302,6 +321,32 @@ class Pilot < Ygg::Core::Person
     sync_to_acao_for_wp!
   end
 
+  class Media
+    attr_accessor :id
+    attr_accessor :number
+    attr_accessor :code
+    attr_accessor :code_for_faac
+    attr_accessor :descr
+    attr_accessor :person
+    attr_accessor :person_id
+
+    def initialize(**args)
+      args.each { |k,v| send("#{k}=", v) }
+    end
+  end
+
+  require 'digest/md5'
+  def self.derive_uuid_from_data(data)
+    new_uuid = Digest::MD5.digest(data)
+    new_uuid.setbyte(6, (new_uuid.getbyte(6) & 0x0f) | 0x30) # Force version to 3
+    new_uuid.setbyte(8, (new_uuid.getbyte(7) & 0x3f) | 0x80) # Force variant to 1
+    new_uuid = new_uuid.unpack('H*').first
+    "#{new_uuid[0..7]}-#{new_uuid[8..11]}-#{new_uuid[12..15]}-#{new_uuid[16..19]}-#{new_uuid[20..31]}"
+  end
+
+  def self.derive_uuid_from_uuid(uuid)
+    derive_uuid_from_data([ uuid.delete('-') ].pack('H*'))
+  end
 
   def self.sync_with_faac!(grace_period: 1.month, debug: Rails.application.config.acao.faac_debug || 0)
     faac = FaacApi::Client.new(
@@ -325,7 +370,6 @@ class Pilot < Ygg::Core::Person
                  where('acao_code <> 4000').
                  where('acao_code <> 4001').
                  where('acao_code <> 7000').
-                 where('acao_code <> 9999').
                  where('acao_code <> 9999').
                  order(id: :asc)
 
@@ -383,19 +427,71 @@ class Pilot < Ygg::Core::Person
 
     # MEDIAS
 
-    r_records = faac.medias_get_all.
-      sort_by { |x| x[:uuid] }
+    r_records = faac.medias_get_all
 
-    l_records = Ygg::Acao::KeyFob.all.order(id: :asc).select { |x| !x.person.acao_sleeping }
+    # l_recods will be a union of medias from KeyFob and AccessRemote(s)
+    l_records = []
+    l_records += Ygg::Acao::KeyFob.all.
+      select { |x| users[x.person_id] }.
+      map { |x| Media.new(id: x.id, number: nil, code: x.code, person: users[x.person_id],
+                          person_id: x.person_id, code_for_faac: x.code_for_faac) }
+
+    Ygg::Acao::PersonAccessRemote.all.each do |x|
+      if users[x.person_id] && x.remote.ch1_code
+        l_records << Media.new(
+          id: x.id,
+          number: 10000 + (x.remote.symbol.to_i * 10) + 1,
+          code: x.remote.ch1_code,
+          person_id: x.person_id,
+          person: users[x.person_id],
+          code_for_faac: x.remote.ch1_code_for_faac
+        )
+      end
+
+      if users[x.person_id] && x.remote.ch2_code
+        l_records << Media.new(
+          id: derive_uuid_from_uuid(x.id),
+          number: 10000 + (x.remote.symbol.to_i * 10) + 2,
+          code: x.remote.ch2_code,
+          person_id: x.person_id,
+          person: users[x.person_id],
+          code_for_faac: x.remote.ch2_code_for_faac
+        ) if x.remote.ch2_code
+      end
+
+      if users[x.person_id] && x.remote.ch3_code
+        l_records << Media.new(
+          id: derive_uuid_from_uuid(derive_uuid_from_uuid(x.id)),
+          number: 10000 + (x.remote.symbol.to_i * 10) + 3,
+          code: x.remote.ch3_code,
+          person_id: x.person_id,
+          person: users[x.person_id],
+          code_for_faac: x.remote.ch3_code_for_faac
+        ) if x.remote.ch3_code
+      end
+
+      if users[x.person_id] && x.remote.ch4_code
+        l_records << Media.new(
+          id: derive_uuid_from_uuid(derive_uuid_from_uuid(derive_uuid_from_uuid(x.id))),
+          number: 10000 + (x.remote.symbol.to_i * 10) + 4,
+          code: x.remote.ch4_code,
+          person_id: x.person_id,
+          person: users[x.person_id],
+          code_for_faac: x.remote.ch4_code_for_faac
+        )
+      end
+    end
 
     # Remove media before adding to avoid identifier uniqueness issues
-    merge(l: l_records, r: r_records,
-    l_cmp_r: lambda { |l,r| l.id <=> r[:uuid] },
+
+    merge(
+    l: l_records.sort_by { |x| x.code_for_faac },
+    r: r_records.sort_by { |x| x[:identifier] },
+    l_cmp_r: lambda { |l,r| l.code_for_faac <=> r[:identifier] },
     l_to_r: lambda { |l| },
     r_to_l: lambda { |r|
-
       if users[r[:userUuid]]
-        puts "Media remove: #{r[:uuid]} OCT=#{r[:identifier]}" if debug > 0
+        puts "Media remove (dup identifier): #{r[:uuid]} OCT=#{r[:identifier]}" if debug > 0
 
         faac.media_remove(uuid: r[:uuid])
       end
@@ -403,24 +499,26 @@ class Pilot < Ygg::Core::Person
     lr_update: lambda { |l,r| }
     )
 
-    merge(l: l_records, r: r_records,
+    merge(
+    l: l_records.sort_by { |x| x.id },
+    r: r_records.sort_by { |x| x[:uuid] },
     l_cmp_r: lambda { |l,r| l.id <=> r[:uuid] },
     l_to_r: lambda { |l|
-      puts "Media create: #{l.id} #{l.code}" if debug > 0
+      puts "Media create: #{l.id} num=#{l.number} code=#{l.code} oct=#{l.code_for_faac}" if debug > 0
 
       valid_to = l.person.becomes(Ygg::Acao::Pilot).active_to
       validity_end = valid_to ? ((valid_to + grace_period).to_i * 1000) : 0
-      always_valid = true
+      always_valid = FAAC_ACTIVE.include?(l.person.acao_code)
 
       faac.media_create(data: {
         uuid: l.id,
         identifier: l.code_for_faac,
         mediaTypeCode: 0,
-#        number: ,
-        enabled: always_valid ? true : (validity_end ? true : false),
+#        number: l.number,
+        enabled: always_valid || !!valid_to,
         validityStart: 0,
         validityEnd: validity_end,
-        validityMode: always_valid ? 0 : 1,
+        validityMode: (always_valid || !valid_to) ? 0 : 1,
         antipassbackEnabled: false,
         countingEnabled: true,
         userUuid: l.person_id,
@@ -428,22 +526,28 @@ class Pilot < Ygg::Core::Person
         lifeCycleMode: 0,
       })
     },
-    r_to_l: lambda { |r| },
+    r_to_l: lambda { |r|
+      if users[r[:userUuid]]
+        puts "Media remove: #{r[:uuid]} OCT=#{r[:identifier]}" if debug > 0
+
+        faac.media_remove(uuid: r[:uuid])
+      end
+    },
     lr_update: lambda { |l,r|
       puts "Media update check #{l.id} #{l.code}" if debug > 1
 
       valid_to = l.person.becomes(Ygg::Acao::Pilot).active_to
       validity_end = valid_to ? ((valid_to + grace_period).to_i * 1000) : 0
-      always_valid = true
+      always_valid = FAAC_ACTIVE.include?(l.person.acao_code)
 
       intended = {
         identifier: l.code_for_faac,
         mediaTypeCode: 0,
-#        number: l.code,
-        enabled: always_valid ? true : (validity_end ? true : false),
+#        number: l.number,
+        enabled: always_valid || !!valid_to,
         validityStart: 0,
         validityEnd: validity_end,
-        validityMode: always_valid ? 0 : 1,
+        validityMode: (always_valid || !valid_to) ? 0 : 1,
         antipassbackEnabled: false,
         countingEnabled: true,
         userUuid: l.person_id,

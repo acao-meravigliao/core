@@ -59,16 +59,19 @@ loop do
   end
 
   if soci_changed
-    puts "Updating Pilot(s)" if debug >= 1
 
     time0 = Time.new
-
+    puts "Updating Pilot(s)" if debug >= 1
     Ygg::Acao::Pilot.sync_from_maindb!(
        with_logbar: Ygg::Acao::MainDb::LogBar2.has_been_updated? || Ygg::Acao::MainDb::CassettaBarLocale.has_been_updated?,
        with_logbollini: Ygg::Acao::MainDb::LogBollini.has_been_updated?,
        debug: debug)
+    puts "Pilots update done, took #{Time.new - time0} seconds" if debug >= 1
 
+    time0 = Time.new
+    puts "  FAAC update started" if debug >= 1
     Ygg::Acao::Pilot.sync_with_faac!(grace_period: 1.month, debug: 1)
+    puts "  FAAC update done, took #{Time.new - time0} seconds" if debug >= 1
 
     Ygg::Acao::MainDb::Socio.update_last_update!
     Ygg::Acao::MainDb::SociDatiLicenza.update_last_update!
@@ -77,15 +80,11 @@ loop do
     Ygg::Acao::MainDb::LogBar2.update_last_update!
     Ygg::Acao::MainDb::CassettaBarLocale.update_last_update!
     Ygg::Acao::MainDb::LogBollini.update_last_update!
-
-    puts "Pilot done, took #{Time.new - time0} seconds" if debug >= 1
   end
 
   if mezzo_changed
-     puts "Updating Ygg::Acao::Aircraft" if debug >= 1
-
      time0 = Time.new
-
+     puts "Updating Ygg::Acao::Aircraft" if debug >= 1
      Ygg::Acao::Aircraft.sync_from_maindb!
      Ygg::Acao::MainDb::Mezzo.update_last_update!
      puts "Aircraft done, took #{Time.new - time0} seconds" if debug >= 1
@@ -104,13 +103,14 @@ loop do
 
     Ygg::Acao::MainDb::Volo.update_last_update!
 
-    puts "Volo done, took #{Time.new - time0} seconds" if debug >= 1
+    puts "Ygg::Acao::Flight done, took #{Time.new - time0} seconds" if debug >= 1
   end
 
   if onda_changed
     puts "Running trigger replacement" if debug >= 1
+    time0 = Time.new
     Ygg::Acao::Onda::DocTesta.trigger_replacement(debug: debug)
-    puts "trigger replacement done" if debug >= 1
+    puts "trigger replacement done, took #{Time.new - time0} seconds" if debug >= 1
     Ygg::Acao::Onda::DocTesta.update_last_update!
   end
 
