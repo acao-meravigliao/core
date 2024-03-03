@@ -30,9 +30,11 @@ class Pilot < Ygg::Core::Person
     1141, # Elio Cresci
     7014, # Michele Roberto Martignoni
     7008, # Alessandra Caraffini
-    7010, # Nuri Palomino Pulizie
+    7010, # Luisa Clerici
+    7018, # Nuri Palomino Pulizie
     500,  # Piera Bagnus
     403,  # Antonio Zanini (docente)
+    942,  # Marco Gavazzi
   ]
 
   self.porn_migration += [
@@ -619,7 +621,7 @@ class Pilot < Ygg::Core::Person
   end
 
   def run_roster_notification(now:, last_run:)
-    when_in_advance_sms = 1.days - 10.hours
+    when_in_advance_sms = 2.days - 10.hours
     when_in_advance_mail = 7.days - 10.hours
 
     acao_roster_entries.each do |entry|
@@ -1160,6 +1162,111 @@ class Pilot < Ygg::Core::Person
         puts "  keyfob #{fob.code} created" if debug >= 2
       end
     end
+
+#    if other.tag_code1 &&  other.tag_code1.strip != '0' && other.tag_code1.strip != ''
+#      fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code1.strip.upcase)
+#      if fob
+#        if fob.person_id != self.id
+#          puts "  keyfob #{fob.code} destroyed as it is not assigned to correct user" if debug >= 2
+#          fob.destroy
+#
+#          puts "  keyfob #{fob.code} created" if debug >= 2
+#          acao_key_fobs.create(code: other.tag_code1.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
+#        end
+#
+#        if fob.src != 'ALIANDRE' || fob.src_id != other.id_soci_dati_generale
+#          fob.src = 'ALIANDRE'
+#          fob.src_id = other.id_soci_dati_generale
+#          fob.descr = "From Aliandre, #{other.codice_socio_dati_generale}"
+#
+#          puts "  keyfob #{fob.code} updated #{keyfob.changes}" if debug >= 2
+#
+#          fob.save!
+#        end
+#      else
+#        acao_key_fobs.create(code: other.tag_code1.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
+#        puts "  keyfob #{fob.code} created" if debug >= 2
+#      end
+#    end
+#
+#    if other.tag_code2 &&  other.tag_code2.strip != '0' && other.tag_code2.strip != ''
+#      fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code2.strip.upcase)
+#      if fob
+#        if fob.person_id != self.id
+#          puts "  keyfob #{fob.code} destroyed as it is not assigned to correct user" if debug >= 2
+#          fob.destroy
+#
+#          puts "  keyfob #{fob.code} created" if debug >= 2
+#          acao_key_fobs.create(code: other.tag_code2.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
+#        end
+#
+#        if fob.src != 'ALIANDRE' || fob.src_id != other.id_soci_dati_generale
+#          fob.src = 'ALIANDRE'
+#          fob.src_id = other.id_soci_dati_generale
+#          fob.descr = "From Aliandre, #{other.codice_socio_dati_generale}"
+#
+#          puts "  keyfob #{fob.code} updated #{keyfob.changes}" if debug >= 2
+#
+#          fob.save!
+#        end
+#      else
+#        acao_key_fobs.create(code: other.tag_code2.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
+#        puts "  keyfob #{fob.code} created" if debug >= 2
+#      end
+#    end
+#
+#    if other.tag_code3 &&  other.tag_code3.strip != '0' && other.tag_code3.strip != ''
+#      fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code3.strip.upcase)
+#      if fob
+#        if fob.person_id != self.id
+#          puts "  keyfob #{fob.code} destroyed as it is not assigned to correct user" if debug >= 2
+#          fob.destroy
+#
+#          puts "  keyfob #{fob.code} created" if debug >= 2
+#          acao_key_fobs.create(code: other.tag_code3.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
+#        end
+#
+#        if fob.src != 'ALIANDRE' || fob.src_id != other.id_soci_dati_generale
+#          fob.src = 'ALIANDRE'
+#          fob.src_id = other.id_soci_dati_generale
+#          fob.descr = "From Aliandre, #{other.codice_socio_dati_generale}"
+#
+#          puts "  keyfob #{fob.code} updated #{keyfob.changes}" if debug >= 2
+#
+#          fob.save!
+#        end
+#      else
+#        acao_key_fobs.create(code: other.tag_code3.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
+#        puts "  keyfob #{fob.code} created" if debug >= 2
+#      end
+#    end
+#
+#    if other.remote1
+#      remote = Ygg::Acao::AccessRemote.find_by(symbol: other.remote1.to_s)
+#      premote = remote.person_remote
+#      if premote
+#        if premote.person_id != self.id
+#          puts "  remote #{remote.symbol} destroyed as it is not assigned to correct user" if debug >= 2
+#          premote.destroy
+#
+#          puts "  remote #{remote.symbol} created" if debug >= 2
+#          .create(code: other.tag_code3.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
+#        end
+#
+#        if remote.src != 'ALIANDRE' || remote.src_id != other.id_soci_dati_generale
+#          remote.src = 'ALIANDRE'
+#          remote.src_id = other.id_soci_dati_generale
+#          remote.descr = "From Aliandre, #{other.codice_socio_dati_generale}"
+#
+#          puts "  remote #{remote.code} updated #{remote.changes}" if debug >= 2
+#
+#          remote.save!
+#        end
+#      else
+#        acao_key_remotes.create(code: other.tag_code3.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
+#        puts "  remote #{remote.code} created" if debug >= 2
+#      end
+#    end
 
     if deep_changed?
       self.acao_lastmod = other.lastmod

@@ -22,8 +22,8 @@ class AccessRemote < Ygg::PublicModel
   ]
 
   has_one :person_remote,
-           class_name: 'Ygg::Acao::PersonAccessRemote'
-
+           class_name: 'Ygg::Acao::PersonAccessRemote',
+           foreign_key: :remote_id
 
   def self.code_from_faac(code)
     code.to_i(8).to_s(16).rjust(10, '0')
