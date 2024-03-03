@@ -24,12 +24,12 @@ module LastUpdateTracker
     return false if !live_last_update
 
     lu = get_lu
-    lu.last_update != live_last_update
+    lu.last_update != live_last_update ? live_last_update : nil
   end
 
-  def update_last_update!
+  def update_last_update!(last: last_update)
     lu = get_lu
-    lu.last_update = last_update
+    lu.last_update = last
     lu.save!
   end
 end
