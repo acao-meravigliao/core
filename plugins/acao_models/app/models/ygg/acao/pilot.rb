@@ -35,6 +35,14 @@ class Pilot < Ygg::Core::Person
     500,  # Piera Bagnus
     403,  # Antonio Zanini (docente)
     942,  # Marco Gavazzi
+    233,  # Achille Bardelli
+
+    6189, # Praduroux Stephanie, FlyPink
+    6182, # Celot Bianca
+    6061, # Clauser Emma
+    6066, # Maria Grazia Vescogni,
+    6224, # Mariella D'Angela
+    6076, # Terenziani Andrea
   ]
 
   self.porn_migration += [
@@ -312,7 +320,7 @@ class Pilot < Ygg::Core::Person
 
     transaction do
       sync_mailman!(list_name: 'soci', symbol: 'ACTIVE_MEMBERS')
-      sync_mailman!(list_name: 'scuola', symbol: 'STUDENTS')
+#      sync_mailman!(list_name: 'scuola', symbol: 'STUDENTS')
       sync_mailman!(list_name: 'istruttori', symbol: 'INSTRUCTORS')
 #      sync_mailman!(list_name: 'consiglio', symbol: 'BOARD_MEMBERS')
       sync_mailman!(list_name: 'trainatori', symbol: 'TUG_PILOTS')
