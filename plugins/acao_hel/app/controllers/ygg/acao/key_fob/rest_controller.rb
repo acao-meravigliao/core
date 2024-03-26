@@ -20,6 +20,8 @@ class KeyFob::RestController < Ygg::Hel::RestController
     empty!
     attribute(:id) { show! }
     attribute(:code) { show! }
+    attribute(:media_type) { show! }
+    attribute(:descr) { show! }
     attribute(:replicas_state) { show! }
 
     attribute(:person) do

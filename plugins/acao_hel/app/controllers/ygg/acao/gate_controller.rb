@@ -38,6 +38,14 @@ class GateController < Ygg::Hel::BaseController
       format.json { render json: {} }
     end
   end
+
+  def event
+    puts json_request
+
+    respond_to do |format|
+      format.json { render json: { success: true } }
+    end
+  end
 end
 
 end

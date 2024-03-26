@@ -7,6 +7,7 @@ Rails.application.routes.draw do
 
       namespace :gate do
         post 'open'
+        post 'event'
       end
 
       hel_resources :flights, controller: 'flight/rest' do
