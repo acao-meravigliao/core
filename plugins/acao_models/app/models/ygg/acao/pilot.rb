@@ -10,40 +10,37 @@ require 'vihai_password_rails'
 
 require 'csv'
 
+class Range
+  def overlap?(other)
+    ((!self.end || (other.begin  ? (self.end >= other.begin) : true)) &&
+     (!self.begin || (other.end ? (self.begin <= other.end) : true)))
+  end
+
+  def merge(other)
+    (self.begin && other.begin && [self.begin, other.begin].min)..
+    (self.end && other.end && [self.end, other.end].max)
+  end
+end
+
+class RangeArray < Array
+  def flatten
+    (first, *rest) = sort { |a,b| (a.begin && b.begin) ? (a.begin <=> b.begin) : (a.begin ? 1 : (b.begin ? -1 : 0)) }
+
+    return [] if !first
+
+    res = rest.each_with_object([first]) { |r,stack|
+      stack << (stack.last.overlap?(r) ? stack.pop.merge(r) : r)
+    }
+
+    res
+  end
+end
+
+
 module Ygg
 module Acao
 
 class Pilot < Ygg::Core::Person
-
-  FAAC_ACTIVE = [
-    554,  # Fabio
-    7002, # Daniela
-    7024, # Chicca
-    7017, # Matteo Negri
-    1088, # Francois
-    7011, # Paola Bellora
-    113,  # Adriano Sandri
-    7023, # Clara Ridolfi
-    87,   # Nicolini
-    7013, # Castelnovo
-    6077, # Grinza
-    1141, # Elio Cresci
-    7014, # Michele Roberto Martignoni
-    7008, # Alessandra Caraffini
-    7010, # Luisa Clerici
-    7018, # Nuri Palomino Pulizie
-    500,  # Piera Bagnus
-    403,  # Antonio Zanini (docente)
-    942,  # Marco Gavazzi
-    233,  # Achille Bardelli
-
-    6189, # Praduroux Stephanie, FlyPink
-    6182, # Celot Bianca
-    6061, # Clauser Emma
-    6066, # Maria Grazia Vescogni,
-    6224, # Mariella D'Angela
-    6076, # Terenziani Andrea
-  ]
 
   self.porn_migration += [
     [ :must_have_column, {name: "acao_ext_id", type: :integer, default: nil, limit: 4, null: true}],
@@ -358,6 +355,28 @@ class Pilot < Ygg::Core::Person
     derive_uuid_from_data([ uuid.delete('-') ].pack('H*'))
   end
 
+  def access_validity_ranges(from: Time.now, grace_period:)
+    ranges = RangeArray.new
+
+    if active_to
+      ranges << (nil .. (active_to + grace_period).round)
+    end
+
+    if acao_socio.tessere_inizio || acao_socio.tessere_fine
+      ranges << ((acao_socio.tessere_inizio && acao_socio.tessere_inizio.beginning_of_day) ..
+                 (acao_socio.tessere_fine && acao_socio.tessere_fine.end_of_day))
+    end
+
+#puts "Ranges #{ranges}"
+
+    ranges = ranges.flatten
+#puts "Ranges flattened #{ranges}"
+
+    ranges.drop_while { |x| x.end && x.end < from }
+
+    ranges
+  end
+
   def self.sync_with_faac!(grace_period: 1.month, debug: Rails.application.config.acao.faac_debug || 0)
     faac = FaacApi::Client.new(
       endpoint: Rails.application.config.acao.faac_endpoint,
@@ -516,19 +535,23 @@ class Pilot < Ygg::Core::Person
     l_to_r: lambda { |l|
       puts "Media create: #{l.id} num=#{l.number} code=#{l.code} oct=#{l.code_for_faac}" if debug > 0
 
-      valid_to = l.person.becomes(Ygg::Acao::Pilot).active_to
-      validity_end = valid_to ? ((valid_to + grace_period).to_i * 1000) : 0
-      always_valid = FAAC_ACTIVE.include?(l.person.acao_code)
+      pilot = l.person.becomes(Ygg::Acao::Pilot)
+
+      ranges = pilot.access_validity_ranges(grace_period: grace_period)
+      range = ranges.first
+
+      validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
+      validity_end = range && range.end && (range.end.to_i * 1000) || 0
 
       faac.media_create(data: {
         uuid: l.id,
         identifier: l.code_for_faac,
         mediaTypeCode: 0,
 #        number: l.number,
-        enabled: always_valid || !!valid_to,
-        validityStart: 0,
+        enabled: !!range,
+        validityStart: validity_start,
         validityEnd: validity_end,
-        validityMode: (always_valid || !valid_to) ? 0 : 1,
+        validityMode: (validity_end == 0) ? 0 : 1,
         antipassbackEnabled: false,
         countingEnabled: true,
         userUuid: l.person_id,
@@ -546,18 +569,22 @@ class Pilot < Ygg::Core::Person
     lr_update: lambda { |l,r|
       puts "Media update check #{l.id} #{l.code}" if debug > 1
 
-      valid_to = l.person.becomes(Ygg::Acao::Pilot).active_to
-      validity_end = valid_to ? ((valid_to + grace_period).to_i * 1000) : 0
-      always_valid = FAAC_ACTIVE.include?(l.person.acao_code)
+      pilot = l.person.becomes(Ygg::Acao::Pilot)
+
+      ranges = pilot.access_validity_ranges(grace_period: grace_period)
+      range = ranges.first
+
+      validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
+      validity_end = range && range.end && (range.end.to_i * 1000) || 0
 
       intended = {
         identifier: l.code_for_faac,
         mediaTypeCode: 0,
 #        number: l.number,
-        enabled: always_valid || !!valid_to,
-        validityStart: 0,
+        enabled: !!range,
+        validityStart: validity_start,
         validityEnd: validity_end,
-        validityMode: (always_valid || !valid_to) ? 0 : 1,
+        validityMode: (validity_end == 0) ? 0 : 1,
         antipassbackEnabled: false,
         countingEnabled: true,
         userUuid: l.person_id,
@@ -1145,41 +1172,15 @@ class Pilot < Ygg::Core::Person
     self.acao_bollini = other.Acconto_Voli
     self.acao_bar_credit = other.visita.acconto_bar_euro
 
-    if other.tag_code &&  other.tag_code.strip != '0' && other.tag_code.strip != ''
-      fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code.strip.upcase)
-      if fob
-        if fob.person_id != self.id
-          puts "  keyfob #{fob.code} destroyed as it is not assigned to correct user" if debug >= 2
-          fob.destroy
-
-          puts "  keyfob #{fob.code} created" if debug >= 2
-          acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
-        end
-
-        if fob.src != 'ALIANDRE' || fob.src_id != other.id_soci_dati_generale
-          fob.src = 'ALIANDRE'
-          fob.src_id = other.id_soci_dati_generale
-          fob.descr = "From Aliandre, #{other.codice_socio_dati_generale}"
-
-          puts "  keyfob #{fob.code} updated #{keyfob.changes}" if debug >= 2
-
-          fob.save!
-        end
-      else
-        acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
-        puts "  keyfob #{fob.code} created" if debug >= 2
-      end
-    end
-
-#    if other.tag_code1 &&  other.tag_code1.strip != '0' && other.tag_code1.strip != ''
-#      fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code1.strip.upcase)
+#    if other.tag_code &&  other.tag_code.strip != '0' && other.tag_code.strip != ''
+#      fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code.strip.upcase)
 #      if fob
 #        if fob.person_id != self.id
 #          puts "  keyfob #{fob.code} destroyed as it is not assigned to correct user" if debug >= 2
 #          fob.destroy
 #
 #          puts "  keyfob #{fob.code} created" if debug >= 2
-#          acao_key_fobs.create(code: other.tag_code1.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
+#          acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
 #        end
 #
 #        if fob.src != 'ALIANDRE' || fob.src_id != other.id_soci_dati_generale
@@ -1192,87 +1193,8 @@ class Pilot < Ygg::Core::Person
 #          fob.save!
 #        end
 #      else
-#        acao_key_fobs.create(code: other.tag_code1.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
+#        acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
 #        puts "  keyfob #{fob.code} created" if debug >= 2
-#      end
-#    end
-#
-#    if other.tag_code2 &&  other.tag_code2.strip != '0' && other.tag_code2.strip != ''
-#      fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code2.strip.upcase)
-#      if fob
-#        if fob.person_id != self.id
-#          puts "  keyfob #{fob.code} destroyed as it is not assigned to correct user" if debug >= 2
-#          fob.destroy
-#
-#          puts "  keyfob #{fob.code} created" if debug >= 2
-#          acao_key_fobs.create(code: other.tag_code2.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
-#        end
-#
-#        if fob.src != 'ALIANDRE' || fob.src_id != other.id_soci_dati_generale
-#          fob.src = 'ALIANDRE'
-#          fob.src_id = other.id_soci_dati_generale
-#          fob.descr = "From Aliandre, #{other.codice_socio_dati_generale}"
-#
-#          puts "  keyfob #{fob.code} updated #{keyfob.changes}" if debug >= 2
-#
-#          fob.save!
-#        end
-#      else
-#        acao_key_fobs.create(code: other.tag_code2.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
-#        puts "  keyfob #{fob.code} created" if debug >= 2
-#      end
-#    end
-#
-#    if other.tag_code3 &&  other.tag_code3.strip != '0' && other.tag_code3.strip != ''
-#      fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code3.strip.upcase)
-#      if fob
-#        if fob.person_id != self.id
-#          puts "  keyfob #{fob.code} destroyed as it is not assigned to correct user" if debug >= 2
-#          fob.destroy
-#
-#          puts "  keyfob #{fob.code} created" if debug >= 2
-#          acao_key_fobs.create(code: other.tag_code3.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
-#        end
-#
-#        if fob.src != 'ALIANDRE' || fob.src_id != other.id_soci_dati_generale
-#          fob.src = 'ALIANDRE'
-#          fob.src_id = other.id_soci_dati_generale
-#          fob.descr = "From Aliandre, #{other.codice_socio_dati_generale}"
-#
-#          puts "  keyfob #{fob.code} updated #{keyfob.changes}" if debug >= 2
-#
-#          fob.save!
-#        end
-#      else
-#        acao_key_fobs.create(code: other.tag_code3.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
-#        puts "  keyfob #{fob.code} created" if debug >= 2
-#      end
-#    end
-#
-#    if other.remote1
-#      remote = Ygg::Acao::AccessRemote.find_by(symbol: other.remote1.to_s)
-#      premote = remote.person_remote
-#      if premote
-#        if premote.person_id != self.id
-#          puts "  remote #{remote.symbol} destroyed as it is not assigned to correct user" if debug >= 2
-#          premote.destroy
-#
-#          puts "  remote #{remote.symbol} created" if debug >= 2
-#          .create(code: other.tag_code3.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
-#        end
-#
-#        if remote.src != 'ALIANDRE' || remote.src_id != other.id_soci_dati_generale
-#          remote.src = 'ALIANDRE'
-#          remote.src_id = other.id_soci_dati_generale
-#          remote.descr = "From Aliandre, #{other.codice_socio_dati_generale}"
-#
-#          puts "  remote #{remote.code} updated #{remote.changes}" if debug >= 2
-#
-#          remote.save!
-#        end
-#      else
-#        acao_key_remotes.create(code: other.tag_code3.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
-#        puts "  remote #{remote.code} created" if debug >= 2
 #      end
 #    end
 
@@ -1298,6 +1220,11 @@ class Pilot < Ygg::Core::Person
     if sync_medicals(other.visita, debug: debug)
       puts "PILOT #{acao_code} #{first_name} #{last_name} MEDICALS UPDATED" if debug >= 1
       self.acao_visita_lastmod = other.visita.lastmod
+      save!
+    end
+
+    if sync_tessere(debug: debug)
+      puts "PILOT #{acao_code} #{first_name} #{last_name} TESSERE UPDATED" if debug >= 1
       save!
     end
 
@@ -1414,6 +1341,7 @@ class Pilot < Ygg::Core::Person
       },
       r_to_l: lambda { |r|
         puts "LBOL DEL #{r.old_id}"
+        r.destroy
       },
       lr_update: lambda { |l,r|
          puts "LBOL CHK #{l.id_log_bollini}" if debug >= 3
@@ -1607,6 +1535,58 @@ class Pilot < Ygg::Core::Person
     else
       acao_medicals.where(type: type).destroy_all.any?
     end
+  end
+
+  def sync_tessere(debug: 0)
+    self.class.merge(
+      l: acao_socio.tessere.where('len(tag) = 10').order(tag: :asc).lock,
+      r: acao_key_fobs.order(code: :asc).lock,
+      l_cmp_r: lambda { |l,r| l.tag <=> r.code },
+      l_to_r: lambda { |l|
+
+        puts "TESSERA => KEYFOB ADD #{l.tag}" if debug >= 1
+
+        acao_key_fobs.create(
+          code: l.tag,
+          descr: "From Aliandre",
+          media_type: 'RFID',
+          src: 'ALIANDRE',
+          src_id: l.id,
+        )
+      },
+      r_to_l: lambda { |r|
+        puts "KEYFOB DEL #{r.code}"
+        r.destroy
+      },
+      lr_update: lambda { |l,r|
+        puts "KEYFOB CHECK #{l.tag}" if debug >= 3
+
+        ####
+      }
+    )
+
+    self.class.merge(
+      l: acao_socio.tessere.where('len(tag) < 10').order(tag: :asc).lock,
+      r: acao_person_access_remotes.joins(:remote).merge(Ygg::Acao::AccessRemote.order(symbol: :asc )).lock,
+      l_cmp_r: lambda { |l,r| l.tag <=> r.symbol },
+      l_to_r: lambda { |l|
+
+        puts "TESSERA => ACCESSREMOTE ADD #{l.tag}" if debug >= 1
+
+        acao_person_access_remotes.create(
+          remote: Ygg::Acao::AccessRemote.find_by(symbol: l.tag),
+        )
+      },
+      r_to_l: lambda { |r|
+        puts "ACCESS REMOTE DEL #{r.code}"
+        r.destroy
+      },
+      lr_update: lambda { |l,r|
+        puts "ACCESS REMOTE CHECK #{l.tag}" if debug >= 3
+
+        ####
+      }
+    )
   end
 
   def sync_contacts(r, debug: 0)

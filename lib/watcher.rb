@@ -32,6 +32,11 @@ loop do
     soci_changed = true
   end
 
+  if Ygg::Acao::MainDb::Tessera.has_been_updated?
+    puts "Tessera has been changed" if debug >= 1
+    soci_changed = true
+  end
+
   if Ygg::Acao::MainDb::Mezzo.has_been_updated?
     puts "Mezzo has been changed" if debug >= 1
     soci_changed = true
@@ -77,6 +82,7 @@ loop do
     Ygg::Acao::MainDb::SociDatiLicenza.update_last_update!
     Ygg::Acao::MainDb::SociDatiVisita.update_last_update!
     Ygg::Acao::MainDb::SocioIscritto.update_last_update!
+    Ygg::Acao::MainDb::Tessera.update_last_update!
     Ygg::Acao::MainDb::LogBar2.update_last_update!
     Ygg::Acao::MainDb::CassettaBarLocale.update_last_update!
     Ygg::Acao::MainDb::LogBollini.update_last_update!
