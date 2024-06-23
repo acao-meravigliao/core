@@ -228,6 +228,14 @@ class Pilot < Ygg::Core::Person
       needed[:reason] = 'tow_pilot'
     end
 
+    ################### Temporary, remove before next renewal cycle
+    # XXX
+
+    needed = {
+      total: 2,
+      high_season: 0,
+    }
+
     needed
   end
 
