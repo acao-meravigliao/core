@@ -54,6 +54,7 @@ source 'https://gems.vihai.it/' do
   gem 'am-satispay'
   gem 'am-ssh'
   gem 'am-ws'
+  gem 'am-vos'
   gem 'ygg-diffable'
   gem 'iarray'
 
@@ -87,7 +88,7 @@ group :controllers do
   gem 'acao_hel', path: 'plugins/acao_hel'
   #gem 'trk_hel', path: '../acao-plugins/trk_hel'
   gem 'streaming_hel', path: 'plugins/streaming_hel'
-  gem 'amqp_ws_gw', path: 'plugins/amqp_ws_gw'
+  #gem 'amqp_ws_gw', path: 'plugins/amqp_ws_gw'
   gem 'rails_vos', path: 'plugins/rails_vos'
 end
 

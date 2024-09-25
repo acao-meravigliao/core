@@ -22,14 +22,6 @@ PATH
       roxml
 
 PATH
-  remote: plugins/amqp_ws_gw
-  specs:
-    amqp_ws_gw (1.0.0)
-      am-amqp (~> 2.0)
-      am-ws
-      ygg-diffable
-
-PATH
   remote: plugins/ca_hel
   specs:
     ca_hel (1.0.0)
@@ -135,7 +127,7 @@ GEM
       activerecord
       rubytree
       ygg-exception
-    actor_model (1.27.2)
+    actor_model (1.28.0)
       activesupport
       sleepy_penguin
       ygg-exception
@@ -144,20 +136,35 @@ GEM
       am-sockets (~> 0.17)
       amazing_print
       rubynary
-    am-http (0.30.6)
+    am-auth-manager (0.4.0)
+      actor_model
+      json
+      sqlite3
+      vihai-password
+      ygg-exception
+    am-grafo-store (2.0.3)
+      actor_model
+      grafo-store (~> 2.0.0)
+      iarray
+      ygg-diffable
+    am-http (0.31.1)
       actor_model (~> 1.6)
       addressable
       am-sockets (~> 0.17)
-      sqlite3
+      sqlite3 (~> 1.7)
     am-io-buffer (0.4.0)
     am-satispay (0.1.0)
       activesupport
       am-http (~> 0.7)
+    am-session-manager (0.0.5)
+      actor_model
+      sqlite3
+      ygg-exception
     am-smtp (1.8.2)
       actor_model (~> 1.6)
       am-io-buffer
       am-sockets (~> 0.17)
-    am-sockets (0.21.0)
+    am-sockets (0.21.1)
       actor_model
       am-io-buffer
       netbin
@@ -170,12 +177,29 @@ GEM
       amazing_print
       rubynary
       ygg-exception
+    am-vos (2.0.6)
+      activesupport
+      am-auth-manager
+      am-grafo-store
+      am-http (>= 0.25)
+      am-session-manager
+      am-ws (>= 1.3)
+      bigdecimal
+      iarray
+      json
+      ygg-diffable
+      ygg-exception
     am-ws (1.7.1)
       actor_model (~> 1.6)
       am-http
       am-io-buffer
       am-sockets (>= 0.18)
     deep_open_struct (2.0.2)
+    grafo-store (2.0.2)
+      activesupport
+      iarray
+      ygg-exception
+      ynetaddr
     hel_together (1.6.1)
       rack (>= 1.5.2)
       ygg_agent (~> 2.9)
@@ -230,73 +254,84 @@ GEM
 GEM
   remote: https://rubygems.org/
   specs:
-    actionpack (6.1.7.6)
-      actionview (= 6.1.7.6)
-      activesupport (= 6.1.7.6)
+    actionpack (6.1.7.8)
+      actionview (= 6.1.7.8)
+      activesupport (= 6.1.7.8)
       rack (~> 2.0, >= 2.0.9)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.2.0)
-    actionview (6.1.7.6)
-      activesupport (= 6.1.7.6)
+    actionview (6.1.7.8)
+      activesupport (= 6.1.7.8)
       builder (~> 3.1)
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.1, >= 1.2.0)
-    activemodel (6.1.7.6)
-      activesupport (= 6.1.7.6)
-    activerecord (6.1.7.6)
-      activemodel (= 6.1.7.6)
-      activesupport (= 6.1.7.6)
+    activemodel (6.1.7.8)
+      activesupport (= 6.1.7.8)
+    activerecord (6.1.7.8)
+      activemodel (= 6.1.7.8)
+      activesupport (= 6.1.7.8)
     activerecord-sqlserver-adapter (6.1.2.1)
       activerecord (~> 6.1.0)
       tiny_tds
-    activesupport (6.1.7.6)
+    activesupport (6.1.7.8)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
       zeitwerk (~> 2.3)
-    addressable (2.8.6)
-      public_suffix (>= 2.0.2, < 6.0)
+    addressable (2.8.7)
+      public_suffix (>= 2.0.2, < 7.0)
     aes_key_wrap (1.1.0)
     airbrake (13.0.4)
       airbrake-ruby (~> 6.0)
     airbrake-ruby (6.2.2)
       rbtree3 (~> 0.6)
-    amazing_print (1.5.0)
+    amazing_print (1.6.0)
     base64 (0.2.0)
-    bigdecimal (3.1.6)
-    bindata (2.4.15)
-    builder (3.2.4)
+    bigdecimal (3.1.8)
+    bindata (2.5.0)
+    builder (3.3.0)
     byebug (11.1.3)
     coderay (1.1.3)
     colorize (1.1.0)
-    concurrent-ruby (1.2.3)
+    concurrent-ruby (1.3.4)
     crass (1.0.6)
+    csv (3.3.0)
     date (3.3.4)
     dkim (1.1.0)
-    erubi (1.12.0)
-    faraday (2.9.0)
-      faraday-net_http (>= 2.0, < 3.2)
+    erubi (1.13.0)
+    faraday (2.12.0)
+      faraday-net_http (>= 2.0, < 3.4)
+      json
+      logger
     faraday-follow_redirects (0.3.0)
       faraday (>= 1, < 3)
-    faraday-net_http (3.1.0)
+    faraday-net_http (3.3.0)
       net-http
-    ffi (1.16.3)
-    geocoder (1.8.2)
+    ffi (1.17.0-aarch64-linux-gnu)
+    ffi (1.17.0-arm-linux-gnu)
+    ffi (1.17.0-arm64-darwin)
+    ffi (1.17.0-x86-linux-gnu)
+    ffi (1.17.0-x86_64-darwin)
+    ffi (1.17.0-x86_64-linux-gnu)
+    geocoder (1.8.3)
+      base64 (>= 0.1.0)
+      csv (>= 3.0.0)
     hooks (0.4.1)
       uber (~> 0.0.14)
-    i18n (1.14.1)
+    i18n (1.14.6)
       concurrent-ruby (~> 1.0)
-    json (2.7.1)
-    json-jwt (1.16.5)
+    json (2.7.2)
+    json-jwt (1.16.6)
       activesupport (>= 4.2)
       aes_key_wrap
       base64
       bindata
       faraday (~> 2.0)
       faraday-follow_redirects
+    logger (1.6.1)
     loofah (2.22.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
@@ -306,13 +341,13 @@ GEM
       net-pop
       net-smtp
     matrix (0.4.2)
-    method_source (1.0.0)
+    method_source (1.1.0)
     mini_mime (1.1.5)
-    minitest (5.21.2)
+    minitest (5.25.1)
     msgpack (1.7.2)
     net-http (0.4.1)
       uri
-    net-imap (0.4.9.1)
+    net-imap (0.4.16)
       date
       net-protocol
     net-ldap (0.19.0)
@@ -320,46 +355,47 @@ GEM
       net-protocol
     net-protocol (0.2.2)
       timeout
-    net-smtp (0.4.0.1)
+    net-smtp (0.5.0)
       net-protocol
-    nio4r (2.7.0)
-    nokogiri (1.16.0-aarch64-linux)
+    nio4r (2.7.3)
+    nokogiri (1.16.7-aarch64-linux)
       racc (~> 1.4)
-    nokogiri (1.16.0-arm-linux)
+    nokogiri (1.16.7-arm-linux)
       racc (~> 1.4)
-    nokogiri (1.16.0-arm64-darwin)
+    nokogiri (1.16.7-arm64-darwin)
       racc (~> 1.4)
-    nokogiri (1.16.0-x86-linux)
+    nokogiri (1.16.7-x86-linux)
       racc (~> 1.4)
-    nokogiri (1.16.0-x86_64-darwin)
+    nokogiri (1.16.7-x86_64-darwin)
       racc (~> 1.4)
-    nokogiri (1.16.0-x86_64-linux)
+    nokogiri (1.16.7-x86_64-linux)
       racc (~> 1.4)
     optimist (3.1.0)
-    pdf-core (0.9.0)
-    pg (1.5.4)
-    pg_search (2.3.6)
-      activerecord (>= 5.2)
-      activesupport (>= 5.2)
+    pdf-core (0.10.0)
+    pg (1.5.8)
+    pg_search (2.3.7)
+      activerecord (>= 6.1)
+      activesupport (>= 6.1)
     phone (1.2.3)
-    prawn (2.4.0)
-      pdf-core (~> 0.9.0)
-      ttfunk (~> 1.7)
+    prawn (2.5.0)
+      matrix (~> 0.4)
+      pdf-core (~> 0.10.0)
+      ttfunk (~> 1.8)
     prawn-table (0.2.2)
       prawn (>= 1.3.0, < 3.0.0)
     pry (0.14.2)
       coderay (~> 1.1)
       method_source (~> 1.0)
-    pry-rails (0.3.9)
-      pry (>= 0.10.4)
-    public_suffix (5.0.4)
+    pry-rails (0.3.11)
+      pry (>= 0.13.0)
+    public_suffix (6.0.1)
     puma (4.3.12)
       nio4r (~> 2.0)
     puma-plugin-systemd (0.1.5)
       json
       puma (>= 3.6, < 5)
-    racc (1.7.3)
-    rack (2.2.8)
+    racc (1.8.1)
+    rack (2.2.9)
     rack-test (2.1.0)
       rack (>= 1.3)
     rails-dom-testing (2.2.0)
@@ -369,13 +405,13 @@ GEM
     rails-html-sanitizer (1.6.0)
       loofah (~> 2.21)
       nokogiri (~> 1.14)
-    railties (6.1.7.6)
-      actionpack (= 6.1.7.6)
-      activesupport (= 6.1.7.6)
+    railties (6.1.7.8)
+      actionpack (= 6.1.7.8)
+      activesupport (= 6.1.7.8)
       method_source
       rake (>= 12.2)
       thor (~> 1.0)
-    rake (13.1.0)
+    rake (13.2.1)
     rb-readline (0.5.5)
     rbtrace (0.5.1)
       ffi (>= 1.0.6)
@@ -386,25 +422,26 @@ GEM
       activesupport (>= 4.0)
       nokogiri (>= 1.3.3)
     sleepy_penguin (3.5.2)
-    spring (4.1.3)
-    sqlite3 (1.7.1-aarch64-linux)
-    sqlite3 (1.7.1-arm-linux)
-    sqlite3 (1.7.1-arm64-darwin)
-    sqlite3 (1.7.1-x86-linux)
-    sqlite3 (1.7.1-x86_64-darwin)
-    sqlite3 (1.7.1-x86_64-linux)
+    spring (4.2.1)
+    sqlite3 (1.7.3-aarch64-linux)
+    sqlite3 (1.7.3-arm-linux)
+    sqlite3 (1.7.3-arm64-darwin)
+    sqlite3 (1.7.3-x86-linux)
+    sqlite3 (1.7.3-x86_64-darwin)
+    sqlite3 (1.7.3-x86_64-linux)
     structured_warnings (0.4.0)
-    thor (1.3.0)
+    thor (1.3.2)
     timeout (0.4.1)
     tiny_tds (2.1.7)
-    ttfunk (1.7.0)
+    ttfunk (1.8.0)
+      bigdecimal (~> 3.1)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     uber (0.0.15)
     unindent (1.0)
-    uri (0.13.0)
+    uri (0.13.1)
     uuidtools (2.2.0)
-    zeitwerk (2.6.12)
+    zeitwerk (2.6.18)
 
 PLATFORMS
   aarch64-linux
@@ -431,9 +468,9 @@ DEPENDENCIES
   am-satispay!
   am-smtp!
   am-ssh!
+  am-vos!
   am-ws!
   amazing_print
-  amqp_ws_gw!
   byebug
   ca_hel!
   ca_models!
@@ -478,4 +515,4 @@ DEPENDENCIES
   ygg-diffable!
 
 BUNDLED WITH
-   2.5.3
+   2.5.17
