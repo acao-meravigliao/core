@@ -2,6 +2,15 @@ require 'actor_model'
 class TimeoutActor
   include AM::Actor
 
+  class Ref < AM::ActorRef
+    def do
+      yield
+      exit
+    end
+  end
+
+  self.actor_ref_class = Ref
+
   def initialize(tout:, **args)
     @tout = tout
 
@@ -25,43 +34,49 @@ end
 namespace :acao do
   namespace :people do
     task(:chores => :environment) do
-      TimeoutActor.new(tout: 100)
-      Ygg::Acao::Pilot.run_chores!
+      TimeoutActor.new(tout: 100).do do
+        Ygg::Acao::Pilot.run_chores!
+      end
     end
 
     task(:sync_ml => :environment) do
-      TimeoutActor.new(tout: 100)
-      Ygg::Acao::Pilot.sync_mailing_lists!
+      TimeoutActor.new(tout: 100).do do
+        Ygg::Acao::Pilot.sync_mailing_lists!
+      end
     end
 
     task(:sync_wp => :environment) do
-      TimeoutActor.new(tout: 100)
-      Ygg::Acao::Pilot.sync_wordpress!
+      TimeoutActor.new(tout: 100).do do
+        Ygg::Acao::Pilot.sync_wordpress!
+      end
     end
   end
 
   namespace :payments do
     task(:chores => :environment) do
-      TimeoutActor.new(tout: 100)
-      Ygg::Acao::Payment.run_chores!
+      TimeoutActor.new(tout: 100).do do
+        Ygg::Acao::Payment.run_chores!
+      end
     end
   end
 
   namespace :invoices do
     task(:chores => :environment) do
-      TimeoutActor.new(tout: 100)
-      Ygg::Acao::Invoice.run_chores!
+      TimeoutActor.new(tout: 100).do do
+        Ygg::Acao::Invoice.run_chores!
+      end
     end
   end
 
   namespace :roster do
     task(print_daily_form: :environment) do
-      TimeoutActor.new(tout: 100)
+      TimeoutActor.new(tout: 100).do do
 
-      today_roster = Ygg::Acao::RosterDay.find_by(date: Time.now)
-      if today_roster
-        today_roster.check_and_mark_chief!
-        today_roster.print_daily_form
+        today_roster = Ygg::Acao::RosterDay.find_by(date: Time.now)
+        if today_roster
+          today_roster.check_and_mark_chief!
+          today_roster.print_daily_form
+        end
       end
     end
   end
@@ -69,8 +84,9 @@ namespace :acao do
   task(:'aircrafts' => :environment) do
     desc 'Sync aircrafts'
 
-    TimeoutActor.new(tout: 100)
-    Ygg::Acao::Aircraft.sync_from_maindb!
+    TimeoutActor.new(tout: 100).do do
+      Ygg::Acao::Aircraft.sync_from_maindb!
+    end
   end
 
 #  task('aircrafts:frequent' => :environment) do
@@ -86,7 +102,8 @@ namespace :acao do
 #  end
 
   task(:'ml:soci' => :environment) do
-    TimeoutActor.new(tout: 100)
-    Ygg::Acao::Pilot.sync_soci_ml!
+    TimeoutActor.new(tout: 100).do do
+      Ygg::Acao::Pilot.sync_soci_ml!
+    end
   end
 end
