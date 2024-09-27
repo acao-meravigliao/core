@@ -33,8 +33,8 @@ class TokenTransaction < Ygg::PublicModel
     [ :must_have_fk, {to_table: "acao_aircrafts", column: "aircraft_id", primary_key: "id", on_delete: nil, on_update: nil}],
   ]
 
-  belongs_to :person,
-             class_name: '::Ygg::Core::Person'
+  belongs_to :member,
+             class_name: 'Ygg::Core::Member'
 
   belongs_to :aircraft,
              class_name: '::Ygg::Acao::Aircraft',

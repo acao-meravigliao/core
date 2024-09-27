@@ -16,8 +16,8 @@ class PersonAccessRemote < Ygg::PublicModel
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 
-  belongs_to :person,
-             class_name: 'Ygg::Core::Person'
+  belongs_to :member,
+             class_name: 'Ygg::Core::Member'
 
   belongs_to :remote,
              class_name: 'Ygg::Acao::AccessRemote'

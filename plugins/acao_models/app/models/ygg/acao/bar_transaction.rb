@@ -31,8 +31,8 @@ class BarTransaction < Ygg::PublicModel
     [ :must_have_fk, {to_table: "core_sessions", column: "session_id", primary_key: "id", on_delete: nil, on_update: nil}],
   ]
 
-  belongs_to :person,
-             class_name: '::Ygg::Core::Person'
+  belongs_to :member,
+             class_name: '::Ygg::Acao::Member'
 
   include Ygg::Core::Loggable
   define_default_log_controller(self)

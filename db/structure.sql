@@ -91,1026 +91,24 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: aircraft_types; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.aircraft_types (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    manufacturer character varying(64) NOT NULL,
-    name character varying(32) NOT NULL,
-    seats integer,
-    motor integer,
-    handicap double precision,
-    link_wp character varying,
-    handicap_club double precision,
-    aircraft_class character varying(16),
-    wingspan numeric(4,1) DEFAULT NULL::numeric,
-    is_vintage boolean DEFAULT false NOT NULL,
-    foldable_wings boolean DEFAULT false NOT NULL
-);
-
-
---
--- Name: acao_aircraft_types_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_aircraft_types_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_aircraft_types_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_aircraft_types_id_seq OWNED BY acao.aircraft_types.id_old;
-
-
---
--- Name: aircrafts; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.aircrafts (
-    id_old integer NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    fn_owner_name character varying(255),
-    fn_home_airport character varying(255),
-    fn_type_name character varying(255),
-    race_registration character varying(255),
-    registration character varying(255),
-    fn_common_radio_frequency character varying(255),
-    owner_id_old integer,
-    aircraft_type_id_old integer,
-    flarm_identifier character varying(16),
-    icao_identifier character varying(16),
-    mdb_id integer,
-    hangar boolean DEFAULT false NOT NULL,
-    notes text,
-    club_id uuid,
-    serial_number character varying(32) DEFAULT NULL::character varying,
-    arc_valid_to timestamp without time zone,
-    insurance_valid_to timestamp without time zone,
-    club_owner_id uuid,
-    available boolean DEFAULT true NOT NULL,
-    is_towplane boolean DEFAULT false NOT NULL,
-    owner_id uuid,
-    aircraft_type_id uuid
-);
-
-
---
--- Name: acao_aircrafts_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_aircrafts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_aircrafts_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_aircrafts_id_seq OWNED BY acao.aircrafts.id_old;
-
-
---
--- Name: airfields; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.airfields (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    name character varying NOT NULL,
-    location_id_old integer,
-    radius integer NOT NULL,
-    icao_code character(4),
-    symbol character varying(16),
-    location_id uuid NOT NULL,
-    range integer NOT NULL,
-    range_alt integer NOT NULL
-);
-
-
---
--- Name: acao_airfields_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_airfields_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_airfields_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_airfields_id_seq OWNED BY acao.airfields.id_old;
-
-
---
--- Name: bar_transactions; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.bar_transactions (
-    id_old integer NOT NULL,
-    person_id_old integer,
-    prev_credit numeric(14,6),
-    credit numeric(14,6),
-    amount numeric(14,6) NOT NULL,
-    descr character varying NOT NULL,
-    old_id integer,
-    recorded_at timestamp with time zone,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    session_id_old integer,
-    cnt integer DEFAULT 1 NOT NULL,
-    unit character varying DEFAULT '€'::character varying NOT NULL,
-    old_cassetta_id integer,
-    person_id uuid NOT NULL,
-    session_id uuid
-);
-
-
---
--- Name: acao_bar_transactions_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_bar_transactions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_bar_transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_bar_transactions_id_seq OWNED BY acao.bar_transactions.id_old;
-
-
---
--- Name: flights; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.flights (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    takeoff_time timestamp with time zone,
-    pilot1_id_old integer,
-    pilot2_id_old integer,
-    pilot1_role character varying(16),
-    pilot2_role character varying(16),
-    source character varying(16),
-    source_id integer,
-    source_expansion character varying(16),
-    takeoff_airfield_id_old integer,
-    landing_airfield_id_old integer,
-    takeoff_location_id_old integer,
-    landing_location_id_old integer,
-    towed_by_id_old integer,
-    tow_release_location_id_old integer,
-    acao_tipo_volo_club integer,
-    acao_tipo_aereo_aliante integer,
-    acao_durata_volo_aereo_minuti integer,
-    acao_durata_volo_aliante_minuti integer,
-    acao_quota integer,
-    acao_bollini_volo integer,
-    acao_data_att timestamp with time zone,
-    aircraft_class character varying(16),
-    aircraft_owner character varying,
-    aircraft_owner_id_old integer,
-    instruction_flight boolean DEFAULT false NOT NULL,
-    launch_type character varying(16),
-    landing_time timestamp with time zone,
-    aircraft_reg character varying(16) NOT NULL,
-    takeoff_location_raw character varying(255),
-    landing_location_raw character varying(255),
-    aircraft_id uuid,
-    pilot1_id uuid NOT NULL,
-    pilot2_id uuid,
-    takeoff_airfield_id uuid,
-    landing_airfield_id uuid,
-    takeoff_location_id uuid,
-    landing_location_id uuid,
-    towed_by_id uuid,
-    tow_release_location_id uuid,
-    aircraft_owner_id uuid
-);
-
-
---
--- Name: acao_flights_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_flights_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_flights_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_flights_id_seq OWNED BY acao.flights.id_old;
-
-
---
--- Name: license_ratings; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.license_ratings (
-    id_old integer NOT NULL,
-    license_id_old integer,
-    type character varying(32) NOT NULL,
-    valid_to timestamp with time zone,
-    issued_at timestamp with time zone,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    license_id uuid NOT NULL
-);
-
-
---
--- Name: acao_license_ratings_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_license_ratings_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_license_ratings_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_license_ratings_id_seq OWNED BY acao.license_ratings.id_old;
-
-
---
--- Name: licenses; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.licenses (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    pilot_id_old integer,
-    type character varying(32) NOT NULL,
-    valid_to timestamp with time zone,
-    issued_at timestamp with time zone,
-    valid_to2 timestamp with time zone,
-    identifier character varying(32),
-    pilot_id uuid NOT NULL
-);
-
-
---
--- Name: acao_licenses_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_licenses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_licenses_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_licenses_id_seq OWNED BY acao.licenses.id_old;
-
-
---
--- Name: medicals; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.medicals (
-    id_old integer NOT NULL,
-    pilot_id_old integer,
-    type character varying(32) NOT NULL,
-    valid_to timestamp with time zone,
-    issued_at timestamp with time zone,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    identifier character varying(32),
-    pilot_id uuid NOT NULL
-);
-
-
---
--- Name: acao_medicals_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_medicals_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_medicals_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_medicals_id_seq OWNED BY acao.medicals.id_old;
-
-
---
--- Name: memberships; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.memberships (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    person_id_old integer,
-    status character varying(32),
-    email_allowed boolean DEFAULT true NOT NULL,
-    payment_id_old integer,
-    tug_pilot boolean DEFAULT false,
-    board_member boolean DEFAULT false,
-    instructor boolean DEFAULT false,
-    fireman boolean DEFAULT false,
-    possible_roster_chief boolean DEFAULT false NOT NULL,
-    valid_from timestamp with time zone NOT NULL,
-    valid_to timestamp with time zone NOT NULL,
-    reference_year_id_old integer,
-    invoice_detail_id uuid,
-    student boolean DEFAULT false,
-    person_id uuid NOT NULL,
-    payment_id uuid,
-    reference_year_id uuid NOT NULL
-);
-
-
---
--- Name: acao_memberships_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_memberships_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_memberships_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_memberships_id_seq OWNED BY acao.memberships.id_old;
-
-
---
--- Name: meter_buses; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.meter_buses (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    ipv4_address character varying(15) NOT NULL,
-    port integer NOT NULL,
-    name character varying NOT NULL,
-    descr character varying
-);
-
-
---
--- Name: acao_meter_buses_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_meter_buses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_meter_buses_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_meter_buses_id_seq OWNED BY acao.meter_buses.id_old;
-
-
---
--- Name: meter_measures; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.meter_measures (
-    id_old integer NOT NULL,
-    meter_id_old integer,
-    at timestamp without time zone NOT NULL,
-    voltage double precision,
-    current double precision,
-    power double precision,
-    frequency double precision,
-    power_factor double precision,
-    exported_energy numeric(10,2),
-    imported_energy numeric(10,2),
-    total_energy numeric(10,2),
-    app_power double precision,
-    rea_power double precision,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    meter_id uuid NOT NULL
-);
-
-
---
--- Name: acao_meter_measures_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_meter_measures_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_meter_measures_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_meter_measures_id_seq OWNED BY acao.meter_measures.id_old;
-
-
---
--- Name: meters; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.meters (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    person_id_old integer,
-    bus_id_old integer,
-    bus_address integer NOT NULL,
-    name character varying NOT NULL,
-    descr character varying NOT NULL,
-    notes text NOT NULL,
-    last_update timestamp without time zone,
-    voltage double precision,
-    current double precision,
-    power double precision,
-    frequency double precision,
-    power_factor double precision,
-    exported_energy numeric(10,2),
-    imported_energy numeric(10,2),
-    total_energy numeric(10,2),
-    app_power double precision,
-    rea_power double precision,
-    person_id uuid,
-    bus_id uuid
-);
-
-
---
--- Name: acao_meters_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_meters_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_meters_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_meters_id_seq OWNED BY acao.meters.id_old;
-
-
---
--- Name: payment_satispay_charges; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.payment_satispay_charges (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    user_id character varying(64),
-    user_phone_number character varying(64),
-    status character varying(64),
-    status_details character varying,
-    user_short_name character varying,
-    charge_date timestamp with time zone,
-    amount numeric(8,2),
-    idempotency_key character varying(32),
-    description character varying,
-    charge_id character varying(64),
-    payment_id_old integer,
-    payment_id uuid
-);
-
-
---
--- Name: acao_payment_satispay_charges_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_payment_satispay_charges_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_payment_satispay_charges_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_payment_satispay_charges_id_seq OWNED BY acao.payment_satispay_charges.id_old;
-
-
---
--- Name: payment_services; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.payment_services (
-    id_old integer NOT NULL,
-    payment_id_old integer,
-    service_type_id_old integer,
-    price numeric(10,4),
-    extra_info character varying,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    payment_id uuid NOT NULL,
-    service_type_id uuid NOT NULL
-);
-
-
---
--- Name: acao_payment_services_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_payment_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_payment_services_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_payment_services_id_seq OWNED BY acao.payment_services.id_old;
-
-
---
--- Name: payments; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.payments (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    person_id_old integer,
-    identifier character varying(8),
-    payment_method character varying(32) NOT NULL,
-    created_at timestamp with time zone,
-    state character varying(32) DEFAULT 'PENDING'::character varying NOT NULL,
-    reason_for_payment character varying(140),
-    completed_at timestamp with time zone,
-    expires_at timestamp with time zone,
-    notes text,
-    last_chore timestamp with time zone,
-    onda_export_status character varying(32),
-    invoice_id uuid,
-    amount numeric(14,6) DEFAULT NULL::numeric,
-    wire_value_date timestamp without time zone,
-    receipt_code character varying(255) DEFAULT NULL::character varying,
-    person_id uuid NOT NULL
-);
-
-
---
--- Name: acao_payments_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_payments_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_payments_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_payments_id_seq OWNED BY acao.payments.id_old;
-
-
---
--- Name: member_services; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.member_services (
-    id_old integer NOT NULL,
-    service_type_id_old integer,
-    payment_id_old integer,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    valid_from timestamp without time zone NOT NULL,
-    valid_to timestamp without time zone NOT NULL,
-    person_id_old integer,
-    service_data text,
-    invoice_detail_id uuid,
-    service_type_id uuid NOT NULL,
-    payment_id uuid,
-    person_id uuid
-);
-
-
---
--- Name: acao_person_services_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_person_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_person_services_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_person_services_id_seq OWNED BY acao.member_services.id_old;
-
-
---
--- Name: pilots; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.pilots (
-    id_old integer NOT NULL,
-    id uuid NOT NULL,
-    name character varying,
-    acao_sleeping boolean DEFAULT false NOT NULL,
-    acao_bar_last_summary timestamp with time zone
-);
-
-
---
--- Name: acao_pilots_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_pilots_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_pilots_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_pilots_id_seq OWNED BY acao.pilots.id_old;
-
-
---
--- Name: roster_days; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.roster_days (
-    id_old integer NOT NULL,
-    date date,
-    high_season boolean DEFAULT false NOT NULL,
-    needed_people integer NOT NULL,
-    descr character varying,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL
-);
-
-
---
--- Name: acao_roster_days_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_roster_days_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_roster_days_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_roster_days_id_seq OWNED BY acao.roster_days.id_old;
-
-
---
--- Name: roster_entries; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.roster_entries (
-    id_old integer NOT NULL,
-    person_id_old integer,
-    chief boolean DEFAULT false NOT NULL,
-    notes text,
-    roster_day_id_old integer,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    selected_at timestamp with time zone,
-    on_offer_since timestamp with time zone,
-    person_id uuid NOT NULL,
-    roster_day_id uuid NOT NULL
-);
-
-
---
--- Name: acao_roster_entries_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_roster_entries_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_roster_entries_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_roster_entries_id_seq OWNED BY acao.roster_entries.id_old;
-
-
---
--- Name: service_types; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.service_types (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    symbol character varying(32),
-    name character varying NOT NULL,
-    price numeric(10,4),
-    extra_info character varying,
-    notes character varying,
-    onda_1_code character varying(32),
-    descr text,
-    available_for_shop boolean DEFAULT false,
-    available_for_membership_renewal boolean DEFAULT false,
-    onda_2_code character varying(32),
-    onda_1_cnt integer,
-    onda_2_cnt integer,
-    onda_1_type integer,
-    onda_2_type integer,
-    is_association boolean
-);
-
-
---
--- Name: acao_service_types_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_service_types_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_service_types_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_service_types_id_seq OWNED BY acao.service_types.id_old;
-
-
---
--- Name: token_transactions; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.token_transactions (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    person_id_old integer,
-    recorded_at timestamp with time zone NOT NULL,
-    prev_credit numeric(14,6),
-    credit numeric(14,6),
-    amount numeric(14,6) NOT NULL,
-    descr character varying NOT NULL,
-    session_id_old integer,
-    old_id integer,
-    old_operator character varying,
-    old_marche_mezzo character varying,
-    aircraft_id_old integer,
-    aircraft_id uuid,
-    person_id uuid NOT NULL,
-    session_id uuid
-);
-
-
---
--- Name: acao_token_transactions_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_token_transactions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_token_transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_token_transactions_id_seq OWNED BY acao.token_transactions.id_old;
-
-
---
--- Name: tow_roster_days; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.tow_roster_days (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    date date NOT NULL,
-    needed_people integer DEFAULT 4 NOT NULL,
-    descr character varying
-);
-
-
---
--- Name: acao_tow_roster_days_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_tow_roster_days_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_tow_roster_days_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_tow_roster_days_id_seq OWNED BY acao.tow_roster_days.id_old;
-
-
---
--- Name: tow_roster_entries; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.tow_roster_entries (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    day_id_old integer,
-    person_id_old integer,
-    selected_at timestamp with time zone NOT NULL,
-    day_id uuid NOT NULL,
-    person_id uuid
-);
-
-
---
--- Name: acao_tow_roster_entries_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_tow_roster_entries_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_tow_roster_entries_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_tow_roster_entries_id_seq OWNED BY acao.tow_roster_entries.id_old;
-
-
---
--- Name: tows; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.tows (
-    id_old integer NOT NULL,
-    id uuid NOT NULL,
-    towplane_id_old integer,
-    glider_id_old integer,
-    height integer NOT NULL,
-    towplane_id uuid NOT NULL,
-    glider_id uuid NOT NULL
-);
-
-
---
--- Name: acao_tows_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_tows_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_tows_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_tows_id_seq OWNED BY acao.tows.id_old;
-
-
---
--- Name: trackers; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.trackers (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    aircraft_id_old integer NOT NULL,
-    type character varying NOT NULL,
-    identifier character varying NOT NULL,
-    aircraft_id uuid
-);
-
-
---
--- Name: acao_trackers_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_trackers_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_trackers_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_trackers_id_seq OWNED BY acao.trackers.id_old;
-
-
---
 -- Name: trailers; Type: TABLE; Schema: acao; Owner: -
 --
 
 CREATE TABLE acao.trailers (
     id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    person_id_old integer,
     zone character varying(32),
-    aircraft_id_old integer,
     notes text,
     identifier character varying(32) DEFAULT NULL::character varying,
-    payment_id_old integer,
     country character varying(64) DEFAULT NULL::character varying,
     model character varying(255) DEFAULT NULL::character varying,
     fin_writings character varying(255) DEFAULT NULL::character varying,
     side_writings character varying(255) DEFAULT NULL::character varying,
-    location_id_old integer,
     aircraft_id uuid,
-    person_id uuid NOT NULL,
+    person_id uuid,
     payment_id uuid,
-    location_id uuid
+    location_id uuid,
+    member_id uuid NOT NULL
 );
 
 
@@ -1134,39 +132,6 @@ ALTER SEQUENCE acao.acao_trailers_id_seq OWNED BY acao.trailers.id_old;
 
 
 --
--- Name: years; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.years (
-    id_old integer NOT NULL,
-    year integer NOT NULL,
-    renew_opening_time timestamp with time zone,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    renew_announce_time timestamp with time zone,
-    late_renewal_deadline timestamp without time zone NOT NULL
-);
-
-
---
--- Name: acao_years_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.acao_years_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: acao_years_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.acao_years_id_seq OWNED BY acao.years.id_old;
-
-
---
 -- Name: access_remotes; Type: TABLE; Schema: acao; Owner: -
 --
 
@@ -1178,6 +143,60 @@ CREATE TABLE acao.access_remotes (
     ch3_code character varying(32),
     ch4_code character varying(32),
     descr character varying
+);
+
+
+--
+-- Name: aircraft_types; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.aircraft_types (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    manufacturer character varying(64) NOT NULL,
+    name character varying(32) NOT NULL,
+    seats integer,
+    motor integer,
+    handicap double precision,
+    link_wp character varying,
+    handicap_club double precision,
+    aircraft_class character varying(16),
+    wingspan numeric(4,1) DEFAULT NULL::numeric,
+    is_vintage boolean DEFAULT false NOT NULL,
+    foldable_wings boolean DEFAULT false NOT NULL
+);
+
+
+--
+-- Name: aircrafts; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.aircrafts (
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    fn_owner_name character varying(255),
+    fn_home_airport character varying(255),
+    fn_type_name character varying(255),
+    race_registration character varying(255),
+    registration character varying(255),
+    fn_common_radio_frequency character varying(255),
+    flarm_identifier character varying(16),
+    icao_identifier character varying(16),
+    mdb_id integer,
+    hangar boolean DEFAULT false NOT NULL,
+    notes text,
+    club_id uuid,
+    serial_number character varying(32) DEFAULT NULL::character varying,
+    arc_valid_to timestamp without time zone,
+    insurance_valid_to timestamp without time zone,
+    club_owner_id uuid,
+    available boolean DEFAULT true NOT NULL,
+    is_towplane boolean DEFAULT false NOT NULL,
+    owner_id_old uuid,
+    aircraft_type_id uuid,
+    owner_id uuid
 );
 
 
@@ -1194,6 +213,22 @@ CREATE TABLE acao.airfield_circuits (
 
 
 --
+-- Name: airfields; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.airfields (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    name character varying NOT NULL,
+    radius integer NOT NULL,
+    icao_code character(4),
+    symbol character varying(16),
+    location_id uuid NOT NULL,
+    range integer NOT NULL,
+    range_alt integer NOT NULL
+);
+
+
+--
 -- Name: bar_menu_entries; Type: TABLE; Schema: acao; Owner: -
 --
 
@@ -1202,6 +237,27 @@ CREATE TABLE acao.bar_menu_entries (
     descr character varying(255) NOT NULL,
     price numeric(14,6) NOT NULL,
     on_sale boolean DEFAULT false NOT NULL
+);
+
+
+--
+-- Name: bar_transactions; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.bar_transactions (
+    prev_credit numeric(14,6),
+    credit numeric(14,6),
+    amount numeric(14,6) NOT NULL,
+    descr character varying NOT NULL,
+    old_id integer,
+    recorded_at timestamp with time zone,
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    cnt integer DEFAULT 1 NOT NULL,
+    unit character varying DEFAULT '€'::character varying NOT NULL,
+    old_cassetta_id integer,
+    person_id uuid,
+    session_id uuid,
+    member_id uuid NOT NULL
 );
 
 
@@ -1230,7 +286,6 @@ CREATE TABLE acao.camera_events (
 CREATE TABLE acao.clubs (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     name character varying NOT NULL,
-    airfield_id_old integer,
     symbol character varying(32) DEFAULT NULL::character varying,
     airfield_id uuid
 );
@@ -1242,12 +297,55 @@ CREATE TABLE acao.clubs (
 
 CREATE TABLE acao.fai_cards (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    person_id_old integer,
     identifier character varying(32),
     issued_at timestamp without time zone,
     valid_to timestamp without time zone,
     country character varying(255) NOT NULL,
-    person_id uuid NOT NULL
+    person_id uuid,
+    member_id uuid NOT NULL
+);
+
+
+--
+-- Name: flights; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.flights (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    takeoff_time timestamp with time zone,
+    pilot1_role character varying(16),
+    pilot2_role character varying(16),
+    source character varying(16),
+    source_id integer,
+    source_expansion character varying(16),
+    acao_tipo_volo_club integer,
+    acao_tipo_aereo_aliante integer,
+    acao_durata_volo_aereo_minuti integer,
+    acao_durata_volo_aliante_minuti integer,
+    acao_quota integer,
+    acao_bollini_volo integer,
+    acao_data_att timestamp with time zone,
+    aircraft_class character varying(16),
+    aircraft_owner character varying,
+    instruction_flight boolean DEFAULT false NOT NULL,
+    launch_type character varying(16),
+    landing_time timestamp with time zone,
+    aircraft_reg character varying(16) NOT NULL,
+    takeoff_location_raw character varying(255),
+    landing_location_raw character varying(255),
+    aircraft_id uuid,
+    pilot1_id_old uuid,
+    pilot2_id_old uuid,
+    takeoff_airfield_id uuid,
+    landing_airfield_id uuid,
+    takeoff_location_id uuid,
+    landing_location_id uuid,
+    towed_by_id uuid,
+    tow_release_location_id uuid,
+    aircraft_owner_id_old uuid,
+    pilot1_id uuid NOT NULL,
+    pilot2_id uuid,
+    aircraft_owner_id uuid
 );
 
 
@@ -1259,7 +357,6 @@ CREATE TABLE acao.gates (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     name character varying(64) NOT NULL,
     descr character varying(255) NOT NULL,
-    agent_id_old integer,
     agent_id uuid NOT NULL
 );
 
@@ -1274,7 +371,6 @@ CREATE TABLE acao.invoice_details (
     count integer NOT NULL,
     price numeric(14,6) NOT NULL,
     descr character varying(255) DEFAULT NULL::character varying,
-    service_type_id_old integer,
     data text,
     service_type_id uuid NOT NULL
 );
@@ -1287,7 +383,6 @@ CREATE TABLE acao.invoice_details (
 CREATE TABLE acao.invoices (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     identifier character varying(16) DEFAULT NULL::character varying,
-    person_id_old integer,
     first_name character varying(255) DEFAULT NULL::character varying,
     last_name character varying(255) DEFAULT NULL::character varying,
     address character varying(255) DEFAULT NULL::character varying,
@@ -1300,7 +395,8 @@ CREATE TABLE acao.invoices (
     payment_state character varying DEFAULT 'UNPAID'::character varying NOT NULL,
     onda_export_filename character varying,
     onda_no_reg boolean DEFAULT false NOT NULL,
-    person_id uuid NOT NULL
+    person_id uuid,
+    member_id uuid NOT NULL
 );
 
 
@@ -1310,16 +406,256 @@ CREATE TABLE acao.invoices (
 
 CREATE TABLE acao.key_fobs (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    person_id_old integer,
     code character varying(32),
     descr character varying(255),
     notes text,
     version integer DEFAULT 0 NOT NULL,
     condemned boolean DEFAULT false NOT NULL,
-    person_id uuid NOT NULL,
+    person_id uuid,
     media_type character varying(16) NOT NULL,
     src character varying(32),
-    src_id integer
+    src_id integer,
+    member_id uuid NOT NULL
+);
+
+
+--
+-- Name: license_ratings; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.license_ratings (
+    type character varying(32) NOT NULL,
+    valid_to timestamp with time zone,
+    issued_at timestamp with time zone,
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    license_id uuid NOT NULL
+);
+
+
+--
+-- Name: licenses; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.licenses (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    type character varying(32) NOT NULL,
+    valid_to timestamp with time zone,
+    issued_at timestamp with time zone,
+    valid_to2 timestamp with time zone,
+    identifier character varying(32),
+    pilot_id uuid,
+    member_id uuid NOT NULL
+);
+
+
+--
+-- Name: medicals; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.medicals (
+    type character varying(32) NOT NULL,
+    valid_to timestamp with time zone,
+    issued_at timestamp with time zone,
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    identifier character varying(32),
+    pilot_id uuid,
+    member_id uuid NOT NULL
+);
+
+
+--
+-- Name: member_services; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.member_services (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    valid_from timestamp without time zone NOT NULL,
+    valid_to timestamp without time zone NOT NULL,
+    service_data text,
+    invoice_detail_id uuid,
+    service_type_id uuid NOT NULL,
+    payment_id uuid,
+    person_id uuid,
+    member_id uuid
+);
+
+
+--
+-- Name: members; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.members (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    person_id uuid NOT NULL,
+    ext_id bigint,
+    code integer,
+    sleeping boolean DEFAULT false NOT NULL,
+    job character varying,
+    bar_credit numeric(14,6) DEFAULT 0.0 NOT NULL,
+    bollini numeric(14,6) DEFAULT 0.0 NOT NULL,
+    roster_chief boolean DEFAULT false NOT NULL,
+    roster_allowed boolean DEFAULT false NOT NULL,
+    is_student boolean DEFAULT false NOT NULL,
+    is_tug_pilot boolean DEFAULT false NOT NULL,
+    is_board_member boolean DEFAULT false NOT NULL,
+    is_instructor boolean DEFAULT false NOT NULL,
+    is_fireman boolean DEFAULT false NOT NULL,
+    has_disability boolean DEFAULT false NOT NULL,
+    email_allowed boolean DEFAULT false NOT NULL,
+    debtor boolean DEFAULT false NOT NULL,
+    ml_students boolean DEFAULT false NOT NULL,
+    ml_instructors boolean DEFAULT false NOT NULL,
+    ml_tug_pilots boolean DEFAULT false NOT NULL,
+    ml_blabla boolean DEFAULT false NOT NULL,
+    ml_secondoperiodo boolean DEFAULT false NOT NULL,
+    lastmod timestamp without time zone,
+    visita_lastmod timestamp without time zone,
+    licenza_lastmod timestamp without time zone,
+    bar_last_summary timestamp without time zone,
+    last_notify_run timestamp without time zone
+);
+
+
+--
+-- Name: memberships; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.memberships (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    status character varying(32),
+    email_allowed boolean DEFAULT true NOT NULL,
+    tug_pilot boolean DEFAULT false,
+    board_member boolean DEFAULT false,
+    instructor boolean DEFAULT false,
+    fireman boolean DEFAULT false,
+    possible_roster_chief boolean DEFAULT false NOT NULL,
+    valid_from timestamp with time zone NOT NULL,
+    valid_to timestamp with time zone NOT NULL,
+    invoice_detail_id uuid,
+    student boolean DEFAULT false,
+    person_id uuid,
+    payment_id uuid,
+    reference_year_id uuid NOT NULL,
+    member_id uuid NOT NULL
+);
+
+
+--
+-- Name: meter_buses; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.meter_buses (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    ipv4_address character varying(15) NOT NULL,
+    port integer NOT NULL,
+    name character varying NOT NULL,
+    descr character varying
+);
+
+
+--
+-- Name: meter_measures; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.meter_measures (
+    at timestamp without time zone NOT NULL,
+    voltage double precision,
+    current double precision,
+    power double precision,
+    frequency double precision,
+    power_factor double precision,
+    exported_energy numeric(10,2),
+    imported_energy numeric(10,2),
+    total_energy numeric(10,2),
+    app_power double precision,
+    rea_power double precision,
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    meter_id uuid NOT NULL
+);
+
+
+--
+-- Name: meters; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.meters (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    bus_address integer NOT NULL,
+    name character varying NOT NULL,
+    descr character varying NOT NULL,
+    notes text NOT NULL,
+    last_update timestamp without time zone,
+    voltage double precision,
+    current double precision,
+    power double precision,
+    frequency double precision,
+    power_factor double precision,
+    exported_energy numeric(10,2),
+    imported_energy numeric(10,2),
+    total_energy numeric(10,2),
+    app_power double precision,
+    rea_power double precision,
+    person_id uuid,
+    bus_id uuid,
+    member_id uuid
+);
+
+
+--
+-- Name: payment_satispay_charges; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.payment_satispay_charges (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    user_id character varying(64),
+    user_phone_number character varying(64),
+    status character varying(64),
+    status_details character varying,
+    user_short_name character varying,
+    charge_date timestamp with time zone,
+    amount numeric(8,2),
+    idempotency_key character varying(32),
+    description character varying,
+    charge_id character varying(64),
+    payment_id uuid
+);
+
+
+--
+-- Name: payment_services; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.payment_services (
+    price numeric(10,4),
+    extra_info character varying,
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    payment_id uuid NOT NULL,
+    service_type_id uuid NOT NULL
+);
+
+
+--
+-- Name: payments; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.payments (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    identifier character varying(8),
+    payment_method character varying(32) NOT NULL,
+    created_at timestamp with time zone,
+    state character varying(32) DEFAULT 'PENDING'::character varying NOT NULL,
+    reason_for_payment character varying(140),
+    completed_at timestamp with time zone,
+    expires_at timestamp with time zone,
+    notes text,
+    last_chore timestamp with time zone,
+    onda_export_status character varying(32),
+    invoice_id uuid,
+    amount numeric(14,6) DEFAULT NULL::numeric,
+    wire_value_date timestamp without time zone,
+    receipt_code character varying(255) DEFAULT NULL::character varying,
+    person_id uuid,
+    member_id uuid NOT NULL
 );
 
 
@@ -1337,11 +673,22 @@ CREATE TABLE acao.person_access_remotes (
 
 
 --
+-- Name: pilots; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.pilots (
+    id uuid NOT NULL,
+    name character varying,
+    acao_sleeping boolean DEFAULT false NOT NULL,
+    acao_bar_last_summary timestamp with time zone
+);
+
+
+--
 -- Name: planes; Type: TABLE; Schema: acao; Owner: -
 --
 
 CREATE TABLE acao.planes (
-    id_old integer NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     id uuid NOT NULL,
@@ -1353,25 +700,6 @@ CREATE TABLE acao.planes (
     registration character varying(255),
     common_radio_frequency character varying(255)
 );
-
-
---
--- Name: planes_id_seq; Type: SEQUENCE; Schema: acao; Owner: -
---
-
-CREATE SEQUENCE acao.planes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: planes_id_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
---
-
-ALTER SEQUENCE acao.planes_id_seq OWNED BY acao.planes.id_old;
 
 
 --
@@ -1433,6 +761,61 @@ CREATE TABLE acao.radar_raw_points (
 
 
 --
+-- Name: roster_days; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.roster_days (
+    date date,
+    high_season boolean DEFAULT false NOT NULL,
+    needed_people integer NOT NULL,
+    descr character varying,
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL
+);
+
+
+--
+-- Name: roster_entries; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.roster_entries (
+    person_id_old integer,
+    chief boolean DEFAULT false NOT NULL,
+    notes text,
+    roster_day_id_old integer,
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    selected_at timestamp with time zone,
+    on_offer_since timestamp with time zone,
+    person_id uuid,
+    roster_day_id uuid NOT NULL,
+    member_id uuid NOT NULL
+);
+
+
+--
+-- Name: service_types; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.service_types (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    symbol character varying(32),
+    name character varying NOT NULL,
+    price numeric(10,4),
+    extra_info character varying,
+    notes character varying,
+    onda_1_code character varying(32),
+    descr text,
+    available_for_shop boolean DEFAULT false,
+    available_for_membership_renewal boolean DEFAULT false,
+    onda_2_code character varying(32),
+    onda_1_cnt integer,
+    onda_2_cnt integer,
+    onda_1_type integer,
+    onda_2_type integer,
+    is_association boolean
+);
+
+
+--
 -- Name: skysight_codes; Type: TABLE; Schema: acao; Owner: -
 --
 
@@ -1454,7 +837,7 @@ CREATE TABLE acao.timetable_entries (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     created_at timestamp without time zone DEFAULT now(),
     aircraft_id uuid,
-    pilot_id uuid,
+    pilot_id_old uuid,
     takeoff_at timestamp with time zone,
     takeoff_at_detected timestamp with time zone,
     takeoff_location_id uuid,
@@ -1482,7 +865,78 @@ CREATE TABLE acao.timetable_entries (
     tow_height integer,
     tow_duration integer,
     takeoff_method character varying(32),
-    landing_method character varying(32)
+    landing_method character varying(32),
+    pilot_id uuid
+);
+
+
+--
+-- Name: token_transactions; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.token_transactions (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    recorded_at timestamp with time zone NOT NULL,
+    prev_credit numeric(14,6),
+    credit numeric(14,6),
+    amount numeric(14,6) NOT NULL,
+    descr character varying NOT NULL,
+    old_id integer,
+    old_operator character varying,
+    old_marche_mezzo character varying,
+    aircraft_id uuid,
+    person_id uuid,
+    session_id uuid,
+    member_id uuid NOT NULL
+);
+
+
+--
+-- Name: tow_roster_days; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.tow_roster_days (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    date date NOT NULL,
+    needed_people integer DEFAULT 4 NOT NULL,
+    descr character varying
+);
+
+
+--
+-- Name: tow_roster_entries; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.tow_roster_entries (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    selected_at timestamp with time zone NOT NULL,
+    day_id uuid NOT NULL,
+    person_id uuid,
+    member_id uuid
+);
+
+
+--
+-- Name: tows; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.tows (
+    id uuid NOT NULL,
+    height integer NOT NULL,
+    towplane_id uuid NOT NULL,
+    glider_id uuid NOT NULL
+);
+
+
+--
+-- Name: trackers; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.trackers (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    type character varying NOT NULL,
+    identifier character varying NOT NULL,
+    aircraft_id uuid
 );
 
 
@@ -1521,41 +975,16 @@ CREATE TABLE acao.wol_targets (
 
 
 --
--- Name: cas; Type: TABLE; Schema: ca; Owner: -
+-- Name: years; Type: TABLE; Schema: acao; Owner: -
 --
 
-CREATE TABLE ca.cas (
-    id_old integer NOT NULL,
+CREATE TABLE acao.years (
+    year integer NOT NULL,
+    renew_opening_time timestamp with time zone,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    name character varying(64) NOT NULL,
-    descr character varying(255),
-    notes text,
-    key_pair_id_old integer,
-    certificate_id_old integer,
-    key_pair_id uuid,
-    certificate_id uuid
+    renew_announce_time timestamp with time zone,
+    late_renewal_deadline timestamp without time zone NOT NULL
 );
-
-
---
--- Name: ca_cas_id_seq; Type: SEQUENCE; Schema: ca; Owner: -
---
-
-CREATE SEQUENCE ca.ca_cas_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ca_cas_id_seq; Type: SEQUENCE OWNED BY; Schema: ca; Owner: -
---
-
-ALTER SEQUENCE ca.ca_cas_id_seq OWNED BY ca.cas.id_old;
 
 
 --
@@ -1564,7 +993,6 @@ ALTER SEQUENCE ca.ca_cas_id_seq OWNED BY ca.cas.id_old;
 
 CREATE TABLE ca.certificate_altnames (
     id integer NOT NULL,
-    certificate_id_old integer,
     type character varying(32),
     name character varying,
     uuid uuid DEFAULT public.gen_random_uuid() NOT NULL,
@@ -1592,11 +1020,26 @@ ALTER SEQUENCE ca.ca_certificate_altnames_id_seq OWNED BY ca.certificate_altname
 
 
 --
+-- Name: cas; Type: TABLE; Schema: ca; Owner: -
+--
+
+CREATE TABLE ca.cas (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    name character varying(64) NOT NULL,
+    descr character varying(255),
+    notes text,
+    key_pair_id uuid,
+    certificate_id uuid
+);
+
+
+--
 -- Name: certificates; Type: TABLE; Schema: ca; Owner: -
 --
 
 CREATE TABLE ca.certificates (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
@@ -1604,7 +1047,6 @@ CREATE TABLE ca.certificates (
     email character varying(255),
     notes text,
     pem text,
-    key_pair_id_old integer,
     valid_from timestamp without time zone,
     valid_to timestamp without time zone,
     serial character varying(255),
@@ -1617,34 +1059,12 @@ CREATE TABLE ca.certificates (
 
 
 --
--- Name: ca_certificates_id_seq; Type: SEQUENCE; Schema: ca; Owner: -
---
-
-CREATE SEQUENCE ca.ca_certificates_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ca_certificates_id_seq; Type: SEQUENCE OWNED BY; Schema: ca; Owner: -
---
-
-ALTER SEQUENCE ca.ca_certificates_id_seq OWNED BY ca.certificates.id_old;
-
-
---
 -- Name: key_pair_locations; Type: TABLE; Schema: ca; Owner: -
 --
 
 CREATE TABLE ca.key_pair_locations (
-    id_old integer NOT NULL,
-    pair_id_old integer,
     identifier character varying(64),
     path character varying,
-    store_id_old integer,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     store_id uuid NOT NULL,
     pair_id uuid NOT NULL
@@ -1652,30 +1072,10 @@ CREATE TABLE ca.key_pair_locations (
 
 
 --
--- Name: ca_key_pair_locations_id_seq; Type: SEQUENCE; Schema: ca; Owner: -
---
-
-CREATE SEQUENCE ca.ca_key_pair_locations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ca_key_pair_locations_id_seq; Type: SEQUENCE OWNED BY; Schema: ca; Owner: -
---
-
-ALTER SEQUENCE ca.ca_key_pair_locations_id_seq OWNED BY ca.key_pair_locations.id_old;
-
-
---
 -- Name: key_pairs; Type: TABLE; Schema: ca; Owner: -
 --
 
 CREATE TABLE ca.key_pairs (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
@@ -1689,57 +1089,17 @@ CREATE TABLE ca.key_pairs (
 
 
 --
--- Name: ca_key_pairs_id_seq; Type: SEQUENCE; Schema: ca; Owner: -
---
-
-CREATE SEQUENCE ca.ca_key_pairs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ca_key_pairs_id_seq; Type: SEQUENCE OWNED BY; Schema: ca; Owner: -
---
-
-ALTER SEQUENCE ca.ca_key_pairs_id_seq OWNED BY ca.key_pairs.id_old;
-
-
---
 -- Name: key_stores; Type: TABLE; Schema: ca; Owner: -
 --
 
 CREATE TABLE ca.key_stores (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     sti_type character varying,
     symbol character varying(32),
     descr character varying,
     local_directory character varying,
-    remote_agent_id_old integer,
     remote_agent_id uuid
 );
-
-
---
--- Name: ca_key_stores_id_seq; Type: SEQUENCE; Schema: ca; Owner: -
---
-
-CREATE SEQUENCE ca.ca_key_stores_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ca_key_stores_id_seq; Type: SEQUENCE OWNED BY; Schema: ca; Owner: -
---
-
-ALTER SEQUENCE ca.ca_key_stores_id_seq OWNED BY ca.key_stores.id_old;
 
 
 --
@@ -1747,9 +1107,7 @@ ALTER SEQUENCE ca.ca_key_stores_id_seq OWNED BY ca.key_stores.id_old;
 --
 
 CREATE TABLE ca.le_accounts (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    key_pair_id_old integer,
     email_contact character varying,
     endpoint character varying,
     symbol character varying(32),
@@ -1760,32 +1118,11 @@ CREATE TABLE ca.le_accounts (
 
 
 --
--- Name: ca_le_accounts_id_seq; Type: SEQUENCE; Schema: ca; Owner: -
---
-
-CREATE SEQUENCE ca.ca_le_accounts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ca_le_accounts_id_seq; Type: SEQUENCE OWNED BY; Schema: ca; Owner: -
---
-
-ALTER SEQUENCE ca.ca_le_accounts_id_seq OWNED BY ca.le_accounts.id_old;
-
-
---
 -- Name: le_order_auth_challenges; Type: TABLE; Schema: ca; Owner: -
 --
 
 CREATE TABLE ca.le_order_auth_challenges (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    order_auth_id_old integer,
     status character varying(32),
     type character varying(32),
     url character varying,
@@ -1803,32 +1140,11 @@ CREATE TABLE ca.le_order_auth_challenges (
 
 
 --
--- Name: ca_le_order_auth_challenges_id_seq; Type: SEQUENCE; Schema: ca; Owner: -
---
-
-CREATE SEQUENCE ca.ca_le_order_auth_challenges_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ca_le_order_auth_challenges_id_seq; Type: SEQUENCE OWNED BY; Schema: ca; Owner: -
---
-
-ALTER SEQUENCE ca.ca_le_order_auth_challenges_id_seq OWNED BY ca.le_order_auth_challenges.id_old;
-
-
---
 -- Name: le_order_auths; Type: TABLE; Schema: ca; Owner: -
 --
 
 CREATE TABLE ca.le_order_auths (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    order_id_old integer,
     status character varying(32),
     expires_at timestamp with time zone,
     identifier_type character varying(32),
@@ -1840,43 +1156,20 @@ CREATE TABLE ca.le_order_auths (
 
 
 --
--- Name: ca_le_order_auths_id_seq; Type: SEQUENCE; Schema: ca; Owner: -
---
-
-CREATE SEQUENCE ca.ca_le_order_auths_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ca_le_order_auths_id_seq; Type: SEQUENCE OWNED BY; Schema: ca; Owner: -
---
-
-ALTER SEQUENCE ca.ca_le_order_auths_id_seq OWNED BY ca.le_order_auths.id_old;
-
-
---
 -- Name: le_orders; Type: TABLE; Schema: ca; Owner: -
 --
 
 CREATE TABLE ca.le_orders (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     not_before timestamp with time zone,
     not_after timestamp with time zone,
     expires timestamp with time zone,
     finalize_url character varying,
     status character varying(32),
-    account_id_old integer,
     url character varying,
     csr text,
-    certificate_id_old integer,
     certificate_url character varying,
     created_at timestamp with time zone,
-    slot_id_old uuid,
     certificate_id uuid,
     account_id uuid NOT NULL,
     slot_id uuid
@@ -1884,40 +1177,16 @@ CREATE TABLE ca.le_orders (
 
 
 --
--- Name: ca_le_orders_id_seq; Type: SEQUENCE; Schema: ca; Owner: -
---
-
-CREATE SEQUENCE ca.ca_le_orders_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ca_le_orders_id_seq; Type: SEQUENCE OWNED BY; Schema: ca; Owner: -
---
-
-ALTER SEQUENCE ca.ca_le_orders_id_seq OWNED BY ca.le_orders.id_old;
-
-
---
 -- Name: le_slots; Type: TABLE; Schema: ca; Owner: -
 --
 
 CREATE TABLE ca.le_slots (
-    id_old uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    account_id_old integer,
     csr_attrs json NOT NULL,
-    key_store_id_old integer,
     key_store_path character varying NOT NULL,
     wanted_key character varying(64),
     gen_key_type character varying(32),
     gen_key_length integer,
-    certificate_id_old integer,
     owner_type character varying,
-    owner_id_old integer,
     enabled boolean DEFAULT true NOT NULL,
     renew_at timestamp with time zone,
     key_store_id uuid NOT NULL,
@@ -1933,7 +1202,6 @@ CREATE TABLE ca.le_slots (
 --
 
 CREATE TABLE core.agents (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     exchange character varying NOT NULL,
     descr character varying,
@@ -1949,30 +1217,10 @@ CREATE TABLE core.agents (
 
 
 --
--- Name: agents_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.agents_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: agents_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.agents_id_seq OWNED BY core.agents.id_old;
-
-
---
 -- Name: global_roles; Type: TABLE; Schema: core; Owner: -
 --
 
 CREATE TABLE core.global_roles (
-    id_old integer NOT NULL,
     name character varying(32) NOT NULL,
     descr character varying(255),
     id uuid DEFAULT public.gen_random_uuid() NOT NULL
@@ -1980,215 +1228,11 @@ CREATE TABLE core.global_roles (
 
 
 --
--- Name: core_capabilities_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.core_capabilities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: core_capabilities_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.core_capabilities_id_seq OWNED BY core.global_roles.id_old;
-
-
---
--- Name: person_credentials; Type: TABLE; Schema: core; Owner: -
---
-
-CREATE TABLE core.person_credentials (
-    id_old integer NOT NULL,
-    sti_type character varying(64) NOT NULL,
-    descr text,
-    data text NOT NULL,
-    x509_m_serial character varying(32),
-    x509_i_dn character varying(255),
-    x509_s_dn character varying(255),
-    x509_s_dn_cn character varying(255),
-    x509_s_dn_email character varying(255),
-    expires_at timestamp without time zone,
-    fqda character varying NOT NULL,
-    person_id_old integer,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    person_id uuid NOT NULL
-);
-
-
---
--- Name: core_credentials_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.core_credentials_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: core_credentials_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.core_credentials_id_seq OWNED BY core.person_credentials.id_old;
-
-
---
--- Name: sessions; Type: TABLE; Schema: core; Owner: -
---
-
-CREATE TABLE core.sessions (
-    id_old integer NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    http_remote_addr character varying(42),
-    http_remote_port integer,
-    http_x_forwarded_for text,
-    http_via text,
-    http_server_addr character varying(42),
-    http_server_port integer,
-    http_server_name character varying(64),
-    http_referer text,
-    http_user_agent text,
-    http_request_uri text,
-    auth_credential_id_old integer,
-    auth_identity_id integer,
-    auth_method character varying(32),
-    auth_confidence character varying(16),
-    status character varying(32) DEFAULT 'new'::character varying NOT NULL,
-    close_reason character varying(32),
-    close_time timestamp without time zone,
-    auth_person_id_old integer,
-    language_id_old integer,
-    sti_type character varying(255) NOT NULL,
-    auth_person_id uuid,
-    auth_credential_id uuid,
-    language_id uuid,
-    expires timestamp with time zone
-);
-
-
---
--- Name: core_http_sessions_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.core_http_sessions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: core_http_sessions_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.core_http_sessions_id_seq OWNED BY core.sessions.id_old;
-
-
---
--- Name: person_roles; Type: TABLE; Schema: core; Owner: -
---
-
-CREATE TABLE core.person_roles (
-    id_old integer NOT NULL,
-    identity_id integer,
-    global_role_id_old integer,
-    person_id_old integer,
-    uuid uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    global_role_id uuid NOT NULL,
-    person_id uuid NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL
-);
-
-
---
--- Name: core_identity_capabilities_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.core_identity_capabilities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: core_identity_capabilities_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.core_identity_capabilities_id_seq OWNED BY core.person_roles.id_old;
-
-
---
--- Name: tasks; Type: TABLE; Schema: core; Owner: -
---
-
-CREATE TABLE core.tasks (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    created_at timestamp without time zone,
-    expected_completion timestamp without time zone,
-    completed_at timestamp without time zone,
-    status character varying(32) NOT NULL,
-    description character varying(255),
-    depends_on_id_old integer,
-    agent character varying(64),
-    operation character varying(32),
-    request_data json,
-    result_data json,
-    log text DEFAULT ''::text NOT NULL,
-    deferred_to timestamp without time zone,
-    percent double precision,
-    deadline timestamp without time zone,
-    version integer DEFAULT 1 NOT NULL,
-    updated_at timestamp without time zone,
-    awaited_event character varying(32),
-    scheduler character varying(32),
-    obj_type character varying,
-    obj_id_old integer,
-    depends_on_id uuid,
-    obj_id uuid
-);
-
-
---
--- Name: core_tasks_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.core_tasks_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: core_tasks_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.core_tasks_id_seq OWNED BY core.tasks.id_old;
-
-
---
 -- Name: group_members; Type: TABLE; Schema: core; Owner: -
 --
 
 CREATE TABLE core.group_members (
-    id_old integer NOT NULL,
-    group_id_old integer,
     identity_id integer,
-    person_id_old integer,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     person_id uuid NOT NULL,
     group_id uuid NOT NULL
@@ -2196,30 +1240,10 @@ CREATE TABLE core.group_members (
 
 
 --
--- Name: group_members_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.group_members_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: group_members_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.group_members_id_seq OWNED BY core.group_members.id_old;
-
-
---
 -- Name: groups; Type: TABLE; Schema: core; Owner: -
 --
 
 CREATE TABLE core.groups (
-    id_old integer NOT NULL,
     uuid uuid DEFAULT public.gen_random_uuid() NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
@@ -2228,25 +1252,6 @@ CREATE TABLE core.groups (
     symbol character varying(64),
     id uuid DEFAULT public.gen_random_uuid() NOT NULL
 );
-
-
---
--- Name: groups_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.groups_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: groups_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.groups_id_seq OWNED BY core.groups.id_old;
 
 
 --
@@ -2275,11 +1280,9 @@ CREATE TABLE core.iso_countries (
 --
 
 CREATE TABLE core.klass_collection_role_defs (
-    id_old integer NOT NULL,
     uuid character varying(36) DEFAULT public.gen_random_uuid() NOT NULL,
     interface character varying(64) NOT NULL,
     name character varying(64) NOT NULL,
-    klass_id_old integer,
     all_readable boolean DEFAULT false NOT NULL,
     all_writable boolean DEFAULT false NOT NULL,
     all_creatable boolean DEFAULT false NOT NULL,
@@ -2292,34 +1295,13 @@ CREATE TABLE core.klass_collection_role_defs (
 
 
 --
--- Name: klass_collection_role_defs_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.klass_collection_role_defs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: klass_collection_role_defs_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.klass_collection_role_defs_id_seq OWNED BY core.klass_collection_role_defs.id_old;
-
-
---
 -- Name: klass_members_role_defs; Type: TABLE; Schema: core; Owner: -
 --
 
 CREATE TABLE core.klass_members_role_defs (
-    id_old integer NOT NULL,
     id character varying(36) DEFAULT public.gen_random_uuid() NOT NULL,
     interface character varying(64) NOT NULL,
     name character varying(64) NOT NULL,
-    klass_id_old integer,
     all_readable boolean DEFAULT false NOT NULL,
     all_writable boolean DEFAULT false NOT NULL,
     all_creatable boolean DEFAULT false NOT NULL,
@@ -2331,52 +1313,13 @@ CREATE TABLE core.klass_members_role_defs (
 
 
 --
--- Name: klass_members_role_defs_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.klass_members_role_defs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: klass_members_role_defs_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.klass_members_role_defs_id_seq OWNED BY core.klass_members_role_defs.id_old;
-
-
---
 -- Name: klasses; Type: TABLE; Schema: core; Owner: -
 --
 
 CREATE TABLE core.klasses (
-    id_old integer NOT NULL,
     name character varying(128) NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL
 );
-
-
---
--- Name: klasses_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.klasses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: klasses_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.klasses_id_seq OWNED BY core.klasses.id_old;
 
 
 --
@@ -2384,7 +1327,6 @@ ALTER SEQUENCE core.klasses_id_seq OWNED BY core.klasses.id_old;
 --
 
 CREATE TABLE core.locations (
-    id_old integer NOT NULL,
     street_address text,
     city character varying(64),
     state character varying(64),
@@ -2405,39 +1347,17 @@ CREATE TABLE core.locations (
 
 
 --
--- Name: locations_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.locations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: locations_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.locations_id_seq OWNED BY core.locations.id_old;
-
-
---
 -- Name: log_entries; Type: TABLE; Schema: core; Owner: -
 --
 
 CREATE TABLE core.log_entries (
-    id_old integer NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     "timestamp" timestamp without time zone NOT NULL,
     transaction_id uuid,
-    person_id_old integer,
     description text NOT NULL,
     notes text,
     extra_info text,
-    http_session_id_old integer,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     person_id uuid,
     http_session_id uuid
@@ -2445,33 +1365,11 @@ CREATE TABLE core.log_entries (
 
 
 --
--- Name: log_entries_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.log_entries_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: log_entries_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.log_entries_id_seq OWNED BY core.log_entries.id_old;
-
-
---
 -- Name: log_entry_details; Type: TABLE; Schema: core; Owner: -
 --
 
 CREATE TABLE core.log_entry_details (
-    id_old integer NOT NULL,
-    log_entry_id_old integer,
     operation character varying(32),
-    obj_id_old integer,
     obj_type character varying(255),
     obj_id uuid,
     obj_key text,
@@ -2482,30 +1380,10 @@ CREATE TABLE core.log_entry_details (
 
 
 --
--- Name: log_entry_details_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.log_entry_details_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: log_entry_details_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.log_entry_details_id_seq OWNED BY core.log_entry_details.id_old;
-
-
---
 -- Name: notif_templates; Type: TABLE; Schema: core; Owner: -
 --
 
 CREATE TABLE core.notif_templates (
-    id_old integer NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     id uuid NOT NULL,
@@ -2518,36 +1396,14 @@ CREATE TABLE core.notif_templates (
 
 
 --
--- Name: notif_templates_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.notif_templates_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: notif_templates_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.notif_templates_id_seq OWNED BY core.notif_templates.id_old;
-
-
---
 -- Name: notifications; Type: TABLE; Schema: core; Owner: -
 --
 
 CREATE TABLE core.notifications (
-    id_old integer NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     id character varying(36) NOT NULL,
     "timestamp" timestamp without time zone NOT NULL,
-    person_id_old integer,
-    obj_id_old integer,
     obj_type character varying(255),
     importance character varying(32) NOT NULL,
     subject text,
@@ -2559,34 +1415,12 @@ CREATE TABLE core.notifications (
 
 
 --
--- Name: notifications_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.notifications_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.notifications_id_seq OWNED BY core.notifications.id_old;
-
-
---
 -- Name: organization_people; Type: TABLE; Schema: core; Owner: -
 --
 
 CREATE TABLE core.organization_people (
-    id_old integer NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    organization_id_old integer,
-    person_id_old integer,
     adm_level character varying(16),
     organization_id uuid NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
@@ -2595,44 +1429,20 @@ CREATE TABLE core.organization_people (
 
 
 --
--- Name: organization_people_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.organization_people_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: organization_people_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.organization_people_id_seq OWNED BY core.organization_people.id_old;
-
-
---
 -- Name: organizations; Type: TABLE; Schema: core; Owner: -
 --
 
 CREATE TABLE core.organizations (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     type character varying(3),
     name character varying(255),
-    headquarters_location_id_old integer,
-    registered_office_location_id_old integer,
-    invoicing_location_id_old integer,
     vat_number character varying(16),
     italian_fiscal_code character varying(16),
     notes text,
     handle character varying(16),
     reseller_id integer,
-    admin_group_id_old integer,
     invoice_profile_id integer,
     invoice_last timestamp without time zone,
     invoice_months integer DEFAULT 2,
@@ -2652,30 +1462,10 @@ CREATE TABLE core.organizations (
 
 
 --
--- Name: organizations_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.organizations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: organizations_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.organizations_id_seq OWNED BY core.organizations.id_old;
-
-
---
 -- Name: people; Type: TABLE; Schema: core; Owner: -
 --
 
 CREATE TABLE core.people (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
@@ -2685,12 +1475,9 @@ CREATE TABLE core.people (
     last_name character varying(64) NOT NULL,
     nickname character varying(32),
     gender character varying(1),
-    residence_location_id_old integer,
     birth_date timestamp without time zone,
-    birth_location_id_old integer,
     id_document_type character varying(255),
     id_document_number character varying(255),
-    invoicing_location_id_old integer,
     vat_number character varying(16),
     italian_fiscal_code character varying(16),
     notes text,
@@ -2703,7 +1490,6 @@ CREATE TABLE core.people (
     invoice_months integer DEFAULT 2,
     invoice_ceiling numeric(14,6),
     invoice_floor numeric(14,6),
-    preferred_language_id_old integer,
     acao_last_notify_run timestamp with time zone,
     acao_sleeping boolean DEFAULT false NOT NULL,
     acao_bar_credit numeric(14,6) DEFAULT 0 NOT NULL,
@@ -2737,32 +1523,11 @@ CREATE TABLE core.people (
 
 
 --
--- Name: people_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.people_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: people_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.people_id_seq OWNED BY core.people.id_old;
-
-
---
 -- Name: person_contacts; Type: TABLE; Schema: core; Owner: -
 --
 
 CREATE TABLE core.person_contacts (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    person_id_old integer,
     type character varying(32) NOT NULL,
     value character varying NOT NULL,
     descr character varying,
@@ -2771,22 +1536,36 @@ CREATE TABLE core.person_contacts (
 
 
 --
--- Name: person_contacts_id_seq; Type: SEQUENCE; Schema: core; Owner: -
+-- Name: person_credentials; Type: TABLE; Schema: core; Owner: -
 --
 
-CREATE SEQUENCE core.person_contacts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+CREATE TABLE core.person_credentials (
+    sti_type character varying(64) NOT NULL,
+    descr text,
+    data text NOT NULL,
+    x509_m_serial character varying(32),
+    x509_i_dn character varying(255),
+    x509_s_dn character varying(255),
+    x509_s_dn_cn character varying(255),
+    x509_s_dn_email character varying(255),
+    expires_at timestamp without time zone,
+    fqda character varying NOT NULL,
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    person_id uuid NOT NULL
+);
 
 
 --
--- Name: person_contacts_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
+-- Name: person_roles; Type: TABLE; Schema: core; Owner: -
 --
 
-ALTER SEQUENCE core.person_contacts_id_seq OWNED BY core.person_contacts.id_old;
+CREATE TABLE core.person_roles (
+    identity_id integer,
+    uuid uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    global_role_id uuid NOT NULL,
+    person_id uuid NOT NULL,
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL
+);
 
 
 --
@@ -2794,13 +1573,10 @@ ALTER SEQUENCE core.person_contacts_id_seq OWNED BY core.person_contacts.id_old;
 --
 
 CREATE TABLE core.replica_notifies (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     obj_type character varying NOT NULL,
-    obj_id_old integer NOT NULL,
     version_needed integer NOT NULL,
     notify_obj_type character varying NOT NULL,
-    notify_obj_id_old integer NOT NULL,
     data character varying,
     identifier character varying(32),
     obj_id uuid,
@@ -2809,34 +1585,12 @@ CREATE TABLE core.replica_notifies (
 
 
 --
--- Name: replica_notifies_id_seq; Type: SEQUENCE; Schema: core; Owner: -
---
-
-CREATE SEQUENCE core.replica_notifies_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: replica_notifies_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.replica_notifies_id_seq OWNED BY core.replica_notifies.id_old;
-
-
---
 -- Name: replicas; Type: TABLE; Schema: core; Owner: -
 --
 
 CREATE TABLE core.replicas (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     obj_type character varying NOT NULL,
-    obj_id_old integer,
     identifier character varying NOT NULL,
     state character varying(32) DEFAULT 'UNKNOWN'::character varying NOT NULL,
     version_needed integer NOT NULL,
@@ -2850,23 +1604,35 @@ CREATE TABLE core.replicas (
 
 
 --
--- Name: replicas_id_seq; Type: SEQUENCE; Schema: core; Owner: -
+-- Name: sessions; Type: TABLE; Schema: core; Owner: -
 --
 
-CREATE SEQUENCE core.replicas_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: replicas_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.replicas_id_seq OWNED BY core.replicas.id_old;
+CREATE TABLE core.sessions (
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    http_remote_addr character varying(42),
+    http_remote_port integer,
+    http_x_forwarded_for text,
+    http_via text,
+    http_server_addr character varying(42),
+    http_server_port integer,
+    http_server_name character varying(64),
+    http_referer text,
+    http_user_agent text,
+    http_request_uri text,
+    auth_identity_id integer,
+    auth_method character varying(32),
+    auth_confidence character varying(16),
+    status character varying(32) DEFAULT 'new'::character varying NOT NULL,
+    close_reason character varying(32),
+    close_time timestamp without time zone,
+    sti_type character varying(255) NOT NULL,
+    auth_person_id uuid,
+    auth_credential_id uuid,
+    language_id uuid,
+    expires timestamp with time zone
+);
 
 
 --
@@ -2874,10 +1640,7 @@ ALTER SEQUENCE core.replicas_id_seq OWNED BY core.replicas.id_old;
 --
 
 CREATE TABLE core.task_notifies (
-    id_old integer NOT NULL,
-    task_id_old integer,
     obj_type character varying NOT NULL,
-    obj_id_old integer NOT NULL,
     task_id uuid NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     obj_id uuid
@@ -2885,22 +1648,32 @@ CREATE TABLE core.task_notifies (
 
 
 --
--- Name: task_notifies_id_seq; Type: SEQUENCE; Schema: core; Owner: -
+-- Name: tasks; Type: TABLE; Schema: core; Owner: -
 --
 
-CREATE SEQUENCE core.task_notifies_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: task_notifies_id_seq; Type: SEQUENCE OWNED BY; Schema: core; Owner: -
---
-
-ALTER SEQUENCE core.task_notifies_id_seq OWNED BY core.task_notifies.id_old;
+CREATE TABLE core.tasks (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    created_at timestamp without time zone,
+    expected_completion timestamp without time zone,
+    completed_at timestamp without time zone,
+    status character varying(32) NOT NULL,
+    description character varying(255),
+    agent character varying(64),
+    operation character varying(32),
+    request_data json,
+    result_data json,
+    log text DEFAULT ''::text NOT NULL,
+    deferred_to timestamp without time zone,
+    percent double precision,
+    deadline timestamp without time zone,
+    version integer DEFAULT 1 NOT NULL,
+    updated_at timestamp without time zone,
+    awaited_event character varying(32),
+    scheduler character varying(32),
+    obj_type character varying,
+    depends_on_id uuid,
+    obj_id uuid
+);
 
 
 --
@@ -3799,7 +2572,6 @@ ALTER SEQUENCE flarc.tags_id_seq OWNED BY flarc.tags.id;
 --
 
 CREATE TABLE i18n.languages (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     iso_639_3 character(3) NOT NULL,
     descr character varying NOT NULL,
@@ -3808,52 +2580,13 @@ CREATE TABLE i18n.languages (
 
 
 --
--- Name: languages_id_seq; Type: SEQUENCE; Schema: i18n; Owner: -
---
-
-CREATE SEQUENCE i18n.languages_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: languages_id_seq; Type: SEQUENCE OWNED BY; Schema: i18n; Owner: -
---
-
-ALTER SEQUENCE i18n.languages_id_seq OWNED BY i18n.languages.id_old;
-
-
---
 -- Name: phrases; Type: TABLE; Schema: i18n; Owner: -
 --
 
 CREATE TABLE i18n.phrases (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     phrase character varying NOT NULL
 );
-
-
---
--- Name: phrases_id_seq; Type: SEQUENCE; Schema: i18n; Owner: -
---
-
-CREATE SEQUENCE i18n.phrases_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: phrases_id_seq; Type: SEQUENCE OWNED BY; Schema: i18n; Owner: -
---
-
-ALTER SEQUENCE i18n.phrases_id_seq OWNED BY i18n.phrases.id_old;
 
 
 --
@@ -3861,10 +2594,7 @@ ALTER SEQUENCE i18n.phrases_id_seq OWNED BY i18n.phrases.id_old;
 --
 
 CREATE TABLE i18n.translations (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    phrase_id_old integer,
-    language_id_old integer,
     value text NOT NULL,
     language_id uuid NOT NULL,
     phrase_id uuid NOT NULL
@@ -3872,30 +2602,10 @@ CREATE TABLE i18n.translations (
 
 
 --
--- Name: translations_id_seq; Type: SEQUENCE; Schema: i18n; Owner: -
---
-
-CREATE SEQUENCE i18n.translations_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: translations_id_seq; Type: SEQUENCE OWNED BY; Schema: i18n; Owner: -
---
-
-ALTER SEQUENCE i18n.translations_id_seq OWNED BY i18n.translations.id_old;
-
-
---
 -- Name: addresses; Type: TABLE; Schema: ml; Owner: -
 --
 
 CREATE TABLE ml.addresses (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     addr character varying NOT NULL,
     name character varying,
@@ -3909,13 +2619,9 @@ CREATE TABLE ml.addresses (
 --
 
 CREATE TABLE ml.list_members (
-    address_id_old integer,
-    list_id_old integer,
     subscribed_on timestamp with time zone NOT NULL,
     consent_session_id integer,
-    id_old integer NOT NULL,
     owner_type character varying(64),
-    owner_id_old integer,
     address_id uuid NOT NULL,
     list_id uuid NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
@@ -3928,187 +2634,11 @@ CREATE TABLE ml.list_members (
 --
 
 CREATE TABLE ml.lists (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     name character varying,
     descr character varying,
     symbol character varying(32)
 );
-
-
---
--- Name: ml_addresses_id_seq; Type: SEQUENCE; Schema: ml; Owner: -
---
-
-CREATE SEQUENCE ml.ml_addresses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ml_addresses_id_seq; Type: SEQUENCE OWNED BY; Schema: ml; Owner: -
---
-
-ALTER SEQUENCE ml.ml_addresses_id_seq OWNED BY ml.addresses.id_old;
-
-
---
--- Name: ml_list_members_id_seq; Type: SEQUENCE; Schema: ml; Owner: -
---
-
-CREATE SEQUENCE ml.ml_list_members_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ml_list_members_id_seq; Type: SEQUENCE OWNED BY; Schema: ml; Owner: -
---
-
-ALTER SEQUENCE ml.ml_list_members_id_seq OWNED BY ml.list_members.id_old;
-
-
---
--- Name: ml_lists_id_seq; Type: SEQUENCE; Schema: ml; Owner: -
---
-
-CREATE SEQUENCE ml.ml_lists_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ml_lists_id_seq; Type: SEQUENCE OWNED BY; Schema: ml; Owner: -
---
-
-ALTER SEQUENCE ml.ml_lists_id_seq OWNED BY ml.lists.id_old;
-
-
---
--- Name: msg_bounces; Type: TABLE; Schema: ml; Owner: -
---
-
-CREATE TABLE ml.msg_bounces (
-    id_old integer NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    msg_id_old integer,
-    body text,
-    sender character varying,
-    score integer DEFAULT 0 NOT NULL,
-    rem_arrival_date timestamp without time zone,
-    reporting_mta character varying,
-    received_at timestamp with time zone,
-    rem_postfix_queue_id character varying,
-    rem_postfix_sender character varying,
-    action character varying,
-    diagnostic_code character varying,
-    status character varying,
-    original_recipient character varying,
-    final_recipient character varying,
-    reporting_ua character varying,
-    disposition character varying,
-    disposition_error character varying,
-    type character varying(32),
-    original_recipient_type character varying(32),
-    final_recipient_type character varying(32),
-    status_comment character varying,
-    msg_id uuid NOT NULL
-);
-
-
---
--- Name: ml_msg_bounces_id_seq; Type: SEQUENCE; Schema: ml; Owner: -
---
-
-CREATE SEQUENCE ml.ml_msg_bounces_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ml_msg_bounces_id_seq; Type: SEQUENCE OWNED BY; Schema: ml; Owner: -
---
-
-ALTER SEQUENCE ml.ml_msg_bounces_id_seq OWNED BY ml.msg_bounces.id_old;
-
-
---
--- Name: msg_lists; Type: TABLE; Schema: ml; Owner: -
---
-
-CREATE TABLE ml.msg_lists (
-    id_old integer NOT NULL,
-    msg_id_old integer,
-    list_id_old integer,
-    list_id uuid NOT NULL,
-    msg_id uuid NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL
-);
-
-
---
--- Name: ml_msg_lists_id_seq; Type: SEQUENCE; Schema: ml; Owner: -
---
-
-CREATE SEQUENCE ml.ml_msg_lists_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ml_msg_lists_id_seq; Type: SEQUENCE OWNED BY; Schema: ml; Owner: -
---
-
-ALTER SEQUENCE ml.ml_msg_lists_id_seq OWNED BY ml.msg_lists.id_old;
-
-
---
--- Name: msg_objects; Type: TABLE; Schema: ml; Owner: -
---
-
-CREATE TABLE ml.msg_objects (
-    id_old integer NOT NULL,
-    msg_id_old integer,
-    object_id_old integer,
-    object_type character varying NOT NULL,
-    msg_id uuid NOT NULL,
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    object_id uuid
-);
-
-
---
--- Name: ml_msg_objects_id_seq; Type: SEQUENCE; Schema: ml; Owner: -
---
-
-CREATE SEQUENCE ml.ml_msg_objects_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ml_msg_objects_id_seq; Type: SEQUENCE OWNED BY; Schema: ml; Owner: -
---
-
-ALTER SEQUENCE ml.ml_msg_objects_id_seq OWNED BY ml.msg_objects.id_old;
 
 
 --
@@ -4143,23 +2673,85 @@ ALTER SEQUENCE ml.ml_msg_rcpts_id_seq OWNED BY ml.msg_rcpts.id;
 
 
 --
+-- Name: msg_bounces; Type: TABLE; Schema: ml; Owner: -
+--
+
+CREATE TABLE ml.msg_bounces (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    body text,
+    sender character varying,
+    score integer DEFAULT 0 NOT NULL,
+    rem_arrival_date timestamp without time zone,
+    reporting_mta character varying,
+    received_at timestamp with time zone,
+    rem_postfix_queue_id character varying,
+    rem_postfix_sender character varying,
+    action character varying,
+    diagnostic_code character varying,
+    status character varying,
+    original_recipient character varying,
+    final_recipient character varying,
+    reporting_ua character varying,
+    disposition character varying,
+    disposition_error character varying,
+    type character varying(32),
+    original_recipient_type character varying(32),
+    final_recipient_type character varying(32),
+    status_comment character varying,
+    msg_id uuid NOT NULL
+);
+
+
+--
+-- Name: msg_events; Type: TABLE; Schema: ml; Owner: -
+--
+
+CREATE TABLE ml.msg_events (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    at timestamp with time zone NOT NULL,
+    event character varying(32) NOT NULL,
+    descr text,
+    msg_id uuid NOT NULL
+);
+
+
+--
+-- Name: msg_lists; Type: TABLE; Schema: ml; Owner: -
+--
+
+CREATE TABLE ml.msg_lists (
+    list_id uuid NOT NULL,
+    msg_id uuid NOT NULL,
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL
+);
+
+
+--
+-- Name: msg_objects; Type: TABLE; Schema: ml; Owner: -
+--
+
+CREATE TABLE ml.msg_objects (
+    object_type character varying NOT NULL,
+    msg_id uuid NOT NULL,
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    object_id uuid
+);
+
+
+--
 -- Name: msgs; Type: TABLE; Schema: ml; Owner: -
 --
 
 CREATE TABLE ml.msgs (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     message text NOT NULL,
     abstract character varying NOT NULL,
     created_at timestamp without time zone NOT NULL,
     delivery_started_at timestamp without time zone,
-    sender_id_old integer,
     email_message_id character varying(32),
     status character varying(32),
-    person_id_old integer,
     type character varying(64) NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    recipient_id_old integer,
     receipt_code character varying(64),
     delivery_successful_at timestamp with time zone,
     delivery_last_attempt_at timestamp with time zone,
@@ -4177,30 +2769,10 @@ CREATE TABLE ml.msgs (
 
 
 --
--- Name: ml_msgs_id_seq; Type: SEQUENCE; Schema: ml; Owner: -
---
-
-CREATE SEQUENCE ml.ml_msgs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ml_msgs_id_seq; Type: SEQUENCE OWNED BY; Schema: ml; Owner: -
---
-
-ALTER SEQUENCE ml.ml_msgs_id_seq OWNED BY ml.msgs.id_old;
-
-
---
 -- Name: senders; Type: TABLE; Schema: ml; Owner: -
 --
 
 CREATE TABLE ml.senders (
-    id_old integer NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     name character varying NOT NULL,
     email_address character varying NOT NULL,
@@ -4217,7 +2789,6 @@ CREATE TABLE ml.senders (
     skebby_sender_number character varying(32),
     skebby_sender_string character varying(32),
     email_dkim_selector character varying(32),
-    email_dkim_key_pair_id_old integer,
     skebby_token character varying,
     skebby_user_key character varying,
     email_dkim_key_pair_id uuid
@@ -4225,30 +2796,10 @@ CREATE TABLE ml.senders (
 
 
 --
--- Name: ml_senders_id_seq; Type: SEQUENCE; Schema: ml; Owner: -
---
-
-CREATE SEQUENCE ml.ml_senders_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ml_senders_id_seq; Type: SEQUENCE OWNED BY; Schema: ml; Owner: -
---
-
-ALTER SEQUENCE ml.ml_senders_id_seq OWNED BY ml.senders.id_old;
-
-
---
 -- Name: templates; Type: TABLE; Schema: ml; Owner: -
 --
 
 CREATE TABLE ml.templates (
-    id_old integer NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
@@ -4256,42 +2807,8 @@ CREATE TABLE ml.templates (
     subject text NOT NULL,
     body text,
     additional_headers text,
-    language_id_old integer,
     content_type character varying DEFAULT 'text/plain'::character varying NOT NULL,
     language_id uuid
-);
-
-
---
--- Name: ml_templates_id_seq; Type: SEQUENCE; Schema: ml; Owner: -
---
-
-CREATE SEQUENCE ml.ml_templates_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: ml_templates_id_seq; Type: SEQUENCE OWNED BY; Schema: ml; Owner: -
---
-
-ALTER SEQUENCE ml.ml_templates_id_seq OWNED BY ml.templates.id_old;
-
-
---
--- Name: msg_events; Type: TABLE; Schema: ml; Owner: -
---
-
-CREATE TABLE ml.msg_events (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    msg_id_old integer,
-    at timestamp with time zone NOT NULL,
-    event character varying(32) NOT NULL,
-    descr text,
-    msg_id uuid NOT NULL
 );
 
 
@@ -5159,192 +3676,10 @@ ALTER SEQUENCE public.trk_day_planes_id_seq OWNED BY public.trk_day_aircrafts.id
 
 
 --
--- Name: aircraft_types id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.aircraft_types ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_aircraft_types_id_seq'::regclass);
-
-
---
--- Name: aircrafts id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.aircrafts ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_aircrafts_id_seq'::regclass);
-
-
---
--- Name: airfields id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.airfields ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_airfields_id_seq'::regclass);
-
-
---
--- Name: bar_transactions id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.bar_transactions ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_bar_transactions_id_seq'::regclass);
-
-
---
--- Name: flights id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.flights ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_flights_id_seq'::regclass);
-
-
---
--- Name: license_ratings id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.license_ratings ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_license_ratings_id_seq'::regclass);
-
-
---
--- Name: licenses id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.licenses ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_licenses_id_seq'::regclass);
-
-
---
--- Name: medicals id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.medicals ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_medicals_id_seq'::regclass);
-
-
---
--- Name: member_services id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.member_services ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_person_services_id_seq'::regclass);
-
-
---
--- Name: memberships id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.memberships ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_memberships_id_seq'::regclass);
-
-
---
--- Name: meter_buses id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.meter_buses ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_meter_buses_id_seq'::regclass);
-
-
---
--- Name: meter_measures id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.meter_measures ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_meter_measures_id_seq'::regclass);
-
-
---
--- Name: meters id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.meters ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_meters_id_seq'::regclass);
-
-
---
--- Name: payment_satispay_charges id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.payment_satispay_charges ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_payment_satispay_charges_id_seq'::regclass);
-
-
---
--- Name: payment_services id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.payment_services ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_payment_services_id_seq'::regclass);
-
-
---
--- Name: payments id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.payments ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_payments_id_seq'::regclass);
-
-
---
--- Name: pilots id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.pilots ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_pilots_id_seq'::regclass);
-
-
---
--- Name: planes id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.planes ALTER COLUMN id_old SET DEFAULT nextval('acao.planes_id_seq'::regclass);
-
-
---
 -- Name: radar_events id; Type: DEFAULT; Schema: acao; Owner: -
 --
 
 ALTER TABLE ONLY acao.radar_events ALTER COLUMN id SET DEFAULT nextval('acao.trk_events_id_seq'::regclass);
-
-
---
--- Name: roster_days id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.roster_days ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_roster_days_id_seq'::regclass);
-
-
---
--- Name: roster_entries id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.roster_entries ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_roster_entries_id_seq'::regclass);
-
-
---
--- Name: service_types id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.service_types ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_service_types_id_seq'::regclass);
-
-
---
--- Name: token_transactions id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.token_transactions ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_token_transactions_id_seq'::regclass);
-
-
---
--- Name: tow_roster_days id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.tow_roster_days ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_tow_roster_days_id_seq'::regclass);
-
-
---
--- Name: tow_roster_entries id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.tow_roster_entries ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_tow_roster_entries_id_seq'::regclass);
-
-
---
--- Name: tows id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.tows ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_tows_id_seq'::regclass);
-
-
---
--- Name: trackers id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.trackers ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_trackers_id_seq'::regclass);
 
 
 --
@@ -5355,241 +3690,10 @@ ALTER TABLE ONLY acao.trailers ALTER COLUMN id_old SET DEFAULT nextval('acao.aca
 
 
 --
--- Name: years id_old; Type: DEFAULT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.years ALTER COLUMN id_old SET DEFAULT nextval('acao.acao_years_id_seq'::regclass);
-
-
---
--- Name: cas id_old; Type: DEFAULT; Schema: ca; Owner: -
---
-
-ALTER TABLE ONLY ca.cas ALTER COLUMN id_old SET DEFAULT nextval('ca.ca_cas_id_seq'::regclass);
-
-
---
 -- Name: certificate_altnames id; Type: DEFAULT; Schema: ca; Owner: -
 --
 
 ALTER TABLE ONLY ca.certificate_altnames ALTER COLUMN id SET DEFAULT nextval('ca.ca_certificate_altnames_id_seq'::regclass);
-
-
---
--- Name: certificates id_old; Type: DEFAULT; Schema: ca; Owner: -
---
-
-ALTER TABLE ONLY ca.certificates ALTER COLUMN id_old SET DEFAULT nextval('ca.ca_certificates_id_seq'::regclass);
-
-
---
--- Name: key_pair_locations id_old; Type: DEFAULT; Schema: ca; Owner: -
---
-
-ALTER TABLE ONLY ca.key_pair_locations ALTER COLUMN id_old SET DEFAULT nextval('ca.ca_key_pair_locations_id_seq'::regclass);
-
-
---
--- Name: key_pairs id_old; Type: DEFAULT; Schema: ca; Owner: -
---
-
-ALTER TABLE ONLY ca.key_pairs ALTER COLUMN id_old SET DEFAULT nextval('ca.ca_key_pairs_id_seq'::regclass);
-
-
---
--- Name: key_stores id_old; Type: DEFAULT; Schema: ca; Owner: -
---
-
-ALTER TABLE ONLY ca.key_stores ALTER COLUMN id_old SET DEFAULT nextval('ca.ca_key_stores_id_seq'::regclass);
-
-
---
--- Name: le_accounts id_old; Type: DEFAULT; Schema: ca; Owner: -
---
-
-ALTER TABLE ONLY ca.le_accounts ALTER COLUMN id_old SET DEFAULT nextval('ca.ca_le_accounts_id_seq'::regclass);
-
-
---
--- Name: le_order_auth_challenges id_old; Type: DEFAULT; Schema: ca; Owner: -
---
-
-ALTER TABLE ONLY ca.le_order_auth_challenges ALTER COLUMN id_old SET DEFAULT nextval('ca.ca_le_order_auth_challenges_id_seq'::regclass);
-
-
---
--- Name: le_order_auths id_old; Type: DEFAULT; Schema: ca; Owner: -
---
-
-ALTER TABLE ONLY ca.le_order_auths ALTER COLUMN id_old SET DEFAULT nextval('ca.ca_le_order_auths_id_seq'::regclass);
-
-
---
--- Name: le_orders id_old; Type: DEFAULT; Schema: ca; Owner: -
---
-
-ALTER TABLE ONLY ca.le_orders ALTER COLUMN id_old SET DEFAULT nextval('ca.ca_le_orders_id_seq'::regclass);
-
-
---
--- Name: agents id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.agents ALTER COLUMN id_old SET DEFAULT nextval('core.agents_id_seq'::regclass);
-
-
---
--- Name: global_roles id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.global_roles ALTER COLUMN id_old SET DEFAULT nextval('core.core_capabilities_id_seq'::regclass);
-
-
---
--- Name: group_members id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.group_members ALTER COLUMN id_old SET DEFAULT nextval('core.group_members_id_seq'::regclass);
-
-
---
--- Name: groups id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.groups ALTER COLUMN id_old SET DEFAULT nextval('core.groups_id_seq'::regclass);
-
-
---
--- Name: klass_collection_role_defs id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.klass_collection_role_defs ALTER COLUMN id_old SET DEFAULT nextval('core.klass_collection_role_defs_id_seq'::regclass);
-
-
---
--- Name: klass_members_role_defs id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.klass_members_role_defs ALTER COLUMN id_old SET DEFAULT nextval('core.klass_members_role_defs_id_seq'::regclass);
-
-
---
--- Name: klasses id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.klasses ALTER COLUMN id_old SET DEFAULT nextval('core.klasses_id_seq'::regclass);
-
-
---
--- Name: locations id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.locations ALTER COLUMN id_old SET DEFAULT nextval('core.locations_id_seq'::regclass);
-
-
---
--- Name: log_entries id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.log_entries ALTER COLUMN id_old SET DEFAULT nextval('core.log_entries_id_seq'::regclass);
-
-
---
--- Name: log_entry_details id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.log_entry_details ALTER COLUMN id_old SET DEFAULT nextval('core.log_entry_details_id_seq'::regclass);
-
-
---
--- Name: notif_templates id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.notif_templates ALTER COLUMN id_old SET DEFAULT nextval('core.notif_templates_id_seq'::regclass);
-
-
---
--- Name: notifications id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.notifications ALTER COLUMN id_old SET DEFAULT nextval('core.notifications_id_seq'::regclass);
-
-
---
--- Name: organization_people id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.organization_people ALTER COLUMN id_old SET DEFAULT nextval('core.organization_people_id_seq'::regclass);
-
-
---
--- Name: organizations id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.organizations ALTER COLUMN id_old SET DEFAULT nextval('core.organizations_id_seq'::regclass);
-
-
---
--- Name: people id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.people ALTER COLUMN id_old SET DEFAULT nextval('core.people_id_seq'::regclass);
-
-
---
--- Name: person_contacts id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.person_contacts ALTER COLUMN id_old SET DEFAULT nextval('core.person_contacts_id_seq'::regclass);
-
-
---
--- Name: person_credentials id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.person_credentials ALTER COLUMN id_old SET DEFAULT nextval('core.core_credentials_id_seq'::regclass);
-
-
---
--- Name: person_roles id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.person_roles ALTER COLUMN id_old SET DEFAULT nextval('core.core_identity_capabilities_id_seq'::regclass);
-
-
---
--- Name: replica_notifies id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.replica_notifies ALTER COLUMN id_old SET DEFAULT nextval('core.replica_notifies_id_seq'::regclass);
-
-
---
--- Name: replicas id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.replicas ALTER COLUMN id_old SET DEFAULT nextval('core.replicas_id_seq'::regclass);
-
-
---
--- Name: sessions id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.sessions ALTER COLUMN id_old SET DEFAULT nextval('core.core_http_sessions_id_seq'::regclass);
-
-
---
--- Name: task_notifies id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.task_notifies ALTER COLUMN id_old SET DEFAULT nextval('core.task_notifies_id_seq'::regclass);
-
-
---
--- Name: tasks id_old; Type: DEFAULT; Schema: core; Owner: -
---
-
-ALTER TABLE ONLY core.tasks ALTER COLUMN id_old SET DEFAULT nextval('core.core_tasks_id_seq'::regclass);
 
 
 --
@@ -5768,94 +3872,10 @@ ALTER TABLE ONLY flarc.tags ALTER COLUMN id SET DEFAULT nextval('flarc.tags_id_s
 
 
 --
--- Name: languages id_old; Type: DEFAULT; Schema: i18n; Owner: -
---
-
-ALTER TABLE ONLY i18n.languages ALTER COLUMN id_old SET DEFAULT nextval('i18n.languages_id_seq'::regclass);
-
-
---
--- Name: phrases id_old; Type: DEFAULT; Schema: i18n; Owner: -
---
-
-ALTER TABLE ONLY i18n.phrases ALTER COLUMN id_old SET DEFAULT nextval('i18n.phrases_id_seq'::regclass);
-
-
---
--- Name: translations id_old; Type: DEFAULT; Schema: i18n; Owner: -
---
-
-ALTER TABLE ONLY i18n.translations ALTER COLUMN id_old SET DEFAULT nextval('i18n.translations_id_seq'::regclass);
-
-
---
--- Name: addresses id_old; Type: DEFAULT; Schema: ml; Owner: -
---
-
-ALTER TABLE ONLY ml.addresses ALTER COLUMN id_old SET DEFAULT nextval('ml.ml_addresses_id_seq'::regclass);
-
-
---
--- Name: list_members id_old; Type: DEFAULT; Schema: ml; Owner: -
---
-
-ALTER TABLE ONLY ml.list_members ALTER COLUMN id_old SET DEFAULT nextval('ml.ml_list_members_id_seq'::regclass);
-
-
---
--- Name: lists id_old; Type: DEFAULT; Schema: ml; Owner: -
---
-
-ALTER TABLE ONLY ml.lists ALTER COLUMN id_old SET DEFAULT nextval('ml.ml_lists_id_seq'::regclass);
-
-
---
--- Name: msg_bounces id_old; Type: DEFAULT; Schema: ml; Owner: -
---
-
-ALTER TABLE ONLY ml.msg_bounces ALTER COLUMN id_old SET DEFAULT nextval('ml.ml_msg_bounces_id_seq'::regclass);
-
-
---
--- Name: msg_lists id_old; Type: DEFAULT; Schema: ml; Owner: -
---
-
-ALTER TABLE ONLY ml.msg_lists ALTER COLUMN id_old SET DEFAULT nextval('ml.ml_msg_lists_id_seq'::regclass);
-
-
---
--- Name: msg_objects id_old; Type: DEFAULT; Schema: ml; Owner: -
---
-
-ALTER TABLE ONLY ml.msg_objects ALTER COLUMN id_old SET DEFAULT nextval('ml.ml_msg_objects_id_seq'::regclass);
-
-
---
 -- Name: msg_rcpts id; Type: DEFAULT; Schema: ml; Owner: -
 --
 
 ALTER TABLE ONLY ml.msg_rcpts ALTER COLUMN id SET DEFAULT nextval('ml.ml_msg_rcpts_id_seq'::regclass);
-
-
---
--- Name: msgs id_old; Type: DEFAULT; Schema: ml; Owner: -
---
-
-ALTER TABLE ONLY ml.msgs ALTER COLUMN id_old SET DEFAULT nextval('ml.ml_msgs_id_seq'::regclass);
-
-
---
--- Name: senders id_old; Type: DEFAULT; Schema: ml; Owner: -
---
-
-ALTER TABLE ONLY ml.senders ALTER COLUMN id_old SET DEFAULT nextval('ml.ml_senders_id_seq'::regclass);
-
-
---
--- Name: templates id_old; Type: DEFAULT; Schema: ml; Owner: -
---
-
-ALTER TABLE ONLY ml.templates ALTER COLUMN id_old SET DEFAULT nextval('ml.ml_templates_id_seq'::regclass);
 
 
 --
@@ -6162,6 +4182,14 @@ ALTER TABLE ONLY acao.medicals
 
 ALTER TABLE ONLY acao.member_services
     ADD CONSTRAINT member_services_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: members members_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.members
+    ADD CONSTRAINT members_pkey PRIMARY KEY (id);
 
 
 --
@@ -7242,13 +5270,6 @@ CREATE INDEX acao_flights_takeoff_time_idx ON acao.flights USING btree (takeoff_
 
 
 --
--- Name: acao_license_ratings_license_id_type_idx; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE UNIQUE INDEX acao_license_ratings_license_id_type_idx ON acao.license_ratings USING btree (license_id_old, type);
-
-
---
 -- Name: acao_licenses_type_identifier_idx; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -7333,41 +5354,6 @@ CREATE INDEX "index_acao.airfields_on_location_id" ON acao.airfields USING btree
 
 
 --
--- Name: index_acao.invoices_on_person_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX "index_acao.invoices_on_person_id" ON acao.invoices USING btree (person_id);
-
-
---
--- Name: index_acao.memberships_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX "index_acao.memberships_on_id_old" ON acao.memberships USING btree (id_old);
-
-
---
--- Name: index_acao.memberships_on_payment_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX "index_acao.memberships_on_payment_id" ON acao.memberships USING btree (payment_id);
-
-
---
--- Name: index_acao.memberships_on_person_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX "index_acao.memberships_on_person_id" ON acao.memberships USING btree (person_id);
-
-
---
--- Name: index_acao.memberships_on_reference_year_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX "index_acao.memberships_on_reference_year_id" ON acao.memberships USING btree (reference_year_id);
-
-
---
 -- Name: index_acao_person_services_on_uuid; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -7375,38 +5361,10 @@ CREATE UNIQUE INDEX index_acao_person_services_on_uuid ON acao.member_services U
 
 
 --
--- Name: index_acao_token_transactions_on_aircraft_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_acao_token_transactions_on_aircraft_id ON acao.token_transactions USING btree (aircraft_id_old);
-
-
---
--- Name: index_acao_trackers_on_aircraft_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_acao_trackers_on_aircraft_id ON acao.trackers USING btree (aircraft_id_old);
-
-
---
--- Name: index_acao_trailers_on_aircraft_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_acao_trailers_on_aircraft_id ON acao.trailers USING btree (aircraft_id_old);
-
-
---
 -- Name: index_access_remotes_on_symbol; Type: INDEX; Schema: acao; Owner: -
 --
 
 CREATE UNIQUE INDEX index_access_remotes_on_symbol ON acao.access_remotes USING btree (symbol);
-
-
---
--- Name: index_aircraft_types_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_aircraft_types_on_id_old ON acao.aircraft_types USING btree (id_old);
 
 
 --
@@ -7459,13 +5417,6 @@ CREATE INDEX index_aircrafts_on_registration ON acao.aircrafts USING btree (regi
 
 
 --
--- Name: index_airfields_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_airfields_on_id_old ON acao.airfields USING btree (id_old);
-
-
---
 -- Name: index_airfields_on_uuid; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -7473,17 +5424,10 @@ CREATE UNIQUE INDEX index_airfields_on_uuid ON acao.airfields USING btree (id);
 
 
 --
--- Name: index_bar_transactions_on_id_old; Type: INDEX; Schema: acao; Owner: -
+-- Name: index_bar_transactions_on_member_id; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE INDEX index_bar_transactions_on_id_old ON acao.bar_transactions USING btree (id_old);
-
-
---
--- Name: index_bar_transactions_on_person_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_bar_transactions_on_person_id ON acao.bar_transactions USING btree (person_id);
+CREATE INDEX index_bar_transactions_on_member_id ON acao.bar_transactions USING btree (member_id);
 
 
 --
@@ -7522,10 +5466,10 @@ CREATE UNIQUE INDEX index_fai_cards_on_identifier ON acao.fai_cards USING btree 
 
 
 --
--- Name: index_fai_cards_on_person_id; Type: INDEX; Schema: acao; Owner: -
+-- Name: index_fai_cards_on_member_id; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE INDEX index_fai_cards_on_person_id ON acao.fai_cards USING btree (person_id);
+CREATE INDEX index_fai_cards_on_member_id ON acao.fai_cards USING btree (member_id);
 
 
 --
@@ -7533,13 +5477,6 @@ CREATE INDEX index_fai_cards_on_person_id ON acao.fai_cards USING btree (person_
 --
 
 CREATE INDEX index_flights_on_aircraft_owner_id ON acao.flights USING btree (aircraft_owner_id);
-
-
---
--- Name: index_flights_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_flights_on_id_old ON acao.flights USING btree (id_old);
 
 
 --
@@ -7634,6 +5571,13 @@ CREATE UNIQUE INDEX index_invoices_on_identifier ON acao.invoices USING btree (i
 
 
 --
+-- Name: index_invoices_on_member_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_invoices_on_member_id ON acao.invoices USING btree (member_id);
+
+
+--
 -- Name: index_key_fobs_on_code; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -7641,17 +5585,10 @@ CREATE UNIQUE INDEX index_key_fobs_on_code ON acao.key_fobs USING btree (code);
 
 
 --
--- Name: index_key_fobs_on_person_id; Type: INDEX; Schema: acao; Owner: -
+-- Name: index_key_fobs_on_member_id; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE INDEX index_key_fobs_on_person_id ON acao.key_fobs USING btree (person_id);
-
-
---
--- Name: index_license_ratings_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_license_ratings_on_id_old ON acao.license_ratings USING btree (id_old);
+CREATE INDEX index_key_fobs_on_member_id ON acao.key_fobs USING btree (member_id);
 
 
 --
@@ -7662,17 +5599,10 @@ CREATE INDEX index_license_ratings_on_license_id ON acao.license_ratings USING b
 
 
 --
--- Name: index_licenses_on_id_old; Type: INDEX; Schema: acao; Owner: -
+-- Name: index_licenses_on_member_id; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE INDEX index_licenses_on_id_old ON acao.licenses USING btree (id_old);
-
-
---
--- Name: index_licenses_on_pilot_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_licenses_on_pilot_id ON acao.licenses USING btree (pilot_id);
+CREATE INDEX index_licenses_on_member_id ON acao.licenses USING btree (member_id);
 
 
 --
@@ -7683,17 +5613,10 @@ CREATE UNIQUE INDEX index_licenses_on_uuid ON acao.licenses USING btree (id);
 
 
 --
--- Name: index_medicals_on_id_old; Type: INDEX; Schema: acao; Owner: -
+-- Name: index_medicals_on_member_id; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE INDEX index_medicals_on_id_old ON acao.medicals USING btree (id_old);
-
-
---
--- Name: index_medicals_on_pilot_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_medicals_on_pilot_id ON acao.medicals USING btree (pilot_id);
+CREATE INDEX index_medicals_on_member_id ON acao.medicals USING btree (member_id);
 
 
 --
@@ -7711,17 +5634,17 @@ CREATE UNIQUE INDEX index_medicals_on_uuid ON acao.medicals USING btree (id);
 
 
 --
--- Name: index_member_services_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_member_services_on_id_old ON acao.member_services USING btree (id_old);
-
-
---
 -- Name: index_member_services_on_invoice_detail_id; Type: INDEX; Schema: acao; Owner: -
 --
 
 CREATE INDEX index_member_services_on_invoice_detail_id ON acao.member_services USING btree (invoice_detail_id);
+
+
+--
+-- Name: index_member_services_on_member_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_member_services_on_member_id ON acao.member_services USING btree (member_id);
 
 
 --
@@ -7732,17 +5655,24 @@ CREATE INDEX index_member_services_on_payment_id ON acao.member_services USING b
 
 
 --
--- Name: index_member_services_on_person_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_member_services_on_person_id ON acao.member_services USING btree (person_id);
-
-
---
 -- Name: index_member_services_on_service_type_id; Type: INDEX; Schema: acao; Owner: -
 --
 
 CREATE INDEX index_member_services_on_service_type_id ON acao.member_services USING btree (service_type_id);
+
+
+--
+-- Name: index_members_on_ext_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_members_on_ext_id ON acao.members USING btree (ext_id);
+
+
+--
+-- Name: index_members_on_person_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_members_on_person_id ON acao.members USING btree (person_id);
 
 
 --
@@ -7753,10 +5683,10 @@ CREATE INDEX index_memberships_on_invoice_detail_id ON acao.memberships USING bt
 
 
 --
--- Name: index_memberships_on_person_id_and_reference_year_id; Type: INDEX; Schema: acao; Owner: -
+-- Name: index_memberships_on_member_id; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE UNIQUE INDEX index_memberships_on_person_id_and_reference_year_id ON acao.memberships USING btree (person_id_old, reference_year_id_old);
+CREATE INDEX index_memberships_on_member_id ON acao.memberships USING btree (member_id);
 
 
 --
@@ -7764,13 +5694,6 @@ CREATE UNIQUE INDEX index_memberships_on_person_id_and_reference_year_id ON acao
 --
 
 CREATE UNIQUE INDEX index_memberships_on_uuid ON acao.memberships USING btree (id);
-
-
---
--- Name: index_meter_buses_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_meter_buses_on_id_old ON acao.meter_buses USING btree (id_old);
 
 
 --
@@ -7788,13 +5711,6 @@ CREATE UNIQUE INDEX index_meter_buses_on_uuid ON acao.meter_buses USING btree (i
 
 
 --
--- Name: index_meter_measures_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_meter_measures_on_id_old ON acao.meter_measures USING btree (id_old);
-
-
---
 -- Name: index_meter_measures_on_meter_id; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -7809,17 +5725,10 @@ CREATE INDEX index_meters_on_bus_id ON acao.meters USING btree (bus_id);
 
 
 --
--- Name: index_meters_on_id_old; Type: INDEX; Schema: acao; Owner: -
+-- Name: index_meters_on_member_id; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE INDEX index_meters_on_id_old ON acao.meters USING btree (id_old);
-
-
---
--- Name: index_meters_on_person_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_meters_on_person_id ON acao.meters USING btree (person_id);
+CREATE INDEX index_meters_on_member_id ON acao.meters USING btree (member_id);
 
 
 --
@@ -7827,13 +5736,6 @@ CREATE INDEX index_meters_on_person_id ON acao.meters USING btree (person_id);
 --
 
 CREATE UNIQUE INDEX index_meters_on_uuid ON acao.meters USING btree (id);
-
-
---
--- Name: index_payment_satispay_charges_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_payment_satispay_charges_on_id_old ON acao.payment_satispay_charges USING btree (id_old);
 
 
 --
@@ -7865,13 +5767,6 @@ CREATE UNIQUE INDEX index_payment_satispay_charges_on_uuid ON acao.payment_satis
 
 
 --
--- Name: index_payment_services_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_payment_services_on_id_old ON acao.payment_services USING btree (id_old);
-
-
---
 -- Name: index_payment_services_on_payment_id; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -7883,13 +5778,6 @@ CREATE INDEX index_payment_services_on_payment_id ON acao.payment_services USING
 --
 
 CREATE INDEX index_payment_services_on_service_type_id ON acao.payment_services USING btree (service_type_id);
-
-
---
--- Name: index_payments_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_payments_on_id_old ON acao.payments USING btree (id_old);
 
 
 --
@@ -7907,10 +5795,10 @@ CREATE INDEX index_payments_on_invoice_id ON acao.payments USING btree (invoice_
 
 
 --
--- Name: index_payments_on_person_id; Type: INDEX; Schema: acao; Owner: -
+-- Name: index_payments_on_member_id; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE INDEX index_payments_on_person_id ON acao.payments USING btree (person_id);
+CREATE INDEX index_payments_on_member_id ON acao.payments USING btree (member_id);
 
 
 --
@@ -7928,24 +5816,10 @@ CREATE UNIQUE INDEX index_person_access_remotes_on_remote_id ON acao.person_acce
 
 
 --
--- Name: index_pilots_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_pilots_on_id_old ON acao.pilots USING btree (id_old);
-
-
---
 -- Name: index_planes_on_flarm_code; Type: INDEX; Schema: acao; Owner: -
 --
 
 CREATE UNIQUE INDEX index_planes_on_flarm_code ON acao.planes USING btree (flarm_code);
-
-
---
--- Name: index_planes_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_planes_on_id_old ON acao.planes USING btree (id_old);
 
 
 --
@@ -7963,13 +5837,6 @@ CREATE UNIQUE INDEX index_planes_on_uuid ON acao.planes USING btree (id);
 
 
 --
--- Name: index_roster_days_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_roster_days_on_id_old ON acao.roster_days USING btree (id_old);
-
-
---
 -- Name: index_roster_days_on_uuid; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -7977,17 +5844,10 @@ CREATE UNIQUE INDEX index_roster_days_on_uuid ON acao.roster_days USING btree (i
 
 
 --
--- Name: index_roster_entries_on_id_old; Type: INDEX; Schema: acao; Owner: -
+-- Name: index_roster_entries_on_member_id; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE INDEX index_roster_entries_on_id_old ON acao.roster_entries USING btree (id_old);
-
-
---
--- Name: index_roster_entries_on_person_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_roster_entries_on_person_id ON acao.roster_entries USING btree (person_id);
+CREATE INDEX index_roster_entries_on_member_id ON acao.roster_entries USING btree (member_id);
 
 
 --
@@ -8002,13 +5862,6 @@ CREATE INDEX index_roster_entries_on_roster_day_id ON acao.roster_entries USING 
 --
 
 CREATE UNIQUE INDEX index_roster_entries_on_uuid ON acao.roster_entries USING btree (id);
-
-
---
--- Name: index_service_types_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_service_types_on_id_old ON acao.service_types USING btree (id_old);
 
 
 --
@@ -8082,17 +5935,10 @@ CREATE UNIQUE INDEX index_timetable_entries_on_uuid ON acao.timetable_entries US
 
 
 --
--- Name: index_token_transactions_on_id_old; Type: INDEX; Schema: acao; Owner: -
+-- Name: index_token_transactions_on_member_id; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE INDEX index_token_transactions_on_id_old ON acao.token_transactions USING btree (id_old);
-
-
---
--- Name: index_token_transactions_on_person_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_token_transactions_on_person_id ON acao.token_transactions USING btree (person_id);
+CREATE INDEX index_token_transactions_on_member_id ON acao.token_transactions USING btree (member_id);
 
 
 --
@@ -8117,13 +5963,6 @@ CREATE UNIQUE INDEX index_tow_roster_days_on_date ON acao.tow_roster_days USING 
 
 
 --
--- Name: index_tow_roster_days_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_tow_roster_days_on_id_old ON acao.tow_roster_days USING btree (id_old);
-
-
---
 -- Name: index_tow_roster_days_on_uuid; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -8138,17 +5977,10 @@ CREATE INDEX index_tow_roster_entries_on_day_id ON acao.tow_roster_entries USING
 
 
 --
--- Name: index_tow_roster_entries_on_id_old; Type: INDEX; Schema: acao; Owner: -
+-- Name: index_tow_roster_entries_on_member_id; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE INDEX index_tow_roster_entries_on_id_old ON acao.tow_roster_entries USING btree (id_old);
-
-
---
--- Name: index_tow_roster_entries_on_person_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_tow_roster_entries_on_person_id ON acao.tow_roster_entries USING btree (person_id);
+CREATE INDEX index_tow_roster_entries_on_member_id ON acao.tow_roster_entries USING btree (member_id);
 
 
 --
@@ -8166,24 +5998,10 @@ CREATE INDEX index_tows_on_glider_id ON acao.tows USING btree (glider_id);
 
 
 --
--- Name: index_tows_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_tows_on_id_old ON acao.tows USING btree (id_old);
-
-
---
 -- Name: index_tows_on_towplane_id; Type: INDEX; Schema: acao; Owner: -
 --
 
 CREATE INDEX index_tows_on_towplane_id ON acao.tows USING btree (towplane_id);
-
-
---
--- Name: index_trackers_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_trackers_on_id_old ON acao.trackers USING btree (id_old);
 
 
 --
@@ -8215,17 +6033,17 @@ CREATE INDEX index_trailers_on_location_id ON acao.trailers USING btree (locatio
 
 
 --
+-- Name: index_trailers_on_member_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_trailers_on_member_id ON acao.trailers USING btree (member_id);
+
+
+--
 -- Name: index_trailers_on_payment_id; Type: INDEX; Schema: acao; Owner: -
 --
 
 CREATE INDEX index_trailers_on_payment_id ON acao.trailers USING btree (payment_id);
-
-
---
--- Name: index_trailers_on_person_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_trailers_on_person_id ON acao.trailers USING btree (person_id);
 
 
 --
@@ -8243,13 +6061,6 @@ CREATE UNIQUE INDEX index_wol_targets_on_symbol ON acao.wol_targets USING btree 
 
 
 --
--- Name: index_years_on_id_old; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_years_on_id_old ON acao.years USING btree (id_old);
-
-
---
 -- Name: index_years_on_uuid; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -8261,6 +6072,20 @@ CREATE UNIQUE INDEX index_years_on_uuid ON acao.years USING btree (id);
 --
 
 CREATE UNIQUE INDEX index_years_on_year ON acao.years USING btree (year);
+
+
+--
+-- Name: memberships_on_payment_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX memberships_on_payment_id ON acao.memberships USING btree (payment_id);
+
+
+--
+-- Name: memberships_on_reference_year_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX memberships_on_reference_year_id ON acao.memberships USING btree (reference_year_id);
 
 
 --
@@ -8282,13 +6107,6 @@ CREATE INDEX trk_events_at_idx ON acao.radar_events USING btree (at);
 --
 
 CREATE INDEX trk_events_event_idx ON acao.radar_events USING btree (event);
-
-
---
--- Name: ca_certificate_altnames_ctn; Type: INDEX; Schema: ca; Owner: -
---
-
-CREATE UNIQUE INDEX ca_certificate_altnames_ctn ON ca.certificate_altnames USING btree (certificate_id_old, type, name);
 
 
 --
@@ -8411,13 +6229,6 @@ CREATE INDEX index_cas_on_certificate_id ON ca.cas USING btree (certificate_id);
 
 
 --
--- Name: index_cas_on_id_old; Type: INDEX; Schema: ca; Owner: -
---
-
-CREATE INDEX index_cas_on_id_old ON ca.cas USING btree (id_old);
-
-
---
 -- Name: index_cas_on_key_pair_id; Type: INDEX; Schema: ca; Owner: -
 --
 
@@ -8432,24 +6243,10 @@ CREATE INDEX index_certificate_altnames_on_certificate_id ON ca.certificate_altn
 
 
 --
--- Name: index_certificates_on_id_old; Type: INDEX; Schema: ca; Owner: -
---
-
-CREATE INDEX index_certificates_on_id_old ON ca.certificates USING btree (id_old);
-
-
---
 -- Name: index_certificates_on_key_pair_id; Type: INDEX; Schema: ca; Owner: -
 --
 
 CREATE INDEX index_certificates_on_key_pair_id ON ca.certificates USING btree (key_pair_id);
-
-
---
--- Name: index_key_pair_locations_on_id_old; Type: INDEX; Schema: ca; Owner: -
---
-
-CREATE INDEX index_key_pair_locations_on_id_old ON ca.key_pair_locations USING btree (id_old);
 
 
 --
@@ -8467,31 +6264,10 @@ CREATE INDEX index_key_pair_locations_on_store_id ON ca.key_pair_locations USING
 
 
 --
--- Name: index_key_pairs_on_id_old; Type: INDEX; Schema: ca; Owner: -
---
-
-CREATE INDEX index_key_pairs_on_id_old ON ca.key_pairs USING btree (id_old);
-
-
---
--- Name: index_key_stores_on_id_old; Type: INDEX; Schema: ca; Owner: -
---
-
-CREATE INDEX index_key_stores_on_id_old ON ca.key_stores USING btree (id_old);
-
-
---
 -- Name: index_key_stores_on_remote_agent_id; Type: INDEX; Schema: ca; Owner: -
 --
 
 CREATE INDEX index_key_stores_on_remote_agent_id ON ca.key_stores USING btree (remote_agent_id);
-
-
---
--- Name: index_le_accounts_on_id_old; Type: INDEX; Schema: ca; Owner: -
---
-
-CREATE INDEX index_le_accounts_on_id_old ON ca.le_accounts USING btree (id_old);
 
 
 --
@@ -8502,24 +6278,10 @@ CREATE INDEX index_le_accounts_on_key_pair_id ON ca.le_accounts USING btree (key
 
 
 --
--- Name: index_le_order_auth_challenges_on_id_old; Type: INDEX; Schema: ca; Owner: -
---
-
-CREATE INDEX index_le_order_auth_challenges_on_id_old ON ca.le_order_auth_challenges USING btree (id_old);
-
-
---
 -- Name: index_le_order_auth_challenges_on_order_auth_id; Type: INDEX; Schema: ca; Owner: -
 --
 
 CREATE INDEX index_le_order_auth_challenges_on_order_auth_id ON ca.le_order_auth_challenges USING btree (order_auth_id);
-
-
---
--- Name: index_le_order_auths_on_id_old; Type: INDEX; Schema: ca; Owner: -
---
-
-CREATE INDEX index_le_order_auths_on_id_old ON ca.le_order_auths USING btree (id_old);
 
 
 --
@@ -8544,13 +6306,6 @@ CREATE INDEX index_le_orders_on_certificate_id ON ca.le_orders USING btree (cert
 
 
 --
--- Name: index_le_orders_on_id_old; Type: INDEX; Schema: ca; Owner: -
---
-
-CREATE INDEX index_le_orders_on_id_old ON ca.le_orders USING btree (id_old);
-
-
---
 -- Name: index_le_orders_on_slot_id; Type: INDEX; Schema: ca; Owner: -
 --
 
@@ -8569,13 +6324,6 @@ CREATE INDEX index_le_slots_on_account_id ON ca.le_slots USING btree (account_id
 --
 
 CREATE INDEX index_le_slots_on_certificate_id ON ca.le_slots USING btree (certificate_id);
-
-
---
--- Name: index_le_slots_on_id_old; Type: INDEX; Schema: ca; Owner: -
---
-
-CREATE INDEX index_le_slots_on_id_old ON ca.le_slots USING btree (id_old);
 
 
 --
@@ -8614,27 +6362,6 @@ CREATE UNIQUE INDEX core_iso_countries_a3_idx ON core.iso_countries USING btree 
 
 
 --
--- Name: core_klass_collection_role_defs_klass_id_interface_name_idx; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE UNIQUE INDEX core_klass_collection_role_defs_klass_id_interface_name_idx ON core.klass_collection_role_defs USING btree (klass_id_old, interface, name);
-
-
---
--- Name: core_klass_members_role_defs_klass_id_interface_name_idx; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE UNIQUE INDEX core_klass_members_role_defs_klass_id_interface_name_idx ON core.klass_members_role_defs USING btree (klass_id_old, interface, name);
-
-
---
--- Name: core_person_capabilities_person_id_capability_id_idx; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE UNIQUE INDEX core_person_capabilities_person_id_capability_id_idx ON core.person_roles USING btree (person_id_old, global_role_id_old);
-
-
---
 -- Name: core_provisioning_requests_status; Type: INDEX; Schema: core; Owner: -
 --
 
@@ -8649,45 +6376,10 @@ CREATE INDEX core_replica_notifies_notify_obj_type_idx ON core.replica_notifies 
 
 
 --
--- Name: core_replica_notifies_notify_obj_type_obj_id_idx; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX core_replica_notifies_notify_obj_type_obj_id_idx ON core.replica_notifies USING btree (notify_obj_type, obj_id_old);
-
-
---
 -- Name: core_replica_notifies_obj_type_idx; Type: INDEX; Schema: core; Owner: -
 --
 
 CREATE INDEX core_replica_notifies_obj_type_idx ON core.replica_notifies USING btree (obj_type);
-
-
---
--- Name: core_replica_notifies_obj_type_obj_id_idx; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX core_replica_notifies_obj_type_obj_id_idx ON core.replica_notifies USING btree (obj_type, obj_id_old);
-
-
---
--- Name: core_replicas_obj_type_obj_id_idx; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX core_replicas_obj_type_obj_id_idx ON core.replicas USING btree (obj_type, obj_id_old);
-
-
---
--- Name: core_replicas_obj_type_obj_id_interface_idx; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX core_replicas_obj_type_obj_id_interface_idx ON core.replicas USING btree (obj_type, obj_id_old, identifier);
-
-
---
--- Name: index_agents_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_agents_on_id_old ON core.agents USING btree (id_old);
 
 
 --
@@ -8740,24 +6432,10 @@ CREATE UNIQUE INDEX index_core_provisioning_requests_on_uuid ON core.tasks USING
 
 
 --
--- Name: index_global_roles_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_global_roles_on_id_old ON core.global_roles USING btree (id_old);
-
-
---
 -- Name: index_group_members_on_group_id; Type: INDEX; Schema: core; Owner: -
 --
 
 CREATE INDEX index_group_members_on_group_id ON core.group_members USING btree (group_id);
-
-
---
--- Name: index_group_members_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_group_members_on_id_old ON core.group_members USING btree (id_old);
 
 
 --
@@ -8768,20 +6446,6 @@ CREATE INDEX index_group_members_on_person_id ON core.group_members USING btree 
 
 
 --
--- Name: index_groups_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_groups_on_id_old ON core.groups USING btree (id_old);
-
-
---
--- Name: index_klass_collection_role_defs_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_klass_collection_role_defs_on_id_old ON core.klass_collection_role_defs USING btree (id_old);
-
-
---
 -- Name: index_klass_collection_role_defs_on_klass_id; Type: INDEX; Schema: core; Owner: -
 --
 
@@ -8789,24 +6453,10 @@ CREATE INDEX index_klass_collection_role_defs_on_klass_id ON core.klass_collecti
 
 
 --
--- Name: index_klass_members_role_defs_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_klass_members_role_defs_on_id_old ON core.klass_members_role_defs USING btree (id_old);
-
-
---
 -- Name: index_klass_members_role_defs_on_klass_id; Type: INDEX; Schema: core; Owner: -
 --
 
 CREATE INDEX index_klass_members_role_defs_on_klass_id ON core.klass_members_role_defs USING btree (klass_id);
-
-
---
--- Name: index_klasses_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_klasses_on_id_old ON core.klasses USING btree (id_old);
 
 
 --
@@ -8824,24 +6474,10 @@ CREATE UNIQUE INDEX index_klasses_on_uuid ON core.klasses USING btree (id);
 
 
 --
--- Name: index_locations_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_locations_on_id_old ON core.locations USING btree (id_old);
-
-
---
 -- Name: index_log_entries_on_http_session_id; Type: INDEX; Schema: core; Owner: -
 --
 
 CREATE INDEX index_log_entries_on_http_session_id ON core.log_entries USING btree (http_session_id);
-
-
---
--- Name: index_log_entries_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_log_entries_on_id_old ON core.log_entries USING btree (id_old);
 
 
 --
@@ -8859,24 +6495,10 @@ CREATE INDEX index_log_entries_on_timestamp ON core.log_entries USING btree ("ti
 
 
 --
--- Name: index_log_entry_details_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_log_entry_details_on_id_old ON core.log_entry_details USING btree (id_old);
-
-
---
 -- Name: index_log_entry_details_on_log_entry_id; Type: INDEX; Schema: core; Owner: -
 --
 
 CREATE INDEX index_log_entry_details_on_log_entry_id ON core.log_entry_details USING btree (log_entry_id);
-
-
---
--- Name: index_log_entry_details_on_obj_id_and_obj_type; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_log_entry_details_on_obj_id_and_obj_type ON core.log_entry_details USING btree (obj_id_old, obj_type);
 
 
 --
@@ -8887,31 +6509,10 @@ CREATE INDEX index_log_entry_details_on_obj_type_and_obj_id ON core.log_entry_de
 
 
 --
--- Name: index_notif_templates_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_notif_templates_on_id_old ON core.notif_templates USING btree (id_old);
-
-
---
--- Name: index_notifications_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_notifications_on_id_old ON core.notifications USING btree (id_old);
-
-
---
 -- Name: index_notifications_on_obj_type; Type: INDEX; Schema: core; Owner: -
 --
 
 CREATE INDEX index_notifications_on_obj_type ON core.notifications USING btree (obj_type);
-
-
---
--- Name: index_notifications_on_obj_type_and_obj_id; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_notifications_on_obj_type_and_obj_id ON core.notifications USING btree (obj_type, obj_id_old);
 
 
 --
@@ -8926,13 +6527,6 @@ CREATE INDEX index_notifications_on_person_id ON core.notifications USING btree 
 --
 
 CREATE INDEX index_notifications_on_timestamp ON core.notifications USING btree ("timestamp");
-
-
---
--- Name: index_organization_people_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_organization_people_on_id_old ON core.organization_people USING btree (id_old);
 
 
 --
@@ -8961,13 +6555,6 @@ CREATE INDEX index_organizations_on_admin_group_id ON core.organizations USING b
 --
 
 CREATE INDEX index_organizations_on_headquarters_location_id ON core.organizations USING btree (headquarters_location_id);
-
-
---
--- Name: index_organizations_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_organizations_on_id_old ON core.organizations USING btree (id_old);
 
 
 --
@@ -9013,13 +6600,6 @@ CREATE INDEX index_people_on_birth_location_id ON core.people USING btree (birth
 
 
 --
--- Name: index_people_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_people_on_id_old ON core.people USING btree (id_old);
-
-
---
 -- Name: index_people_on_invoicing_location_id; Type: INDEX; Schema: core; Owner: -
 --
 
@@ -9048,24 +6628,10 @@ CREATE UNIQUE INDEX index_people_on_uuid ON core.people USING btree (id);
 
 
 --
--- Name: index_person_contacts_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_person_contacts_on_id_old ON core.person_contacts USING btree (id_old);
-
-
---
 -- Name: index_person_contacts_on_person_id; Type: INDEX; Schema: core; Owner: -
 --
 
 CREATE INDEX index_person_contacts_on_person_id ON core.person_contacts USING btree (person_id);
-
-
---
--- Name: index_person_credentials_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_person_credentials_on_id_old ON core.person_credentials USING btree (id_old);
 
 
 --
@@ -9083,31 +6649,10 @@ CREATE INDEX index_person_roles_on_global_role_id ON core.person_roles USING btr
 
 
 --
--- Name: index_person_roles_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_person_roles_on_id_old ON core.person_roles USING btree (id_old);
-
-
---
 -- Name: index_person_roles_on_person_id; Type: INDEX; Schema: core; Owner: -
 --
 
 CREATE INDEX index_person_roles_on_person_id ON core.person_roles USING btree (person_id);
-
-
---
--- Name: index_replica_notifies_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_replica_notifies_on_id_old ON core.replica_notifies USING btree (id_old);
-
-
---
--- Name: index_replicas_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_replicas_on_id_old ON core.replicas USING btree (id_old);
 
 
 --
@@ -9132,24 +6677,10 @@ CREATE INDEX index_sessions_on_auth_person_id ON core.sessions USING btree (auth
 
 
 --
--- Name: index_sessions_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_sessions_on_id_old ON core.sessions USING btree (id_old);
-
-
---
 -- Name: index_sessions_on_language_id; Type: INDEX; Schema: core; Owner: -
 --
 
 CREATE INDEX index_sessions_on_language_id ON core.sessions USING btree (language_id);
-
-
---
--- Name: index_task_notifies_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_task_notifies_on_id_old ON core.task_notifies USING btree (id_old);
 
 
 --
@@ -9164,13 +6695,6 @@ CREATE INDEX index_task_notifies_on_task_id ON core.task_notifies USING btree (t
 --
 
 CREATE INDEX index_tasks_on_depends_on_id ON core.tasks USING btree (depends_on_id);
-
-
---
--- Name: index_tasks_on_id_old; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_tasks_on_id_old ON core.tasks USING btree (id_old);
 
 
 --
@@ -9363,13 +6887,6 @@ CREATE UNIQUE INDEX i18n_languages_name_idx ON i18n.languages USING btree (iso_6
 
 
 --
--- Name: index_languages_on_id_old; Type: INDEX; Schema: i18n; Owner: -
---
-
-CREATE INDEX index_languages_on_id_old ON i18n.languages USING btree (id_old);
-
-
---
 -- Name: index_languages_on_iso_639_1; Type: INDEX; Schema: i18n; Owner: -
 --
 
@@ -9384,13 +6901,6 @@ CREATE UNIQUE INDEX index_languages_on_uuid ON i18n.languages USING btree (id);
 
 
 --
--- Name: index_phrases_on_id_old; Type: INDEX; Schema: i18n; Owner: -
---
-
-CREATE INDEX index_phrases_on_id_old ON i18n.phrases USING btree (id_old);
-
-
---
 -- Name: index_phrases_on_uuid; Type: INDEX; Schema: i18n; Owner: -
 --
 
@@ -9398,24 +6908,10 @@ CREATE UNIQUE INDEX index_phrases_on_uuid ON i18n.phrases USING btree (id);
 
 
 --
--- Name: index_translations_on_id_old; Type: INDEX; Schema: i18n; Owner: -
---
-
-CREATE INDEX index_translations_on_id_old ON i18n.translations USING btree (id_old);
-
-
---
 -- Name: index_translations_on_language_id; Type: INDEX; Schema: i18n; Owner: -
 --
 
 CREATE INDEX index_translations_on_language_id ON i18n.translations USING btree (language_id);
-
-
---
--- Name: index_translations_on_language_id_old_and_phrase_id_old; Type: INDEX; Schema: i18n; Owner: -
---
-
-CREATE UNIQUE INDEX index_translations_on_language_id_old_and_phrase_id_old ON i18n.translations USING btree (language_id_old, phrase_id_old);
 
 
 --
@@ -9433,13 +6929,6 @@ CREATE UNIQUE INDEX index_translations_on_uuid ON i18n.translations USING btree 
 
 
 --
--- Name: index_addresses_on_id_old; Type: INDEX; Schema: ml; Owner: -
---
-
-CREATE INDEX index_addresses_on_id_old ON ml.addresses USING btree (id_old);
-
-
---
 -- Name: index_list_members_on_address_id; Type: INDEX; Schema: ml; Owner: -
 --
 
@@ -9447,24 +6936,10 @@ CREATE INDEX index_list_members_on_address_id ON ml.list_members USING btree (ad
 
 
 --
--- Name: index_list_members_on_id_old; Type: INDEX; Schema: ml; Owner: -
---
-
-CREATE INDEX index_list_members_on_id_old ON ml.list_members USING btree (id_old);
-
-
---
 -- Name: index_list_members_on_list_id; Type: INDEX; Schema: ml; Owner: -
 --
 
 CREATE INDEX index_list_members_on_list_id ON ml.list_members USING btree (list_id);
-
-
---
--- Name: index_lists_on_id_old; Type: INDEX; Schema: ml; Owner: -
---
-
-CREATE INDEX index_lists_on_id_old ON ml.lists USING btree (id_old);
 
 
 --
@@ -9517,24 +6992,10 @@ CREATE UNIQUE INDEX index_ml_templates_on_symbol ON ml.templates USING btree (sy
 
 
 --
--- Name: index_ml_templates_on_symbol_and_language_id; Type: INDEX; Schema: ml; Owner: -
---
-
-CREATE UNIQUE INDEX index_ml_templates_on_symbol_and_language_id ON ml.templates USING btree (symbol, language_id_old);
-
-
---
 -- Name: index_ml_templates_on_uuid; Type: INDEX; Schema: ml; Owner: -
 --
 
 CREATE UNIQUE INDEX index_ml_templates_on_uuid ON ml.templates USING btree (id);
-
-
---
--- Name: index_msg_bounces_on_id_old; Type: INDEX; Schema: ml; Owner: -
---
-
-CREATE INDEX index_msg_bounces_on_id_old ON ml.msg_bounces USING btree (id_old);
 
 
 --
@@ -9552,13 +7013,6 @@ CREATE INDEX index_msg_events_on_msg_id ON ml.msg_events USING btree (msg_id);
 
 
 --
--- Name: index_msg_lists_on_id_old; Type: INDEX; Schema: ml; Owner: -
---
-
-CREATE INDEX index_msg_lists_on_id_old ON ml.msg_lists USING btree (id_old);
-
-
---
 -- Name: index_msg_lists_on_list_id; Type: INDEX; Schema: ml; Owner: -
 --
 
@@ -9573,24 +7027,10 @@ CREATE INDEX index_msg_lists_on_msg_id ON ml.msg_lists USING btree (msg_id);
 
 
 --
--- Name: index_msg_objects_on_id_old; Type: INDEX; Schema: ml; Owner: -
---
-
-CREATE INDEX index_msg_objects_on_id_old ON ml.msg_objects USING btree (id_old);
-
-
---
 -- Name: index_msg_objects_on_msg_id; Type: INDEX; Schema: ml; Owner: -
 --
 
 CREATE INDEX index_msg_objects_on_msg_id ON ml.msg_objects USING btree (msg_id);
-
-
---
--- Name: index_msgs_on_id_old; Type: INDEX; Schema: ml; Owner: -
---
-
-CREATE INDEX index_msgs_on_id_old ON ml.msgs USING btree (id_old);
 
 
 --
@@ -9619,20 +7059,6 @@ CREATE INDEX index_msgs_on_sender_id ON ml.msgs USING btree (sender_id);
 --
 
 CREATE INDEX index_senders_on_email_dkim_key_pair_id ON ml.senders USING btree (email_dkim_key_pair_id);
-
-
---
--- Name: index_senders_on_id_old; Type: INDEX; Schema: ml; Owner: -
---
-
-CREATE INDEX index_senders_on_id_old ON ml.senders USING btree (id_old);
-
-
---
--- Name: index_templates_on_id_old; Type: INDEX; Schema: ml; Owner: -
---
-
-CREATE INDEX index_templates_on_id_old ON ml.templates USING btree (id_old);
 
 
 --
@@ -10070,6 +7496,14 @@ CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING b
 
 
 --
+-- Name: aircrafts fk_rails_046f51b292; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.aircrafts
+    ADD CONSTRAINT fk_rails_046f51b292 FOREIGN KEY (owner_id) REFERENCES acao.members(id);
+
+
+--
 -- Name: roster_entries fk_rails_078cdcc4f0; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -10086,6 +7520,22 @@ ALTER TABLE ONLY acao.trailers
 
 
 --
+-- Name: member_services fk_rails_0886cc6d1b; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.member_services
+    ADD CONSTRAINT fk_rails_0886cc6d1b FOREIGN KEY (member_id) REFERENCES acao.members(id);
+
+
+--
+-- Name: flights fk_rails_09a414838e; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.flights
+    ADD CONSTRAINT fk_rails_09a414838e FOREIGN KEY (pilot2_id) REFERENCES acao.members(id);
+
+
+--
 -- Name: trackers fk_rails_0cb6b830a4; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -10094,19 +7544,11 @@ ALTER TABLE ONLY acao.trackers
 
 
 --
--- Name: payments fk_rails_138ff5aa51; Type: FK CONSTRAINT; Schema: acao; Owner: -
+-- Name: trailers fk_rails_0d0c2077ce; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
-ALTER TABLE ONLY acao.payments
-    ADD CONSTRAINT fk_rails_138ff5aa51 FOREIGN KEY (person_id) REFERENCES core.people(id);
-
-
---
--- Name: flights fk_rails_147735f063; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.flights
-    ADD CONSTRAINT fk_rails_147735f063 FOREIGN KEY (pilot1_id) REFERENCES core.people(id);
+ALTER TABLE ONLY acao.trailers
+    ADD CONSTRAINT fk_rails_0d0c2077ce FOREIGN KEY (member_id) REFERENCES acao.members(id);
 
 
 --
@@ -10126,6 +7568,14 @@ ALTER TABLE ONLY acao.clubs
 
 
 --
+-- Name: flights fk_rails_1fe315edf3; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.flights
+    ADD CONSTRAINT fk_rails_1fe315edf3 FOREIGN KEY (aircraft_owner_id) REFERENCES acao.members(id);
+
+
+--
 -- Name: flights fk_rails_1fe6e8916f; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -10134,19 +7584,11 @@ ALTER TABLE ONLY acao.flights
 
 
 --
--- Name: trailers fk_rails_217177f493; Type: FK CONSTRAINT; Schema: acao; Owner: -
+-- Name: timetable_entries fk_rails_218fd102a3; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
-ALTER TABLE ONLY acao.trailers
-    ADD CONSTRAINT fk_rails_217177f493 FOREIGN KEY (person_id) REFERENCES core.people(id);
-
-
---
--- Name: member_services fk_rails_221b5cd492; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.member_services
-    ADD CONSTRAINT fk_rails_221b5cd492 FOREIGN KEY (person_id) REFERENCES core.people(id);
+ALTER TABLE ONLY acao.timetable_entries
+    ADD CONSTRAINT fk_rails_218fd102a3 FOREIGN KEY (pilot_id) REFERENCES acao.members(id);
 
 
 --
@@ -10230,6 +7672,14 @@ ALTER TABLE ONLY acao.timetable_entries
 
 
 --
+-- Name: tow_roster_entries fk_rails_3ccca98184; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.tow_roster_entries
+    ADD CONSTRAINT fk_rails_3ccca98184 FOREIGN KEY (member_id) REFERENCES acao.members(id);
+
+
+--
 -- Name: payment_services fk_rails_41705eeab7; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -10246,14 +7696,6 @@ ALTER TABLE ONLY acao.flights
 
 
 --
--- Name: aircrafts fk_rails_47c41c7dd0; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.aircrafts
-    ADD CONSTRAINT fk_rails_47c41c7dd0 FOREIGN KEY (owner_id) REFERENCES core.people(id);
-
-
---
 -- Name: member_services fk_rails_52ab95975f; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -10262,51 +7704,43 @@ ALTER TABLE ONLY acao.member_services
 
 
 --
--- Name: bar_transactions fk_rails_52b603c5c6; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.bar_transactions
-    ADD CONSTRAINT fk_rails_52b603c5c6 FOREIGN KEY (person_id) REFERENCES core.people(id);
-
-
---
--- Name: flights fk_rails_54e79568fd; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.flights
-    ADD CONSTRAINT fk_rails_54e79568fd FOREIGN KEY (pilot2_id) REFERENCES core.people(id);
-
-
---
--- Name: roster_entries fk_rails_59f7e9d373; Type: FK CONSTRAINT; Schema: acao; Owner: -
+-- Name: roster_entries fk_rails_59678736b3; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
 ALTER TABLE ONLY acao.roster_entries
-    ADD CONSTRAINT fk_rails_59f7e9d373 FOREIGN KEY (person_id) REFERENCES core.people(id);
+    ADD CONSTRAINT fk_rails_59678736b3 FOREIGN KEY (member_id) REFERENCES acao.members(id);
 
 
 --
--- Name: key_fobs fk_rails_5e6de4afc8; Type: FK CONSTRAINT; Schema: acao; Owner: -
+-- Name: invoices fk_rails_5cf95fcf83; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
-ALTER TABLE ONLY acao.key_fobs
-    ADD CONSTRAINT fk_rails_5e6de4afc8 FOREIGN KEY (person_id) REFERENCES core.people(id);
-
-
---
--- Name: memberships fk_rails_6f634e203a; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.memberships
-    ADD CONSTRAINT fk_rails_6f634e203a FOREIGN KEY (person_id) REFERENCES core.people(id);
+ALTER TABLE ONLY acao.invoices
+    ADD CONSTRAINT fk_rails_5cf95fcf83 FOREIGN KEY (member_id) REFERENCES acao.members(id);
 
 
 --
--- Name: token_transactions fk_rails_7966149e81; Type: FK CONSTRAINT; Schema: acao; Owner: -
+-- Name: payments fk_rails_62ad657a97; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
-ALTER TABLE ONLY acao.token_transactions
-    ADD CONSTRAINT fk_rails_7966149e81 FOREIGN KEY (person_id) REFERENCES core.people(id);
+ALTER TABLE ONLY acao.payments
+    ADD CONSTRAINT fk_rails_62ad657a97 FOREIGN KEY (member_id) REFERENCES acao.members(id);
+
+
+--
+-- Name: flights fk_rails_7827e04cc2; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.flights
+    ADD CONSTRAINT fk_rails_7827e04cc2 FOREIGN KEY (pilot1_id) REFERENCES acao.members(id);
+
+
+--
+-- Name: fai_cards fk_rails_7b79a6a52f; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.fai_cards
+    ADD CONSTRAINT fk_rails_7b79a6a52f FOREIGN KEY (member_id) REFERENCES acao.members(id);
 
 
 --
@@ -10315,14 +7749,6 @@ ALTER TABLE ONLY acao.token_transactions
 
 ALTER TABLE ONLY acao.member_services
     ADD CONSTRAINT fk_rails_88bbbef30e FOREIGN KEY (payment_id) REFERENCES acao.payments(id);
-
-
---
--- Name: fai_cards fk_rails_8cde3d24a0; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.fai_cards
-    ADD CONSTRAINT fk_rails_8cde3d24a0 FOREIGN KEY (person_id) REFERENCES core.people(id);
 
 
 --
@@ -10342,11 +7768,11 @@ ALTER TABLE ONLY acao.tows
 
 
 --
--- Name: timetable_entries fk_rails_95828e09f5; Type: FK CONSTRAINT; Schema: acao; Owner: -
+-- Name: key_fobs fk_rails_96ad3b77cd; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
-ALTER TABLE ONLY acao.timetable_entries
-    ADD CONSTRAINT fk_rails_95828e09f5 FOREIGN KEY (pilot_id) REFERENCES core.people(id);
+ALTER TABLE ONLY acao.key_fobs
+    ADD CONSTRAINT fk_rails_96ad3b77cd FOREIGN KEY (member_id) REFERENCES acao.members(id);
 
 
 --
@@ -10398,6 +7824,22 @@ ALTER TABLE ONLY acao.timetable_entries
 
 
 --
+-- Name: medicals fk_rails_b4f68e1993; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.medicals
+    ADD CONSTRAINT fk_rails_b4f68e1993 FOREIGN KEY (member_id) REFERENCES acao.members(id);
+
+
+--
+-- Name: bar_transactions fk_rails_b5c7a57039; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.bar_transactions
+    ADD CONSTRAINT fk_rails_b5c7a57039 FOREIGN KEY (member_id) REFERENCES acao.members(id);
+
+
+--
 -- Name: airfields fk_rails_b744cff7d3; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -10446,11 +7888,11 @@ ALTER TABLE ONLY acao.timetable_entries
 
 
 --
--- Name: tow_roster_entries fk_rails_c51e306a95; Type: FK CONSTRAINT; Schema: acao; Owner: -
+-- Name: token_transactions fk_rails_c4405dc874; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
-ALTER TABLE ONLY acao.tow_roster_entries
-    ADD CONSTRAINT fk_rails_c51e306a95 FOREIGN KEY (person_id) REFERENCES core.people(id);
+ALTER TABLE ONLY acao.token_transactions
+    ADD CONSTRAINT fk_rails_c4405dc874 FOREIGN KEY (member_id) REFERENCES acao.members(id);
 
 
 --
@@ -10478,14 +7920,6 @@ ALTER TABLE ONLY acao.payment_services
 
 
 --
--- Name: invoices fk_rails_d35bec14bb; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.invoices
-    ADD CONSTRAINT fk_rails_d35bec14bb FOREIGN KEY (person_id) REFERENCES core.people(id);
-
-
---
 -- Name: flights fk_rails_d4885e4cc3; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -10494,11 +7928,11 @@ ALTER TABLE ONLY acao.flights
 
 
 --
--- Name: medicals fk_rails_d4aede3216; Type: FK CONSTRAINT; Schema: acao; Owner: -
+-- Name: memberships fk_rails_d50c4f4a6c; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
-ALTER TABLE ONLY acao.medicals
-    ADD CONSTRAINT fk_rails_d4aede3216 FOREIGN KEY (pilot_id) REFERENCES core.people(id);
+ALTER TABLE ONLY acao.memberships
+    ADD CONSTRAINT fk_rails_d50c4f4a6c FOREIGN KEY (member_id) REFERENCES acao.members(id);
 
 
 --
@@ -10534,19 +7968,19 @@ ALTER TABLE ONLY acao.tows
 
 
 --
--- Name: licenses fk_rails_e8f163d8dd; Type: FK CONSTRAINT; Schema: acao; Owner: -
+-- Name: licenses fk_rails_e67293dadf; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
 ALTER TABLE ONLY acao.licenses
-    ADD CONSTRAINT fk_rails_e8f163d8dd FOREIGN KEY (pilot_id) REFERENCES core.people(id);
+    ADD CONSTRAINT fk_rails_e67293dadf FOREIGN KEY (member_id) REFERENCES acao.members(id);
 
 
 --
--- Name: meters fk_rails_ed1626ab89; Type: FK CONSTRAINT; Schema: acao; Owner: -
+-- Name: meters fk_rails_e9e4aa7ceb; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
 ALTER TABLE ONLY acao.meters
-    ADD CONSTRAINT fk_rails_ed1626ab89 FOREIGN KEY (person_id) REFERENCES core.people(id);
+    ADD CONSTRAINT fk_rails_e9e4aa7ceb FOREIGN KEY (member_id) REFERENCES acao.members(id);
 
 
 --
@@ -10563,14 +7997,6 @@ ALTER TABLE ONLY acao.payments
 
 ALTER TABLE ONLY acao.license_ratings
     ADD CONSTRAINT fk_rails_f7ed1e1193 FOREIGN KEY (license_id) REFERENCES acao.licenses(id);
-
-
---
--- Name: flights fk_rails_fd3ce11335; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.flights
-    ADD CONSTRAINT fk_rails_fd3ce11335 FOREIGN KEY (aircraft_owner_id) REFERENCES core.people(id);
 
 
 --
@@ -11181,6 +8607,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231123133007'),
 ('20240208140120'),
 ('20240219112218'),
-('20240219133727');
+('20240219133727'),
+('20240925182020'),
+('20240925182027');
 
 

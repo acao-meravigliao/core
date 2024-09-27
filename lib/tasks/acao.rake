@@ -35,19 +35,19 @@ namespace :acao do
   namespace :people do
     task(:chores => :environment) do
       TimeoutActor.new(tout: 100).do do
-        Ygg::Acao::Pilot.run_chores!
+        Ygg::Acao::Member.run_chores!
       end
     end
 
     task(:sync_ml => :environment) do
       TimeoutActor.new(tout: 100).do do
-        Ygg::Acao::Pilot.sync_mailing_lists!
+        Ygg::Acao::Member.sync_mailing_lists!
       end
     end
 
     task(:sync_wp => :environment) do
       TimeoutActor.new(tout: 100).do do
-        Ygg::Acao::Pilot.sync_wordpress!
+        Ygg::Acao::Member.sync_wordpress!
       end
     end
   end
@@ -100,10 +100,4 @@ namespace :acao do
 #
 #  task(:'flights' => :environment) do
 #  end
-
-  task(:'ml:soci' => :environment) do
-    TimeoutActor.new(tout: 100).do do
-      Ygg::Acao::Pilot.sync_soci_ml!
-    end
-  end
 end

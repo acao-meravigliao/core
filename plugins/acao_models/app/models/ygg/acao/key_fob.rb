@@ -13,20 +13,10 @@ module Acao
 class KeyFob < Ygg::PublicModel
   self.table_name = 'acao.key_fobs'
 
-  self.porn_migration += [
-    [ :must_have_column, { name: "id", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-    [ :must_have_column, {name: "person_id", type: :integer, default: nil, limit: 4, null: false}],
-    [ :must_have_column, {name: "code", type: :string, default: nil, limit: 32, null: true}],
-    [ :must_have_column, {name: "descr", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "notes", type: :text, default: nil, null: true}],
-    [ :must_have_index, {columns: ["person_id"], unique: false}],
-    [ :must_have_index, {columns: ["code"], unique: true}],
-    [ :must_have_fk, {to_table: "core_people", column: "person_id", primary_key: "id", on_delete: nil, on_update: nil}],
-  ]
-
-  belongs_to :person,
-             class_name: '::Ygg::Core::Person',
-             optional: true
+  belongs_to :member,
+             class_name: '::Ygg::Acao::Member', optional: true # Workaround for sync_to_maindb
+#  belongs_to :member,
+#             class_name: '::Ygg::Acao::Member'
 
   include Ygg::Core::Versioned
   self.versioning_insensitive_attributes += [

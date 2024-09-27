@@ -63,7 +63,7 @@ class RosterEntry::RestController < Ygg::Hel::RestController
   end
 
   def authorization_prefilter
-    ar_model.where(person_id: aaa_context.auth_person.id)
+    ar_model.joins(:member).where(member: { person_id: aaa_context.auth_person.id })
   end
 
   build_member_roles(:blahblah) do |obj|
@@ -95,14 +95,14 @@ class RosterEntry::RestController < Ygg::Hel::RestController
     perms = ar_build_perms_from_roles(roles, ar_collection_role_defs)
 
 #    if !attr_writable?(:person, perms: perms)
-      resource.person = aaa_context.auth_person
+      resource.member = aaa_context.auth_person.acao_member
 #    end
 
     # TODO FIXME: check consistency (valid roster_day!)
   end
 
   def get_status
-    person = aaa_context.auth_person
+    member = aaa_context.auth_person.acao_member
 
     current_year = Ygg::Acao::Year.find_by(year: Time.new.year)
     next_year = Ygg::Acao::Year.renewal_year
@@ -110,11 +110,11 @@ class RosterEntry::RestController < Ygg::Hel::RestController
     res = {}
 
     if current_year
-      res[:current] = Ygg::Acao::RosterEntry.status_for_year(person: person, year: current_year)
+      res[:current] = Ygg::Acao::RosterEntry.status_for_year(member: member, year: current_year)
     end
 
     if next_year && next_year != current_year
-      res[:next] = Ygg::Acao::RosterEntry.status_for_year(person: person, year: next_year)
+      res[:next] = Ygg::Acao::RosterEntry.status_for_year(member: member, year: next_year)
     end
 
     ar_respond_with(res)
@@ -129,11 +129,11 @@ class RosterEntry::RestController < Ygg::Hel::RestController
   # - needed_entries_low_season
   #
   def get_policy
-    person = aaa_context.auth_person.becomes(Ygg::Acao::Pilot)
+    member = aaa_context.auth_person.acao_member
 
     year = Ygg::Acao::Year.find_by!(year: json_request[:year])
 
-    ar_respond_with(person.roster_entries_needed(year: year.year))
+    ar_respond_with(member.roster_entries_needed(year: year.year))
   end
 
   def offer
@@ -163,7 +163,7 @@ class RosterEntry::RestController < Ygg::Hel::RestController
     ar_authorize_member_action(resource: ar_resource, action: :offer_accept)
 
     hel_transaction('Exchange offer accepted') do
-      ar_resource.offer_accept!(from_user: aaa_context.auth_person)
+      ar_resource.offer_accept!(from_user: aaa_context.auth_person.acao_member)
     end
 
     ar_respond_with({})

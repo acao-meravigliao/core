@@ -12,29 +12,10 @@ module Acao
 class Invoice < Ygg::PublicModel
   self.table_name = 'acao.invoices'
 
-  self.porn_migration += [
-    [ :must_have_column, {name: "id", type: :uuid, null: false, default_function: 'gen_random_uuid()' }],
-    [ :must_have_column, {name: "identifier", type: :string, default: nil, limit: 16, null: true}],
-    [ :must_have_column, {name: "person_id", type: :integer, default: nil, limit: 4, null: false}],
-    [ :must_have_column, {name: "first_name", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "last_name", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "address", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "created_at", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "state", type: :string, default: 'NEW', null: false}],
-    [ :must_have_column, {name: "payment_state", type: :string, default: 'UNPAID', null: false}],
-    [ :must_have_column, {name: "notes", type: :text, default: nil, null: true}],
-    [ :must_have_column, {name: "payment_method", type: :string, default: nil, limit: 32, null: false}],
-    [ :must_have_column, {name: "last_chore", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "onda_export_status", type: :string, default: nil, limit: 32, null: true}],
-    [ :must_have_index, {columns: ["identifier"], unique: true}],
-    [ :must_have_index, {columns: ["person_id"], unique: false}],
-    [ :must_have_fk, {to_table: "core_people", column: "person_id", primary_key: "id", on_delete: nil, on_update: nil}],
-  ]
-
   has_meta_class
 
-  belongs_to :person,
-             class_name: 'Ygg::Core::Person'
+  belongs_to :member,
+             class_name: 'Ygg::Core::Member'
 
   has_many :details,
            class_name: 'Ygg::Acao::Invoice::Detail',
