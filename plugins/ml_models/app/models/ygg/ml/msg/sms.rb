@@ -11,6 +11,12 @@ module Ml
 
 class Msg::Sms < Ygg::Ml::Msg
   def check_status!
+    if Rails.application.config.ml.sms_disabled
+      delivered!(time: Time.now)
+      save!
+      return
+    end
+
     if delivery_started_at < Time.now - 1.week
       sending_permanent_failure!(reason: 'Gave up due to timeout')
     end
@@ -69,7 +75,7 @@ class Msg::Sms < Ygg::Ml::Msg
         destination_number = Rails.application.config.ml.sms_redirect_to
       end
 
-      if !Rails.application.config.ml.sms_disable
+      if !Rails.application.config.ml.sms_disabled
         begin
           result = Ygg::Ml::Skebby.send_sms(
             sender: sender,
