@@ -27,16 +27,28 @@ require 'socket'
 module AcaoCore
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 6.0
-    config.add_autoload_paths_to_load_path = false
+    config.load_defaults 7.2
     config.active_record.schema_format = :sql
 
-    # Breaks ActiveRecord::TimeWithZone deserialization
-    config.active_record.use_yaml_unsafe_load = true
+    # Please, add to the `ignore` list any other `lib` subdirectories that do
+    # not contain `.rb` files, or that should not be reloaded or eager loaded.
+    # Common ones are `templates`, `generators`, or `middleware`, for example.
+    config.autoload_lib(ignore: %w[assets tasks])
+
+    # Configuration for the application, engines, and railties goes here.
+    #
+    # These settings can be overridden in specific environments using the files
+    # in config/environments, which are processed later.
+    #
+    # config.time_zone = "Central Time (US & Canada)"
+    # config.eager_load_paths << Rails.root.join("extras")
 
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
+
+    # Don't generate system test files.
+    config.generators.system_tests = nil
 
     config.action_controller.default_protect_from_forgery = false
 
@@ -47,7 +59,7 @@ module AcaoCore
 
     Geocoder.configure(
       google: {
-        api_key: Rails.application.secrets.geocoder_api_key,
+#        api_key: Rails.application.secrets.geocoder_api_key,
         use_https: true,
         bounds: [[46.529301, 6.563564], [36.827650,18.626552]],
         language: 'it',
