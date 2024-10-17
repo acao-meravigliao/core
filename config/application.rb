@@ -59,7 +59,7 @@ module AcaoCore
 
     Geocoder.configure(
       google: {
-#        api_key: Rails.application.secrets.geocoder_api_key,
+        api_key: Rails.application.credentials.geocoder_api_key,
         use_https: true,
         bounds: [[46.529301, 6.563564], [36.827650,18.626552]],
         language: 'it',

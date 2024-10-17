@@ -177,7 +177,7 @@ GEM
       amazing_print
       rubynary
       ygg-exception
-    am-vos (2.0.6)
+    am-vos (2.1.0)
       activesupport
       am-auth-manager
       am-grafo-store
@@ -215,7 +215,7 @@ GEM
     rails_actor_model (1.0.1)
       actor_model (~> 1.4)
       colorize
-    rails_amqp (1.0.5)
+    rails_amqp (1.1.0)
       am-amqp (~> 2.0)
     rubynary (0.9.0)
       activesupport
@@ -407,11 +407,8 @@ GEM
     psych (5.1.2)
       stringio
     public_suffix (6.0.1)
-    puma (4.3.12)
+    puma (6.4.3)
       nio4r (~> 2.0)
-    puma-plugin-systemd (0.1.5)
-      json
-      puma (>= 3.6, < 5)
     racc (1.8.1)
     rack (3.1.7)
     rack-session (2.0.0)
@@ -531,7 +528,6 @@ DEPENDENCIES
   pry
   pry-rails
   puma
-  puma-plugin-systemd
   rails_active_rest (~> 1.0)!
   rails_actor_model!
   rails_amqp!

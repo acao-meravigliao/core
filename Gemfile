@@ -21,7 +21,6 @@ gem 'activerecord-sqlserver-adapter', '~> 7.2'
 #gem 'activerecord-sqlserver-adapter'#, git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git'
 
 gem 'puma'
-gem 'puma-plugin-systemd'
 
 gem 'rbtrace'
 
