@@ -309,6 +309,7 @@ class Pilot < Ygg::Core::Person
       act << Ygg::Core::Person.find_by(acao_code: 7002) # Special entry for Daniela
       act << Ygg::Core::Person.find_by(acao_code: 7024) # Special entry for Chicca
       act << Ygg::Core::Person.find_by(acao_code: 7017) # Special entry for Matteo Negri
+      act << Ygg::Core::Person.find_by(acao_code: 7023) # Special entry for Clara
 
       sync_ml!(symbol: 'ACTIVE_MEMBERS', members: act.compact.uniq)
 
@@ -923,8 +924,10 @@ class Pilot < Ygg::Core::Person
     end
   end
 
-  def self.sync_to_acao_for_wp!(relation: alive_pilots)
+  def self.sync_to_acao_for_wp!(relation: alive_pilots, debug: 0)
     data = ''
+
+    puts "Retrieving users list..." if debug >= 1
 
     IO::popen([
       '/usr/bin/ssh',
@@ -942,13 +945,15 @@ class Pilot < Ygg::Core::Person
 
     updates = []
 
-    l_records = relation.sort_by { |x| x.acao_code.to_s }
+    l_records = relation.includes(:contacts).includes(:credentials).sort_by { |x| x.acao_code.to_s }
     r_records = data.select { |x| x[:roles].split(',').include?('src_acao') }.sort_by { |x| x[:user_login] }
+
+    puts "Computing changes..." if debug >= 1
 
     merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| l.acao_code.to_s <=> r[:user_login] },
     l_to_r: lambda { |l|
- #     puts "CREATE: #{l.acao_code}"
+      puts "CREATE: #{l.acao_code}" if debug >= 2
 
       updates << [
         l.acao_code.to_s,
@@ -962,10 +967,10 @@ class Pilot < Ygg::Core::Person
       ]
     },
     r_to_l: lambda { |r|
-      #puts "REMOVE: #{r[:user_login]}"
+      puts "REMOVE: #{r[:user_login]}" if debug >= 2
     },
     lr_update: lambda { |l,r|
-#      puts "UPDATE #{l.acao_code}"
+      puts "UPDATE CHK #{l.acao_code}" if debug >= 2
 
       # All current roles
       r_roles = r[:roles].split(',').sort
@@ -977,13 +982,15 @@ class Pilot < Ygg::Core::Person
 
       new_roles = ((r_roles - auth_roles) + roles).sort
 
-      #puts "Current Roles = #{r_roles}"
-      #puts "Our current roles = #{r_our_roles}"
-      #puts "Our target roles = #{roles}"
-      #puts "Roles to update = #{new_roles}"
+      if debug >= 3
+        puts "Current Roles = #{r_roles}"
+        puts "Our current roles = #{r_our_roles}"
+        puts "Our target roles = #{roles}"
+        puts "Roles to update = #{new_roles}"
+      end
 
       if new_roles != r_roles
-        puts "Roles are going to be updated"
+        puts "Roles are going to be updated" if debug >= 2
       end
 
       updates << [
@@ -999,6 +1006,9 @@ class Pilot < Ygg::Core::Person
     })
 
     if updates.any?
+      puts "Updates:\n#{updates}" if debug >= 2
+      puts "Applying changes..." if debug >= 1
+
       csv = CSV.generate do |csv|
         csv << [ 'user_login','user_email','user_pass','first_name','last_name','display_name','roles','codice_socio' ]
         updates.each { |x| csv << x }
@@ -1025,8 +1035,10 @@ class Pilot < Ygg::Core::Person
         end
       end
 
-      #puts "OUT: #{import_out}"
+      puts "OUT: #{import_out}" if debug >= 2
     end
+
+    puts "Done!" if debug > 0
   end
 
   def self.sync_to_acao_for_wp_roles(pilot)
@@ -1074,7 +1086,7 @@ class Pilot < Ygg::Core::Person
     merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| l.id_soci_dati_generale <=> r.acao_ext_id },
     l_to_r: lambda { |l|
-      return if [ 0, 1, 4000, 4001, 7000, 8888, 9999 ].include?(l.codice_socio_dati_generale)
+      return if [ -1, 0, 1, 4000, 4001, 7000, 8888, 9999 ].include?(l.codice_socio_dati_generale)
 
       transaction do
         puts "ADDING SOCIO ID=#{l.id_soci_dati_generale} CODICE=#{l.codice_socio_dati_generale}" if debug >= 1
@@ -1106,133 +1118,111 @@ class Pilot < Ygg::Core::Person
 
       puts "UPD CHK #{l.codice_socio_dati_generale} #{l.Nome} #{l.Cognome}" if debug >= 3
 
-      if l.lastmod != r.acao_lastmod || l.visita.lastmod != r.acao_visita_lastmod
-        transaction do
-          r.sync_from_maindb(l, with_logbar: with_logbar, with_logbollini: with_logbollini)
-
-#          if r.deep_changed?
-#            puts "UPDATING #{l.id_soci_dati_generale} <=> #{r.acao_ext_id} (#{r.first_name} #{r.last_name})" if debug >= 1
-#            puts r.deep_changes.awesome_inspect(plain: true)
-#          end
-#
-#          r.save!
-        end
+      transaction do
+        r.sync_from_maindb(l, with_logbar: with_logbar, with_logbollini: with_logbollini)
       end
     })
   end
 
   def sync_from_maindb(other = acao_socio, with_logbar: true, with_logbollini: true, debug: 0)
-    self.first_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ').first
-    self.middle_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ')[1..-1].join(' ')
-    self.last_name = other.Cognome.strip
-    self.gender = other.Sesso
-    self.birth_date = other.Data_Nascita != Date.parse('1900-01-01 00:00:00 UTC') ? other.Data_Nascita : nil
+    if other.lastmod.floor(6) != acao_lastmod
+      self.first_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ').first
+      self.middle_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ')[1..-1].join(' ')
+      self.last_name = other.Cognome.strip
+      self.gender = other.Sesso
+      self.birth_date = other.Data_Nascita != Date.parse('1900-01-01 00:00:00 UTC') ? other.Data_Nascita : nil
 
-    self.italian_fiscal_code = (other.Codice_Fiscale.strip != 'NO' &&
-                                other.Codice_Fiscale.strip != 'non specificato' &&
-                                !other.Codice_Fiscale.strip.blank?) ? other.Codice_Fiscale.strip : nil
+      self.italian_fiscal_code = (other.Codice_Fiscale.strip != 'NO' &&
+                                  other.Codice_Fiscale.strip != 'non specificato' &&
+                                  !other.Codice_Fiscale.strip.blank?) ? other.Codice_Fiscale.strip : nil
 
-    self.acao_code = other.codice_socio_dati_generale
+      self.acao_code = other.codice_socio_dati_generale
 
-    self.acao_job = (other.Professione.strip != 'non specificata' &&
-                     other.Professione.strip != 'NO' &&
-                     other.Professione.strip != 'NESSUNA' &&
-                     !other.Professione.strip.blank?) ? other.Professione.strip : nil
+      self.acao_job = (other.Professione.strip != 'non specificata' &&
+                       other.Professione.strip != 'NO' &&
+                       other.Professione.strip != 'NESSUNA' &&
+                       !other.Professione.strip.blank?) ? other.Professione.strip : nil
 
-    raw_address = [ other.Nato_a ].map { |x| x.strip }.
-                  reject { |x| x.downcase == 'non specificato' || x.downcase == 'non specificata' || x == '?' }
+      raw_address = [ other.Nato_a ].map { |x| x.strip }.
+                    reject { |x| x.downcase == 'non specificato' || x.downcase == 'non specificata' || x == '?' }
 
-    if raw_address.any? && other.Citta != 'CITTA' && other.Via != 'VIA'
-      raw_address = raw_address.join(', ')
-      if !birth_location || birth_location.raw_address != raw_address
-        self.birth_location = Ygg::Core::Location.new_for(raw_address)
-        sleep 0.3
-      end
-    else
-      self.birth_location = nil
-    end
-
-    raw_address = [ other.Via, other.Citta, other.Provincia != 'P' ? other.Provincia : '', other.CAP, other.Stato ].map { |x| x.strip }.
-                  reject { |x| x.empty? || x.downcase == 'non specificato' || x.downcase == 'non specificata' || x == '?' }
-
-    if raw_address.any? && other.Citta != 'CITTA' && other.Via != 'VIA'
-      raw_address = raw_address.join(', ')
-      if !residence_location || residence_location.raw_address != raw_address
-        self.residence_location = Ygg::Core::Location.new_for(raw_address)
-        sleep 0.3
+      if raw_address.any? && other.Citta != 'CITTA' && other.Via != 'VIA'
+        raw_address = raw_address.join(', ')
+        if !birth_location || birth_location.raw_address != raw_address
+          self.birth_location = Ygg::Core::Location.new_for(raw_address)
+          sleep 0.3
+        end
+      else
+        self.birth_location = nil
       end
 
-      country = Ygg::Core::IsoCountry.find_by(a2: other.Stato.upcase == 'I' ? 'IT' : other.Stato.upcase)
-      country ||= Ygg::Core::IsoCountry.find_by(italian: other.Stato.upcase)
-      country ||= Ygg::Core::IsoCountry.find_by(english: other.Stato.upcase)
+      raw_address = [ other.Via, other.Citta, other.Provincia != 'P' ? other.Provincia : '', other.CAP, other.Stato ].map { |x| x.strip }.
+                    reject { |x| x.empty? || x.downcase == 'non specificato' || x.downcase == 'non specificata' || x == '?' }
 
-      self.residence_location.street_address ||= other.Via
-      self.residence_location.city ||= other.Citta
-      self.residence_location.country_code ||= country ? country.a2 : nil
-      self.residence_location.zip ||= other.CAP
-      self.residence_location.province ||= other.Provincia
-      self.residence_location.save! if self.residence_location.changed? && !self.new_record?
-    else
-      self.residence_location = nil
+      if raw_address.any? && other.Citta != 'CITTA' && other.Via != 'VIA'
+        raw_address = raw_address.join(', ')
+        if !residence_location || residence_location.raw_address != raw_address
+          self.residence_location = Ygg::Core::Location.new_for(raw_address)
+          sleep 0.3
+        end
+
+        country = Ygg::Core::IsoCountry.find_by(a2: other.Stato.upcase == 'I' ? 'IT' : other.Stato.upcase)
+        country ||= Ygg::Core::IsoCountry.find_by(italian: other.Stato.upcase)
+        country ||= Ygg::Core::IsoCountry.find_by(english: other.Stato.upcase)
+
+        self.residence_location.street_address ||= other.Via
+        self.residence_location.city ||= other.Citta
+        self.residence_location.country_code ||= country ? country.a2 : nil
+        self.residence_location.zip ||= other.CAP
+        self.residence_location.province ||= other.Provincia
+        self.residence_location.save! if self.residence_location.changed? && !self.new_record?
+      else
+        self.residence_location = nil
+      end
+
+      self.acao_bollini = other.Acconto_Voli
+
+      if sync_tessere(debug: debug)
+        puts "PILOT #{acao_code} #{first_name} #{last_name} TESSERE UPDATED" if debug >= 1
+        save!
+      end
+
+      self.acao_lastmod = other.lastmod.floor(6)
+
+      if deep_changed?
+        puts "PILOT #{acao_code} #{first_name} #{last_name} CHANGED" if debug >= 1
+        puts deep_changes.awesome_inspect(plain: true)
+
+        save!
+      end
+
+      sync_contacts(other, debug: debug)
+  # #   sync_memberships(other.iscrizioni)
+      sync_credentials(other, debug: debug)
     end
 
-    self.acao_sleeping = other.visita.socio_non_attivo
-    self.acao_bollini = other.Acconto_Voli
-    self.acao_bar_credit = other.visita.acconto_bar_euro
+    if self.acao_licenza_lastmod != other.licenza.lastmod.floor(6)
+      puts "PILOT #{acao_code} Checking licenses"
 
-#    if other.tag_code &&  other.tag_code.strip != '0' && other.tag_code.strip != ''
-#      fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code.strip.upcase)
-#      if fob
-#        if fob.person_id != self.id
-#          puts "  keyfob #{fob.code} destroyed as it is not assigned to correct user" if debug >= 2
-#          fob.destroy
-#
-#          puts "  keyfob #{fob.code} created" if debug >= 2
-#          acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
-#        end
-#
-#        if fob.src != 'ALIANDRE' || fob.src_id != other.id_soci_dati_generale
-#          fob.src = 'ALIANDRE'
-#          fob.src_id = other.id_soci_dati_generale
-#          fob.descr = "From Aliandre, #{other.codice_socio_dati_generale}"
-#
-#          puts "  keyfob #{fob.code} updated #{keyfob.changes}" if debug >= 2
-#
-#          fob.save!
-#        end
-#      else
-#        acao_key_fobs.create(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
-#        puts "  keyfob #{fob.code} created" if debug >= 2
-#      end
-#    end
+      if sync_licenses(other.licenza, debug: debug)
+        puts "PILOT #{acao_code} #{first_name} #{last_name} LICENSES UPDATED" if debug >= 1
+      end
 
-    if deep_changed?
-      self.acao_lastmod = other.lastmod
-
-      puts "PILOT #{acao_code} #{first_name} #{last_name} CHANGED" if debug >= 1
-      puts deep_changes.awesome_inspect(plain: true)
-
+      self.acao_licenza_lastmod = other.licenza.lastmod.floor(6)
       save!
     end
 
-    sync_contacts(other, debug: debug)
-# #   sync_memberships(other.iscrizioni)
-    sync_credentials(other, debug: debug)
+    if self.acao_visita_lastmod != other.visita.lastmod.floor(6)
+      puts "PILOT #{acao_code} Checking medicals"
 
-    if sync_licenses(other.licenza, debug: debug)
-      puts "PILOT #{acao_code} #{first_name} #{last_name} LICENSES UPDATED" if debug >= 1
-      self.acao_licenza_lastmod = other.licenza.lastmod
-      save!
-    end
+      if sync_medicals(other.visita, debug: debug)
+        puts "PILOT #{acao_code} #{first_name} #{last_name} MEDICALS UPDATED" if debug >= 1
+      end
 
-    if sync_medicals(other.visita, debug: debug)
-      puts "PILOT #{acao_code} #{first_name} #{last_name} MEDICALS UPDATED" if debug >= 1
-      self.acao_visita_lastmod = other.visita.lastmod
-      save!
-    end
+      self.acao_sleeping = other.visita.socio_non_attivo
+      self.acao_bar_credit = other.visita.acconto_bar_euro
 
-    if sync_tessere(debug: debug)
-      puts "PILOT #{acao_code} #{first_name} #{last_name} TESSERE UPDATED" if debug >= 1
+      self.acao_visita_lastmod = other.visita.lastmod.floor(6)
       save!
     end
 
@@ -1407,18 +1397,18 @@ class Pilot < Ygg::Core::Person
       license = acao_licenses.find_or_initialize_by(type: 'GPL', identifier: identifier)
 
       license.issued_at = licenza.Data_Rilascio_GL && licenza.Data_Rilascio_GL != Date.parse('1900-01-01 00:00:00 UTC') ?
-                          licenza.Data_Rilascio_GL : nil
+                          licenza.Data_Rilascio_GL.floor(0) : nil
 
       license.valid_to = licenza.Scadenza_GL && licenza.Scadenza_GL != Date.parse('1900-01-01 00:00:00 UTC') ?
-                         licenza.Scadenza_GL : nil
+                         licenza.Scadenza_GL.floor(0) : nil
 
       license.valid_to2 = licenza.Annotazione_GL && licenza.Annotazione_GL != Date.parse('1900-01-01 00:00:00 UTC') ?
-                          licenza.Annotazione_GL : nil
+                          licenza.Annotazione_GL.floor(0) : nil
 
       if licenza.abilitazioneSL_SiNo
         rating = license.ratings.find_or_initialize_by(type: 'SLSS')
         rating.issued_at = (licenza.data_abil_SL && licenza.data_abil_SL != Date.parse('1900-01-01 00:00:00 UTC')) ?
-                           licenza.data_abil_SL : nil
+                           licenza.data_abil_SL.floor(0) : nil
         rating.valid_to = nil
         rating.save!
       else
@@ -1428,7 +1418,7 @@ class Pilot < Ygg::Core::Person
       if licenza.Abilitazione_TMG_SiNo
         rating = license.ratings.find_or_initialize_by(type: 'TMG')
         rating.issued_at = (licenza.DataAbilit_TMG && licenza.DataAbilit_TMG != Date.parse('1900-01-01 00:00:00 UTC')) ?
-                           licenza.DataAbilit_TMG : nil
+                           licenza.DataAbilit_TMG.floor(0) : nil
         rating.valid_to = nil
         rating.save!
       else
@@ -1450,18 +1440,18 @@ class Pilot < Ygg::Core::Person
       license = acao_licenses.find_or_create_by(type: 'PPL', identifier: identifier)
 
       license.issued_at = licenza.Data_Rilascio_PPL && licenza.Data_Rilascio_PPL != Date.parse('1900-01-01 00:00:00 UTC') ?
-                         licenza.Data_Rilascio_PPL : nil
+                         licenza.Data_Rilascio_PPL.floor(0) : nil
 
       license.valid_to = (licenza.Scadenza_PPL && licenza.Scadenza_PPL != Date.parse('1900-01-01 00:00:00 UTC')) ?
-                         licenza.Scadenza_PPL : nil
+                         licenza.Scadenza_PPL.floor(0) : nil
 
       license.valid_to2 = (licenza.scadenza_retraining_PPL && licenza.scadenza_retraining_PPL != Date.parse('1900-01-01 00:00:00 UTC')) ?
-                         licenza.scadenza_retraining_PPL : nil
+                         licenza.scadenza_retraining_PPL.floor(0) : nil
 
       if licenza.Abilitazione_TMG_SiNo
         rating = license.ratings.find_or_create_by(type: 'TMG')
         rating.issued_at = (licenza.DataAbilit_TMG && licenza.DataAbilit_TMG != Date.parse('1900-01-01 00:00:00 UTC')) ?
-                           licenza.DataAbilit_TMG : nil
+                           licenza.DataAbilit_TMG.floor(0) : nil
         rating.valid_to = nil
         rating.save!
       else
@@ -1472,7 +1462,7 @@ class Pilot < Ygg::Core::Person
       if licenza.Abilitazione_Traino_SiNo
         rating = license.ratings.find_or_create_by(type: 'TOW')
         rating.issued_at = (licenza.Data_Abilit_Traino && licenza.Data_Abilit_Traino != Date.parse('1900-01-01 00:00:00 UTC')) ?
-                           licenza.Data_Abilit_Traino : nil
+                           licenza.Data_Abilit_Traino.floor(0) : nil
         rating.valid_to = nil
         rating.save!
       else
@@ -1483,7 +1473,7 @@ class Pilot < Ygg::Core::Person
       if licenza.Abilit_Istruttore_SiNo
         rating = license.ratings.find_or_create_by(type: 'FI')
         rating.issued_at = (licenza.Data_Abilit_Istruttore && licenza.Data_Abilit_Istruttore != Date.parse('1900-01-01 00:00:00 UTC')) ?
-                           licenza.Data_Abilit_Istruttore : nil
+                           licenza.Data_Abilit_Istruttore.floor(0) : nil
         rating.valid_to = nil
         rating.save!
       else
@@ -1505,7 +1495,7 @@ class Pilot < Ygg::Core::Person
       fai_card = acao_fai_cards.find_or_initialize_by(identifier: identifier)
 
       fai_card.issued_at = licenza.Data_Rilascio_FAI && licenza.Data_Rilascio_FAI != Date.parse('1900-01-01 00:00:00 UTC') ?
-                          licenza.Data_Rilascio_FAI : nil
+                          licenza.Data_Rilascio_FAI.floor(0) : nil
       fai_card.country = 'IT'
       fai_card.valid_to = fai_card.issued_at.end_of_year.round
 
@@ -1529,10 +1519,10 @@ class Pilot < Ygg::Core::Person
       medical = acao_medicals.find_or_create_by(type: type)
 
       medical.issued_at = visita.Data_prima_Visita && visita.Data_prima_Visita != Date.parse('1900-01-01 00:00:00 UTC') ?
-                          visita.Data_prima_Visita : nil
+                          visita.Data_prima_Visita.floor(0) : nil
 
       medical.valid_to = visita.Scadenza_Visita_Medica && visita.Scadenza_Visita_Medica != Date.parse('1900-01-01 00:00:00 UTC') ?
-                         visita.Scadenza_Visita_Medica : nil
+                         visita.Scadenza_Visita_Medica.floor(0) : nil
 
       if medical.changed?
         medical.save!
@@ -1576,7 +1566,7 @@ class Pilot < Ygg::Core::Person
     self.class.merge(
       l: acao_socio.tessere.where('len(tag) < 10').order(tag: :asc).lock,
       r: acao_person_access_remotes.joins(:remote).merge(Ygg::Acao::AccessRemote.order(symbol: :asc )).lock,
-      l_cmp_r: lambda { |l,r| l.tag <=> r.symbol },
+      l_cmp_r: lambda { |l,r| l.tag <=> r.remote.symbol },
       l_to_r: lambda { |l|
 
         puts "TESSERA => ACCESSREMOTE ADD #{l.tag}" if debug >= 1
@@ -1586,7 +1576,7 @@ class Pilot < Ygg::Core::Person
         )
       },
       r_to_l: lambda { |r|
-        puts "ACCESS REMOTE DEL #{r.code}"
+        puts "ACCESS REMOTE DEL #{r.remote.symbol}"
         r.destroy
       },
       lr_update: lambda { |l,r|
