@@ -46,7 +46,7 @@ source 'https://gems.vihai.it/' do
   gem 'json_exceptions'
   gem 'vihai-password-rails'
   gem 'rails_actor_model'
-  gem 'rails_amqp'
+  gem 'rails_amqp', '= 1.0.5'
 
   gem 'am-smtp'
   gem 'am-satispay'

@@ -49,6 +49,11 @@ class Socio < ActiveRecord::Base
            primary_key: 'codice_socio_dati_generale',
            foreign_key: 'codice_pilota'
 
+  has_many :tessere,
+           class_name: '::Ygg::Acao::MainDb::Tessera',
+           primary_key: 'codice_socio_dati_generale',
+           foreign_key: 'codice_socio'
+
   extend Ygg::Acao::MainDb::LastUpdateTracker
 end
 

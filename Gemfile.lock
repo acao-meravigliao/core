@@ -142,9 +142,9 @@ GEM
       sqlite3
       vihai-password
       ygg-exception
-    am-grafo-store (2.0.3)
+    am-grafo-store (2.2.0)
       actor_model
-      grafo-store (~> 2.0.0)
+      grafo-store (~> 2.0)
       iarray
       ygg-diffable
     am-http (0.31.1)
@@ -195,7 +195,7 @@ GEM
       am-io-buffer
       am-sockets (>= 0.18)
     deep_open_struct (2.0.2)
-    grafo-store (2.0.2)
+    grafo-store (2.3.0)
       activesupport
       iarray
       ygg-exception
@@ -215,7 +215,7 @@ GEM
     rails_actor_model (1.0.1)
       actor_model (~> 1.4)
       colorize
-    rails_amqp (1.1.0)
+    rails_amqp (1.0.5)
       am-amqp (~> 2.0)
     rubynary (0.9.0)
       activesupport
@@ -254,9 +254,9 @@ GEM
 GEM
   remote: https://rubygems.org/
   specs:
-    actionpack (7.2.1)
-      actionview (= 7.2.1)
-      activesupport (= 7.2.1)
+    actionpack (7.2.1.2)
+      actionview (= 7.2.1.2)
+      activesupport (= 7.2.1.2)
       nokogiri (>= 1.8.5)
       racc
       rack (>= 2.2.4, < 3.2)
@@ -265,22 +265,22 @@ GEM
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
       useragent (~> 0.16)
-    actionview (7.2.1)
-      activesupport (= 7.2.1)
+    actionview (7.2.1.2)
+      activesupport (= 7.2.1.2)
       builder (~> 3.1)
       erubi (~> 1.11)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
-    activemodel (7.2.1)
-      activesupport (= 7.2.1)
-    activerecord (7.2.1)
-      activemodel (= 7.2.1)
-      activesupport (= 7.2.1)
+    activemodel (7.2.1.2)
+      activesupport (= 7.2.1.2)
+    activerecord (7.2.1.2)
+      activemodel (= 7.2.1.2)
+      activesupport (= 7.2.1.2)
       timeout (>= 0.4.0)
     activerecord-sqlserver-adapter (7.2.1)
       activerecord (~> 7.2.0)
       tiny_tds
-    activesupport (7.2.1)
+    activesupport (7.2.1.2)
       base64
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.3.1)
@@ -323,11 +323,15 @@ GEM
     faraday-net_http (3.3.0)
       net-http
     ffi (1.17.0-aarch64-linux-gnu)
+    ffi (1.17.0-aarch64-linux-musl)
     ffi (1.17.0-arm-linux-gnu)
+    ffi (1.17.0-arm-linux-musl)
     ffi (1.17.0-arm64-darwin)
     ffi (1.17.0-x86-linux-gnu)
+    ffi (1.17.0-x86-linux-musl)
     ffi (1.17.0-x86_64-darwin)
     ffi (1.17.0-x86_64-linux-gnu)
+    ffi (1.17.0-x86_64-linux-musl)
     geocoder (1.8.3)
       base64 (>= 0.1.0)
       csv (>= 3.0.0)
@@ -339,8 +343,8 @@ GEM
     irb (1.14.1)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    json (2.7.2)
-    json-jwt (1.16.6)
+    json (2.7.4)
+    json-jwt (1.16.7)
       activesupport (>= 4.2)
       aes_key_wrap
       base64
@@ -348,7 +352,7 @@ GEM
       faraday (~> 2.0)
       faraday-follow_redirects
     logger (1.6.1)
-    loofah (2.22.0)
+    loofah (2.23.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
     mail (2.8.1)
@@ -360,10 +364,10 @@ GEM
     method_source (1.1.0)
     mini_mime (1.1.5)
     minitest (5.25.1)
-    msgpack (1.7.2)
+    msgpack (1.7.3)
     net-http (0.4.1)
       uri
-    net-imap (0.4.16)
+    net-imap (0.5.0)
       date
       net-protocol
     net-ldap (0.19.0)
@@ -388,7 +392,7 @@ GEM
       racc (~> 1.4)
     optimist (3.1.0)
     pdf-core (0.10.0)
-    pg (1.5.8)
+    pg (1.5.9)
     pg_search (2.3.7)
       activerecord (>= 6.1)
       activesupport (>= 6.1)
@@ -410,7 +414,7 @@ GEM
     puma (6.4.3)
       nio4r (~> 2.0)
     racc (1.8.1)
-    rack (3.1.7)
+    rack (3.1.8)
     rack-session (2.0.0)
       rack (>= 3.0.0)
     rack-test (2.1.0)
@@ -425,9 +429,9 @@ GEM
     rails-html-sanitizer (1.6.0)
       loofah (~> 2.21)
       nokogiri (~> 1.14)
-    railties (7.2.1)
-      actionpack (= 7.2.1)
-      activesupport (= 7.2.1)
+    railties (7.2.1.2)
+      actionpack (= 7.2.1.2)
+      activesupport (= 7.2.1.2)
       irb (~> 1.13)
       rackup (>= 1.0.0)
       rake (>= 12.2)
@@ -471,15 +475,22 @@ GEM
     useragent (0.16.10)
     uuidtools (2.2.0)
     webrick (1.8.2)
-    zeitwerk (2.6.18)
+    zeitwerk (2.7.1)
 
 PLATFORMS
   aarch64-linux
+  aarch64-linux-gnu
+  aarch64-linux-musl
   arm-linux
+  arm-linux-gnu
+  arm-linux-musl
   arm64-darwin
   x86-linux
+  x86-linux-gnu
+  x86-linux-musl
   x86_64-darwin
   x86_64-linux
+  x86_64-linux-musl
 
 DEPENDENCIES
   acao_hel!
@@ -530,7 +541,7 @@ DEPENDENCIES
   puma
   rails_active_rest (~> 1.0)!
   rails_actor_model!
-  rails_amqp!
+  rails_amqp (= 1.0.5)!
   rails_vos!
   railties (~> 7.2.0)
   rb-readline
