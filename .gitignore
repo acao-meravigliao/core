@@ -17,5 +17,6 @@
 /tmp
 
 /config/master.key
-/config/secrets.yml
+/config/credentials.yml
+/config/credentials.enc
 /config/database.yml

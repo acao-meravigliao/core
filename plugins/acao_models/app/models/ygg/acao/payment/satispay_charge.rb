@@ -43,7 +43,7 @@ class Payment::SatispayCharge < Ygg::PublicModel
   require 'am/satispay'
 
   def satispay
-    @satispay ||= AM::Satispay::Client.new(bearer: Rails.application.secrets.satispay_bearer,
+    @satispay ||= AM::Satispay::Client.new(bearer: Rails.application.credentials.satispay_bearer,
                                            http_debug: Rails.application.config.acao.satispay_http_debug || 0)
   end
 

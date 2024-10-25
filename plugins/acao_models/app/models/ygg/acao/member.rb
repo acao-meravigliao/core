@@ -164,9 +164,64 @@ class Member < Ygg::PublicModel
              foreign_key: 'ext_id',
              optional: true
 
-#  def self.lc_class_name
-#    'Ygg::e::Person'
+
+  def self.gs_fetch(gs:, node:)
+
+    rel = all
+
+    if node.id
+      rel = rel.where(id: node.id)
+    elsif node.filter
+      rel = rel.where(node.filter)
+    end
+
+    if node.dig
+      node.dig.each do |dig|
+puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
+
+        related = nil
+
+        if dig.from == 'member' && dig.to == 'keyfob'
+          rel = rel.joins(:key_fobs).preload(:key_fobs)
+        end
+
+        if dig.from == 'member' && dig.to == 'person'
+        end
+      end
+    end
+
+    gs.transaction do
+      rel.each do |model|
+        if model
+          if !gs.objs[node.id]
+            gs.obj_add(model)
+          end
+
+          model.key_fobs.each do |related|
+            if !gs.objs[related.id]
+              gs.obj_add(related)
+              gs.rel_add(a: model.id, a_as: :person, b: related.id, b_as: :keyfob)
+            end
+          end
+        end
+      end
+    end
+
+  end
+
+#  include Comparable
+#  def <=>(other)
+#    id <=> other.id
 #  end
+
+
+
+
+
+
+  def self.lc_class_name
+    'Ygg::Core::Person'
+  end
 
   def self.alive_pilots
     where.not('sleeping')
@@ -404,7 +459,7 @@ class Member < Ygg::PublicModel
 
     faac.login(
       username: Rails.application.config.acao.faac_generic_user,
-      password: Rails.application.secrets.faac_generic_user_password
+      password: Rails.application.credentials.faac_generic_user_password
     )
 
     r_records = faac.users_get_all.
