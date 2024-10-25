@@ -77,6 +77,8 @@ Rails.application.configure do
       'http://services-linobis.acao.it:4200',
       'http://services-linobis.acao.it:4201',
       'https://servizi-dev.acao.it',
+      'https://servizi-dev-lilc.acao.it',
+      'https://servizi-dev.lilc.acao.it',
     ]
 
     config.rails_vos.safe_receiver = true
@@ -116,6 +118,8 @@ Rails.application.configure do
       'http://services-linobis.acao.it:4200',
       'http://services-linobis.acao.it:4201',
       'https://servizi-dev.acao.it',
+      'https://servizi-dev-lilc.acao.it',
+      'https://servizi-dev.lilc.acao.it',
     ]
 
     config.amqp_ws_gw.safe_receiver = true
