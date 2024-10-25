@@ -23,8 +23,42 @@ class ModelsEngine < Rails::Engine
     Ygg::Core::Person.class_eval do
       has_one :acao_member,
                class_name: '::Ygg::Acao::Member'
+
+      gs_rel_map << { from: :person, to: :acao_member, rel: :acao_member }
     end
   end
+
+
+#  Ygg::Core::ReplicaDef.define(
+#    name: 'FAAC',
+#    query: {
+#      cls: 'Ygg::Core::Person',
+#      dig: [
+#       {
+#        from: :person,
+#        to: :member,
+#        dig: [
+#         {
+#          from: :member,
+#          to: :keyfob,
+#         },
+#         {
+#          from: :member,
+#          to: :access_remote,
+#         },
+#        ],
+#       },
+#       {
+#        from: :person,
+#        to: :credential,
+#       },
+#       {
+#        from: :person,
+#        to: :contacts,
+#       },
+#      ]
+#    }
+#   )
 end
 
 end

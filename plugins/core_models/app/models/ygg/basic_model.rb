@@ -27,6 +27,17 @@ class BasicModel < ActiveRecord::Base
   include Ygg::Core::Lifecycle
   include Ygg::Core::Logcollector
 
+ ##############
+  include GrafoStore::StorableAsObject
+
+  def attrs_hash
+    attributes.symbolize_keys!
+  end
+#############
+
+  class_attribute :gs_rel_map
+  self.gs_rel_map = []
+
   def self.define_default_log_controller(model)
     cls = Class.new do
       include ActiveRest::Controller

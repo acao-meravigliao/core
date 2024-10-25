@@ -8,6 +8,8 @@
 
 #require 'rails_vos/server/connection'
 
+require 'am/http/server'
+
 module RailsVos
 
 module Rack
@@ -33,25 +35,49 @@ module Rack
       return [ 403, { 'Content-Type' => 'text/plain' }, [ 'Forbidden' ] ]
     end
 
+    srv = AM::Registry[:rails_vos_server]
+
     env['rack.hijack'].call
     socket = env['rack.hijack_io']
 
-    begin
-      srv = AM::Registry[:rails_vos_server]
+    res = srv.ask(AM::HTTP::Server::MsgRequest.new(
+      id: SecureRandom.uuid,
+      scheme: req.scheme,
+      verb: req.method,
+      uri: req.url,
+      version: req.version,
+      headers: req.headers,
+#      body:,
+      socket: socket,
+#      tls:,
+#      tls_server_cert:,
+#      tls_client_cert:,
+#      tls_client_cert_chain:,
+#      tls_cipher:,
+#      tls_version:,
+#      tls_verify_result:,
+#
+#      local_endpoint:,
+#      remote_endpoint:,
+#      remote_endpoint_real:,
+#
+#      bound_to:,
+#
+#      routes_config: Rails.application.config.rails_vos.routes,
+#      debug: Rails.application.config.rails_vos.debug,
+    )).value
 
-      srv.tell(RailsVos::Server::MsgNewConnection.new(
-        env: env,
-        session: sess,
-        headers: req.headers,
-        socket: socket,
-        routes_config: Rails.application.config.rails_vos.routes,
-        debug: Rails.application.config.rails_vos.debug,
-      ))
-    rescue Exception => e
-      puts "EXCEPTION: #{e}"
+    puts "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV #{res}"
+
+    if res.is_a?(AM::HTTP::Server::MsgRequestHijack)
     end
 
     [ -1, {}, [] ]
+
+  rescue Exception => e
+    puts "EXCEPTION: #{e}"
+    puts "EXCEPTION: #{e.backtrace}"
+
   end
 end
 
