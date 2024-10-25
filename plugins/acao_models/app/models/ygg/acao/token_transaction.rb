@@ -12,29 +12,8 @@ module Acao
 class TokenTransaction < Ygg::PublicModel
   self.table_name = 'acao.token_transactions'
 
-  self.porn_migration += [
-    [ :must_have_column, { name: "id", type: :integer, null: false, limit: 4 } ],
-    [ :must_have_column, { name: "uuid", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-    [ :must_have_column, {name: "person_id", type: :integer, default: nil, limit: 4, null: false}],
-    [ :must_have_column, {name: "aircraft_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "recorded_at", type: :datetime, default: nil, null: false}],
-    [ :must_have_column, {name: "prev_credit", type: :decimal, default: nil, precision: 14, scale: 6, null: true}],
-    [ :must_have_column, {name: "credit", type: :decimal, default: nil, precision: 14, scale: 6, null: true}],
-    [ :must_have_column, {name: "amount", type: :decimal, default: nil, precision: 14, scale: 6, null: false}],
-    [ :must_have_column, {name: "descr", type: :string, default: nil, null: false}],
-    [ :must_have_column, {name: "session_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_index, {columns: ["uuid"], unique: true}],
-    [ :must_have_index, {columns: ["recorded_at"], unique: false}],
-    [ :must_have_index, {columns: ["person_id"], unique: false}],
-    [ :must_have_index, {columns: ["aircraft_id"], unique: false}],
-    [ :must_have_index, {columns: ["session_id"], unique: false}],
-    [ :must_have_fk, {to_table: "core_people", column: "person_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core_sessions", column: "session_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "acao_aircrafts", column: "aircraft_id", primary_key: "id", on_delete: nil, on_update: nil}],
-  ]
-
   belongs_to :member,
-             class_name: 'Ygg::Core::Member'
+             class_name: 'Ygg::Acao::Member'
 
   belongs_to :aircraft,
              class_name: '::Ygg::Acao::Aircraft',
@@ -44,7 +23,6 @@ class TokenTransaction < Ygg::PublicModel
   self.idxc_sensitive_attributes = [
     :person_id,
   ]
-
 
   def self.sync_from_maindb!(from_time: nil, start: nil, stop: nil, debug: 0)
     if from_time
@@ -71,10 +49,10 @@ class TokenTransaction < Ygg::PublicModel
       aircraft_reg = l.marche_mezzo.strip.upcase
       aircraft_reg = nil if aircraft_reg == 'NO' || aircraft_reg.blank?
 
-      puts "LOGBOL #{l.id_log_bollini}" if debug >= 1
+      puts "LOGBOL ADD #{l.id_log_bollini}" if debug >= 1
 
       Ygg::Acao::TokenTransaction.create(
-        person: Ygg::Acao::Pilot.find_by!(acao_code: l.codice_pilota),
+        member: Ygg::Acao::Member.find_by!(code: l.codice_pilota),
         recorded_at: troiano_datetime_to_utc(l.log_data),
         old_operator: l.operatore.strip,
         old_marche_mezzo: l.marche_mezzo.strip,

@@ -436,9 +436,9 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
       ranges << (nil .. (active_to + grace_period).round)
     end
 
-    if acao_socio.tessere_inizio || acao_socio.tessere_fine
-      ranges << ((acao_socio.tessere_inizio && acao_socio.tessere_inizio.beginning_of_day) ..
-                 (acao_socio.tessere_fine && acao_socio.tessere_fine.end_of_day))
+    if socio.tessere_inizio || socio.tessere_fine
+      ranges << ((socio.tessere_inizio && socio.tessere_inizio.beginning_of_day) ..
+                 (socio.tessere_fine && socio.tessere_fine.end_of_day))
     end
 
 #puts "Ranges #{ranges}"
@@ -1217,7 +1217,7 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
   end
 
   def sync_from_maindb(other = socio, person: self.person, with_logbar: true, with_logbollini: true, debug: 0)
-    if other.lastmod.floor(6) != acao_lastmod
+    if other.lastmod.floor(6) != lastmod
       person.first_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ').first
       person.middle_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ')[1..-1].join(' ')
       person.last_name = other.Cognome.strip
@@ -1300,100 +1300,38 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
           fob = key_fobs.build(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
           puts "  keyfob #{fob.code} created" if debug >= 2
         end
-
-        raw_address = [ other.Via, other.Citta, other.Provincia != 'P' ? other.Provincia : '', other.CAP, other.Stato ].map { |x| x.strip }.
-                      reject { |x| x.empty? || x.downcase == 'non specificato' || x.downcase == 'non specificata' || x == '?' }
-
-        if raw_address.any? && other.Citta != 'CITTA' && other.Via != 'VIA'
-          raw_address = raw_address.join(', ')
-          if !residence_location || residence_location.raw_address != raw_address
-            self.residence_location = Ygg::Core::Location.new_for(raw_address)
-            sleep 0.3
-          end
-
-          country = Ygg::Core::IsoCountry.find_by(a2: other.Stato.upcase == 'I' ? 'IT' : other.Stato.upcase)
-          country ||= Ygg::Core::IsoCountry.find_by(italian: other.Stato.upcase)
-          country ||= Ygg::Core::IsoCountry.find_by(english: other.Stato.upcase)
-
-          self.residence_location.street_address ||= other.Via
-          self.residence_location.city ||= other.Citta
-          self.residence_location.country_code ||= country ? country.a2 : nil
-          self.residence_location.zip ||= other.CAP
-          self.residence_location.province ||= other.Provincia
-          self.residence_location.save! if self.residence_location.changed? && !self.new_record?
-        else
-          self.residence_location = nil
-        end
-
-        self.acao_bollini = other.Acconto_Voli
-
-        if sync_tessere(debug: debug)
-          puts "PILOT #{acao_code} #{first_name} #{last_name} TESSERE UPDATED" if debug >= 1
-          save!
-        end
-
-        self.acao_lastmod = other.lastmod.floor(6)
-
-        if deep_changed?
-          puts "PILOT #{acao_code} #{first_name} #{last_name} CHANGED" if debug >= 1
-          puts deep_changes.awesome_inspect(plain: true)
-
-          save!
-        end
-
-        sync_contacts(other, debug: debug)
-    # #   sync_memberships(other.iscrizioni)
-        sync_credentials(other, debug: debug)
       end
 
-    if self.acao_licenza_lastmod != other.licenza.lastmod.floor(6)
-      puts "PILOT #{acao_code} Checking licenses"
+      if deep_changed?
+        self.lastmod = other.lastmod.floor(6)
+
+        puts "MEMBER #{code} #{person.first_name} #{person.last_name} CHANGED" if debug >= 1
+        puts deep_changes.awesome_inspect(plain: true)
+
+        save!
+      end
+    end
+
+    if self.licenza_lastmod != other.licenza.lastmod.floor(6)
+      puts "MEMBER #{code} Checking licenses"
 
       if sync_licenses(other.licenza, debug: debug)
-        puts "PILOT #{acao_code} #{first_name} #{last_name} LICENSES UPDATED" if debug >= 1
+        puts "MEMBER #{code} #{person.first_name} #{person.last_name} LICENSES UPDATED" if debug >= 1
       end
 
-      self.acao_licenza_lastmod = other.licenza.lastmod.floor(6)
+      self.licenza_lastmod = other.licenza.lastmod.floor(6)
       save!
     end
 
-    if self.acao_visita_lastmod != other.visita.lastmod.floor(6)
-      puts "PILOT #{acao_code} Checking medicals"
+    if self.visita_lastmod != other.visita.lastmod.floor(6)
+      puts "MEMBER #{code} Checking medicals"
 
       if sync_medicals(other.visita, debug: debug)
-        puts "PILOT #{acao_code} #{first_name} #{last_name} MEDICALS UPDATED" if debug >= 1
+        puts "MEMBER #{code} #{person.first_name} #{person.last_name} MEDICALS UPDATED" if debug >= 1
       end
 
-      self.acao_sleeping = other.visita.socio_non_attivo
-      self.acao_bar_credit = other.visita.acconto_bar_euro
-
-      self.acao_visita_lastmod = other.visita.lastmod.floor(6)
+      self.visita_lastmod = other.visita.lastmod.floor(6)
       save!
-    end
-
-    sync_contacts(other, person: person, debug: debug)
-# #   sync_memberships(other.iscrizioni)
-    sync_credentials(other, debug: debug)
-
-    if sync_licenses(other.licenza, debug: debug)
-      puts "MEMBER #{code} #{person.first_name} #{person.last_name} LICENSES UPDATED" if debug >= 1
-      self.licenza_lastmod = other.licenza.lastmod
-      save!
-    end
-
-    if sync_medicals(other.visita, debug: debug)
-      puts "MEMBER #{code} #{person.first_name} #{person.last_name} MEDICALS UPDATED" if debug >= 1
-      self.visita_lastmod = other.visita.lastmod
-      save!
-    end
-
-    if with_logbar
-      sync_log_bar(other.log_bar2, debug: debug)
-      sync_log_bar_deposits(other.cassetta_bar_locale, debug: debug)
-    end
-
-    if with_logbollini
-      sync_log_bollini(other.log_bollini)
     end
   end
 
