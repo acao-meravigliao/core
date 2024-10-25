@@ -18,5 +18,5 @@
 
 /config/master.key
 /config/credentials.yml
-/config/credentials.enc
+/config/credentials.yml.enc
 /config/database.yml
