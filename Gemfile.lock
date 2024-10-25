@@ -215,7 +215,7 @@ GEM
     rails_actor_model (1.0.1)
       actor_model (~> 1.4)
       colorize
-    rails_amqp (1.0.5)
+    rails_amqp (1.1.1)
       am-amqp (~> 2.0)
     rubynary (0.9.0)
       activesupport
@@ -541,7 +541,7 @@ DEPENDENCIES
   puma
   rails_active_rest (~> 1.0)!
   rails_actor_model!
-  rails_amqp (= 1.0.5)!
+  rails_amqp!
   rails_vos!
   railties (~> 7.2.0)
   rb-readline

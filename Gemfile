@@ -6,19 +6,10 @@ gem 'actionpack', '~> 7.2.0'
 gem 'actionview', '~> 7.2.0'
 gem 'activesupport', '~> 7.2.0'
 gem 'railties', '~> 7.2.0'
-#gem 'sprockets-rails'
-
-#gem 'activerecord', '~> 6.1.0'
-#gem 'activemodel', '~> 6.1.0'
-#gem 'actionpack', '~> 6.1.0'
-#gem 'actionview', '~> 6.1.0'
-#gem 'activesupport', '~> 6.1.0'
-#gem 'railties', '~> 6.1.0'
 
 gem 'pg'
-gem 'tiny_tds'#, '~> 1.1.0'
+gem 'tiny_tds'
 gem 'activerecord-sqlserver-adapter', '~> 7.2'
-#gem 'activerecord-sqlserver-adapter'#, git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git'
 
 gem 'puma'
 
@@ -46,7 +37,7 @@ source 'https://gems.vihai.it/' do
   gem 'json_exceptions'
   gem 'vihai-password-rails'
   gem 'rails_actor_model'
-  gem 'rails_amqp', '= 1.0.5'
+  gem 'rails_amqp'
 
   gem 'am-smtp'
   gem 'am-satispay'
@@ -57,8 +48,7 @@ source 'https://gems.vihai.it/' do
   gem 'iarray'
 
   group :hel_together do
-    #gem 'hel_together', '~> 1.5.2' # For rails 6.0
-    gem 'hel_together', '~> 1.6.1' # For rails 6.0
+    gem 'hel_together', '~> 1.6.1'
     gem 'nisse_hel', path: 'plugins/nisse_hel'
     gem 'core_heltog', path: 'plugins/core_heltog'
     gem 'ml_heltog', path: 'plugins/ml_heltog'
