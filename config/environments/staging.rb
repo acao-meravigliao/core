@@ -27,7 +27,7 @@ Rails.application.configure do
 
   # Use the lowest log level to ensure availability of diagnostic information
   # when problems arise.
-  config.log_level = :info
+  config.log_level = :debug
 
   # Prepend all log lines with the following tags.
   config.log_tags = [ :request_id ]
@@ -42,9 +42,6 @@ Rails.application.configure do
   # Send deprecation notices to registered listeners.
   config.active_support.deprecation = :notify
 
-  # Use default logging formatter so that PID and timestamp are not suppressed.
-  config.log_formatter = ::Logger::Formatter.new
-
   # Use a different logger for distributed setups.
   # require 'syslog/logger'
   # config.logger = ActiveSupport::TaggedLogging.new(Syslog::Logger.new 'app-name')
@@ -55,30 +52,45 @@ Rails.application.configure do
     config.logger = ActiveSupport::TaggedLogging.new(logger)
   end
 
+  # Do not dump schema after migrations.
+  config.active_record.dump_schema_after_migration = false
+
+  ###############
+
   config.rails_amqp.url = 'amqp://agent@linobis.acao.it'
-  config.rails_amqp.debug = 0
+  config.rails_amqp.debug = 1
 
   config.ml.email_disabled = false
   config.ml.email_redirect_to = 'daniele@orlandi.com'
   config.ml.sms_disabled = true
   config.ml.sms_redirect_to = '+393474659309'
-  config.ml.sms_skebby_debug = 0
+  config.ml.sms_skebby_debug = 2
 
-  if config.respond_to?(:amqp_ws_gw)
-    config.amqp_ws_gw.allowed_request_origins = [
-      'https://linobis.acao.it',
-      'http://linobis.acao.it:4200',
-      'https://dashboard-linobis.acao.it',
+  config.acao.soci_ml_dry_run = true
+  config.acao.faac_endpoint = 'https://ac-controller.acao.it/'
+  config.acao.faac_generic_user = 'acao'
+  config.acao.faac_debug = 2
+  config.acao.faac_actions = {
+    CANCELLO: '3870651b-3702-454c-ad30-42c16337ebbf',
+    SBARRA: 'e4113bd9-c6b9-401b-a157-2c37b83b5155',
+    PEDONALE: 'a93e70a7-0e62-48bb-82be-5d6c769cb6a4',
+  }
+
+  if config.respond_to?(:rails_vos)
+    config.rails_vos.allowed_request_origins = [
+      'https://servizi-staging.acao.it',
     ]
 
-    config.amqp_ws_gw.routes.merge!({
-      'ygg.glideradar.processed_traffic': {
+    config.rails_vos.safe_receiver = true
+
+    config.rails_vos.routes.merge!({
+      'ygg.glideradar.processed_traffic.live.linobis': {
         type: :topic,
         durable: true,
         auto_delete: false,
         anonymous_access: true,
       },
-      'ygg.glideradar.processed_traffic.linobis': {
+      'ygg.autocam.state.linobis': {
         type: :topic,
         durable: true,
         auto_delete: false,
@@ -87,5 +99,28 @@ Rails.application.configure do
     })
   end
 
-  config.acao.soci_ml_dry_run = true
+  if config.respond_to?(:amqp_ws_gw)
+    config.amqp_ws_gw.allowed_request_origins = [
+      'https://servizi-staging.acao.it',
+    ]
+
+    config.amqp_ws_gw.safe_receiver = true
+
+    config.amqp_ws_gw.routes.merge!({
+      'ygg.glideradar.processed_traffic.live.linobis': {
+        type: :topic,
+        durable: true,
+        auto_delete: false,
+        anonymous_access: true,
+      },
+      'ygg.autocam.state.linobis': {
+        type: :topic,
+        durable: true,
+        auto_delete: false,
+        anonymous_access: true,
+      },
+    })
+  end
+
+  config.hosts.clear
 end
