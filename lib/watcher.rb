@@ -9,8 +9,10 @@ loop do
   mezzo_changed = false
   volo_changed = false
   onda_changed = false
+  logbar_changed = false
+  logbol_changed = false
 
-  puts "loop" if debug >= 3
+  puts "loop" if debug >= 4
 
   if Ygg::Acao::MainDb::Socio.has_been_updated?
     puts "Socio has been changed" if debug >= 1
@@ -43,34 +45,16 @@ loop do
     mezzo_changed = true
   end
 
-  if Ygg::Acao::MainDb::LogBar2.has_been_updated?
-    puts "LogBar2 has been changed" if debug >= 1
-    soci_changed = true
-  end
-
-  if Ygg::Acao::MainDb::CassettaBarLocale.has_been_updated?
-    puts "CassettaBarLocale has been changed" if debug >= 1
-    soci_changed = true
-  end
-
-  if Ygg::Acao::MainDb::LogBollini.has_been_updated?
-    puts "LogBollini has been changed" if debug >= 1
-    soci_changed = true
-  end
-
   if Ygg::Acao::Onda::DocTesta.has_been_updated?
     puts "DocTesta has been changed" if debug >= 1
     onda_changed = true
   end
 
   if soci_changed
+    puts "Updating Pilot(s)" if debug >= 1
 
     time0 = Time.new
-    puts "Updating Pilot(s)" if debug >= 1
-    Ygg::Acao::Pilot.sync_from_maindb!(
-       with_logbar: Ygg::Acao::MainDb::LogBar2.has_been_updated? || Ygg::Acao::MainDb::CassettaBarLocale.has_been_updated?,
-       with_logbollini: Ygg::Acao::MainDb::LogBollini.has_been_updated?,
-       debug: debug)
+    Ygg::Acao::Pilot.sync_from_maindb!(debug: debug)
     puts "Pilots update done, took #{Time.new - time0} seconds" if debug >= 1
 
     time0 = Time.new
@@ -83,9 +67,6 @@ loop do
     Ygg::Acao::MainDb::SociDatiVisita.update_last_update!
     Ygg::Acao::MainDb::SocioIscritto.update_last_update!
     Ygg::Acao::MainDb::Tessera.update_last_update!
-    Ygg::Acao::MainDb::LogBar2.update_last_update!
-    Ygg::Acao::MainDb::CassettaBarLocale.update_last_update!
-    Ygg::Acao::MainDb::LogBollini.update_last_update!
   end
 
   if mezzo_changed
@@ -102,15 +83,40 @@ loop do
 
     puts "Updating Ygg::Acao::Flight" if debug >= 1
 
-    ff = Ygg::Acao::Flight.order(takeoff_time: :asc).where('takeoff_time > ?', Time.now - 30.days).first
-    start_id = ff ? ff.source_id : 0
-
-    Ygg::Acao::Flight.sync_from_maindb!(start: start_id, debug: 1)
+    Ygg::Acao::Flight.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
 
     Ygg::Acao::MainDb::Volo.update_last_update!
 
     puts "Ygg::Acao::Flight done, took #{Time.new - time0} seconds" if debug >= 1
   end
+
+  if Ygg::Acao::MainDb::LogBar2.has_been_updated?
+    puts "LogBar2 has been changed" if debug >= 1
+    logbar_changed = true
+
+    Ygg::Acao::Flight.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
+
+    Ygg::Acao::MainDb::LogBar2.update_last_update!
+  end
+
+  if Ygg::Acao::MainDb::CassettaBarLocale.has_been_updated?
+    puts "CassettaBarLocale has been changed" if debug >= 1
+    logbar_changed = true
+
+    Ygg::Acao::Flight.sync_from_maindb2!(from_time: Time.now - 30.days, debug: debug)
+
+    Ygg::Acao::MainDb::CassettaBarLocale.update_last_update!
+  end
+
+  if Ygg::Acao::MainDb::LogBollini.has_been_updated?
+    puts "LogBollini has been changed" if debug >= 1
+    logbol_changed = true
+
+    Ygg::Acao::TokenTransaction.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
+
+    Ygg::Acao::MainDb::LogBollini.update_last_update!
+  end
+
 
   if onda_changed
     puts "Running trigger replacement" if debug >= 1
@@ -120,7 +126,7 @@ loop do
     Ygg::Acao::Onda::DocTesta.update_last_update!
   end
 
-  if soci_changed || mezzo_changed || volo_changed || onda_changed
+  if soci_changed || mezzo_changed || volo_changed || onda_changed || logbar_changed || logbol_changed
     puts "------------------------------- DONE ---------------------------------" if debug >= 1
   end
 

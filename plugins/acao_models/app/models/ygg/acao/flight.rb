@@ -145,7 +145,13 @@ class Flight < Ygg::PublicModel
 
   class InvalidRecord < StandardError ; end
 
-  def self.sync_from_maindb!(start: nil, stop: nil, debug: 0)
+  def self.sync_from_maindb!(from_time: nil, start: nil, stop: nil, debug: 0)
+
+    if from_time
+      ff = Ygg::Acao::Flight.order(takeoff_time: :asc).where('takeoff_time > ?', from_time).first
+      return if !ff
+      start = ff.source_id
+    end
 
     l_relation = Ygg::Acao::MainDb::Volo.all.order(id_voli: :asc)
     l_relation = l_relation.where('id_voli >= ?', start) if start

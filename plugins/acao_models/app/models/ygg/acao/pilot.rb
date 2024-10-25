@@ -1078,7 +1078,7 @@ class Pilot < Ygg::Core::Person
     end
   end
 
-  def self.sync_from_maindb!(with_logbar: true, with_logbollini: true, debug: 0)
+  def self.sync_from_maindb!(debug: 0)
 
     l_records = Ygg::Acao::MainDb::Socio.order(id_soci_dati_generale: :asc).lock
     r_records = Ygg::Acao::Pilot.where('acao_ext_id IS NOT NULL').order(acao_ext_id: :asc).lock
@@ -1096,7 +1096,7 @@ class Pilot < Ygg::Core::Person
           acao_roster_allowed: true,
         })
 
-        person.sync_from_maindb(l, with_logbar: with_logbar, with_logbollini: with_logbollini)
+        person.sync_from_maindb(l)
 
         person.save!
 
@@ -1119,12 +1119,12 @@ class Pilot < Ygg::Core::Person
       puts "UPD CHK #{l.codice_socio_dati_generale} #{l.Nome} #{l.Cognome}" if debug >= 3
 
       transaction do
-        r.sync_from_maindb(l, with_logbar: with_logbar, with_logbollini: with_logbollini)
+        r.sync_from_maindb(l)
       end
     })
   end
 
-  def sync_from_maindb(other = acao_socio, with_logbar: true, with_logbollini: true, debug: 0)
+  def sync_from_maindb(other = acao_socio, debug: 0)
     if other.lastmod.floor(6) != acao_lastmod
       self.first_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ').first
       self.middle_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ')[1..-1].join(' ')
@@ -1225,141 +1225,6 @@ class Pilot < Ygg::Core::Person
       self.acao_visita_lastmod = other.visita.lastmod.floor(6)
       save!
     end
-
-    if with_logbar
-      sync_log_bar(other.log_bar2, debug: debug)
-      sync_log_bar_deposits(other.cassetta_bar_locale, debug: debug)
-    end
-
-    if with_logbollini
-      sync_log_bollini(other.log_bollini)
-    end
-  end
-
-  def sync_log_bar(other_log_bar, debug: 0)
-    self.class.merge(
-      l: other_log_bar.order(id_logbar: :asc).lock,
-      r: acao_bar_transactions.where('old_id IS NOT NULL').order(old_id: :asc).lock,
-      l_cmp_r: lambda { |l,r| l.id_logbar <=> r.old_id },
-      l_to_r: lambda { |l|
-        puts "LB ADD #{l.id_logbar}" if debug >= 1
-
-        acao_bar_transactions << Ygg::Acao::BarTransaction.new(
-          recorded_at: troiano_datetime_to_utc(l.data_reg),
-          cnt: 1,
-          unit: '€',
-          descr: l.descrizione.strip,
-          amount: -l.prezzo,
-          prev_credit: l.credito_prec,
-          credit: l.credito_rim,
-          old_id: l.id_logbar,
-        )
-      },
-      r_to_l: lambda { |r|
-        puts "Unexpected record in log bar"
-        r.destroy
-      },
-      lr_update: lambda { |l,r|
-        puts "LB CMP" if debug >= 2
-
-        r.assign_attributes(
-          recorded_at: troiano_datetime_to_utc(l.data_reg),
-        )
-
-        if r.deep_changed?
-          puts "UPDATING LOG BAR from logbar2 id_logbar=#{l.id_logbar}"
-          puts r.deep_changes.awesome_inspect(plain: true)
-          r.save!
-        end
-      }
-    )
-  end
-
-  def sync_log_bar_deposits(other_deposits, debug: 0)
-    self.class.merge(
-      l: other_deposits.order(id_cassetta_bar_locale: :asc).lock,
-      r: acao_bar_transactions.where('old_cassetta_id IS NOT NULL').order(old_cassetta_id: :asc).lock,
-      l_cmp_r: lambda { |l,r| l.id_cassetta_bar_locale <=> r.old_cassetta_id },
-      l_to_r: lambda { |l|
-        puts "LBD ADD #{l.id_cassetta_bar_locale}" if debug >= 1
-
-        acao_bar_transactions << Ygg::Acao::BarTransaction.new(
-          recorded_at: troiano_datetime_to_utc(l.data_reg),
-          cnt: 1,
-          unit: '€',
-          descr: 'Versamento',
-          amount: l.avere_cassa_bar_locale,
-          prev_credit: nil,
-          credit: nil,
-          old_cassetta_id: l.id_cassetta_bar_locale,
-        )
-      },
-      r_to_l: lambda { |r|
-        puts "Unexpected record in log bar deposits"
-        r.destroy
-      },
-      lr_update: lambda { |l,r|
-        puts "LBD CHK #{l.id_cassetta_bar_locale}" if debug >= 3
-
-        r.assign_attributes(
-          recorded_at: troiano_datetime_to_utc(l.data_reg),
-        )
-
-        if r.deep_changed?
-          puts "UPDATING LOG BAR old_cassetta_id=#{l.id_cassetta_bar_locale}"
-          puts r.deep_changes.awesome_inspect(plain: true)
-          r.save!
-        end
-      }
-    )
-  end
-
-  def sync_log_bollini(other, debug: 0)
-    self.class.merge(
-      l: other.order(id_log_bollini: :asc).lock,
-      r: acao_token_transactions.reload.where('old_id IS NOT NULL').order(old_id: :asc).lock,
-      l_cmp_r: lambda { |l,r| l.id_log_bollini <=> r.old_id },
-      l_to_r: lambda { |l|
-        aircraft_reg = l.marche_mezzo.strip.upcase
-        aircraft_reg = nil if aircraft_reg == 'NO' || aircraft_reg.blank?
-
-        puts "LBOL ADD #{l.id_log_bollini}" if debug >= 1
-
-        acao_token_transactions << Ygg::Acao::TokenTransaction.new(
-          recorded_at: troiano_datetime_to_utc(l.log_data),
-          old_operator: l.operatore.strip,
-          old_marche_mezzo: l.marche_mezzo.strip,
-          descr: l.note.strip,
-          amount: l.credito_att - l.credito_prec,
-          prev_credit: l.credito_prec,
-          credit: l.credito_att,
-          old_id: l.id_log_bollini,
-          aircraft: Ygg::Acao::Aircraft.find_by(registration: aircraft_reg),
-        )
-      },
-      r_to_l: lambda { |r|
-        puts "LBOL DEL #{r.old_id}"
-        r.destroy
-      },
-      lr_update: lambda { |l,r|
-         puts "LBOL CHK #{l.id_log_bollini}" if debug >= 3
-
-        aircraft_reg = l.marche_mezzo.strip.upcase
-        aircraft_reg = nil if aircraft_reg == 'NO' || aircraft_reg.blank?
-
-        r.assign_attributes(
-          amount: l.credito_att - l.credito_prec,
-          recorded_at: troiano_datetime_to_utc(l.log_data),
-          aircraft: Ygg::Acao::Aircraft.find_by(registration: aircraft_reg),
-        )
-
-        if r.deep_changed?
-          puts "UPDATING LOG BOLLINI old_cassetta_id=#{l.id_log_bollini}" if debug >= 1
-          puts r.deep_changes.awesome_inspect(plain: true)
-          r.save!
-        end
-      }
-    )
   end
 
   def sync_credentials(l, debug: 0)
