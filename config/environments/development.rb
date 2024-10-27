@@ -72,6 +72,8 @@ Rails.application.configure do
   config.ml.mailman_sync_disabled = true
 
   config.acao.soci_ml_dry_run = true
+
+  config.acao.faac_dry_run = true
   config.acao.faac_endpoint = 'https://ac-controller.acao.it/'
   config.acao.faac_generic_user = 'acao'
   config.acao.faac_debug = 2
