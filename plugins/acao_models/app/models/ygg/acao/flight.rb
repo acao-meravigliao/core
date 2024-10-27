@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #
 # Copyright (C) 2016-2017, Daniele Orlandi
 #
@@ -58,31 +59,6 @@ class Flight < Ygg::PublicModel
     :towed_by_id,
   ]
 
-  def self.merge(l:, r:, l_cmp_r:, l_to_r:, r_to_l:, lr_update:)
-    r_enum = r.each
-    l_enum = l.each
-
-    r = r_enum.next rescue nil
-    l = l_enum.next rescue nil
-
-    while r || l
-      if !l || (r && l_cmp_r.call(l, r) == 1)
-        r_to_l.call(r)
-
-        r = r_enum.next rescue nil
-      elsif !r || (l &&  l_cmp_r.call(l, r) == -1)
-        l_to_r.call(l)
-
-        l = l_enum.next rescue nil
-      else
-        lr_update.call(l, r)
-
-        l = l_enum.next rescue nil
-        r = r_enum.next rescue nil
-      end
-    end
-  end
-
   class InvalidRecord < StandardError ; end
 
   def self.sync_from_maindb!(from_time: nil, start: nil, stop: nil, debug: 0)
@@ -108,7 +84,7 @@ class Flight < Ygg::PublicModel
     r_relation = r_relation.where('source_id >= ?', start) if start
     r_relation = r_relation.where('source_id <= ?', stop) if stop
 
-    merge(
+    Ygg::Toolkit.merge(
     l: l_relation,
     r: r_relation,
     l_cmp_r: lambda { |l,r| l.id_voli <=> r.source_id },
@@ -165,7 +141,7 @@ class Flight < Ygg::PublicModel
     r_relation = r_relation.where('source_id >= ?', start) if start
     r_relation = r_relation.where('source_id <= ?', stop) if stop
 
-    merge(
+    Ygg::Toolkit.merge(
     l: l_relation,
     r: r_relation,
     l_cmp_r: lambda { |l,r| l.id_voli <=> r.source_id },
@@ -265,7 +241,7 @@ class Flight < Ygg::PublicModel
 
     self.aircraft_class = aircraft.aircraft_type ? aircraft.aircraft_type.aircraft_class : nil
     self.aircraft_owner_id = aircraft.owner_id
-    self.aircraft_owner = ((aircraft.owner && aircraft.owner.name) || aircraft.fn_owner_name).presence
+    self.aircraft_owner = ((aircraft.owner && aircraft.owner.person.name) || aircraft.fn_owner_name).presence
 
     if other.marche_aereo.strip == 'AUTO'
       self.launch_type = 'SELF'

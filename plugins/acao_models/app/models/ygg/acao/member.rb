@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #
 # Copyright (C) 2017-2024, Daniele Orlandi
 #
@@ -452,6 +453,12 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
   end
 
   def self.sync_with_faac!(grace_period: 1.month, debug: Rails.application.config.acao.faac_debug || 0)
+
+    if Rails.application.config.acao.faac_dry_run
+      puts "FAAC dry run"
+      return
+    end
+
     faac = FaacApi::Client.new(
       endpoint: Rails.application.config.acao.faac_endpoint,
       debug: debug - 2
@@ -478,7 +485,7 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
 
     users = Hash[l_records.map { |x| [ x.id, x ] }]
 
-    merge(l: l_records, r: r_records,
+    Ygg::Toolkit.merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| "ACAO:#{l.id}" <=> r[:uniqueCode] },
     l_to_r: lambda { |l|
       puts "User create: #{l.code} #{l.person.first_name} #{l.person.last_name}" if debug > 0
@@ -587,7 +594,7 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
 
     # Remove media before adding to avoid identifier uniqueness issues
 
-    merge(
+    Ygg::Toolkit.merge(
     l: l_records.sort_by { |x| x.code_for_faac },
     r: r_records.sort_by { |x| x[:identifier] },
     l_cmp_r: lambda { |l,r| l.code_for_faac <=> r[:identifier] },
@@ -602,7 +609,7 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
     lr_update: lambda { |l,r| }
     )
 
-    merge(
+    Ygg::Toolkit.merge(
     l: l_records.sort_by { |x| x.id },
     r: r_records.sort_by { |x| x[:uuid] },
     l_cmp_r: lambda { |l,r| l.id <=> r[:uuid] },
@@ -905,7 +912,7 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
     list = Ygg::Ml::List.find_by!(symbol: symbol)
     current_members = list.members.where(owner_type: 'Ygg::Acao::Member').order(owner_id: :asc)
 
-    merge(l: members.to_a.sort { |a,b| a.id <=> b.id }, r: current_members,
+    Ygg::Toolkit.merge(l: members.to_a.sort { |a,b| a.id <=> b.id }, r: current_members,
       l_cmp_r: lambda { |l,r| l.id <=> r.owner_id },
       l_to_r: lambda { |l|
         l.person.contacts.where(type: 'email').each do |contact|
@@ -954,7 +961,7 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
     members_to_add = []
     members_to_remove = []
 
-    merge(l: l_emails, r: r_emails,
+    Ygg::Toolkit.merge(l: l_emails, r: r_emails,
       l_cmp_r: lambda { |l,r| l <=> r },
       l_to_r: lambda { |l|
         members_to_add << "#{l_full_emails[l]} <#{l}>"
@@ -1022,7 +1029,7 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
 
     puts "Computing changes..." if debug >= 1
 
-    merge(l: l_records, r: r_records,
+    Ygg::Toolkit.merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| l.code.to_s <=> r[:user_login] },
     l_to_r: lambda { |l|
       puts "CREATE: #{l.acao_code}" if debug >= 2
@@ -1124,42 +1131,12 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
 
   ############ Old Database Synchronization
 
-  def self.merge(l:, r:, l_cmp_r:, l_to_r:, r_to_l:, lr_update:)
-
-    r_enum = r.each
-    l_enum = l.each
-
-    r = r_enum.next rescue nil
-    l = l_enum.next rescue nil
-
-    while r || l
-      if !l || (r && l_cmp_r.call(l, r) == 1)
-        r_to_l.call(r)
-
-        r = r_enum.next rescue nil
-      elsif !r || (l &&  l_cmp_r.call(l, r) == -1)
-        l_to_r.call(l)
-
-        l = l_enum.next rescue nil
-      else
-        lr_update.call(l, r)
-
-        l = l_enum.next rescue nil
-        r = r_enum.next rescue nil
-      end
-    end
-  end
-
   def self.sync_from_maindb!(debug: 0)
-
-    puts "Syncing" if debug >= 1
 
     l_records = Ygg::Acao::MainDb::Socio.order(id_soci_dati_generale: :asc).lock
     r_records = where('ext_id IS NOT NULL').order(ext_id: :asc).lock
 
-    puts "Syncing 2" if debug >= 1
-
-    merge(l: l_records, r: r_records,
+    Ygg::Toolkit.merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| l.id_soci_dati_generale <=> r.ext_id },
     l_to_r: lambda { |l|
       return if [ -1, 0, 1, 4000, 4001, 7000, 8888, 9999 ].include?(l.codice_socio_dati_generale)

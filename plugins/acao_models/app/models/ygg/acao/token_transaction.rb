@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #
 # Copyright (C) 2018-2018, Daniele Orlandi
 #
@@ -36,12 +37,13 @@ class TokenTransaction < Ygg::PublicModel
     l_relation = l_relation.where('id_log_bollini <= ?', stop) if stop
 
     r_relation = Ygg::Acao::TokenTransaction.
+                   includes(:aircraft).
                    where('old_id IS NOT NULL').
                    order(old_id: :asc)
     r_relation = r_relation.where('old_id >= ?', start) if start
     r_relation = r_relation.where('old_id <= ?', stop) if stop
 
-    merge(
+    Ygg::Toolkit.merge(
     l: l_relation,
     r: r_relation,
     l_cmp_r: lambda { |l,r| l.id_log_bollini <=> r.old_id },
@@ -61,7 +63,7 @@ class TokenTransaction < Ygg::PublicModel
         prev_credit: l.credito_prec,
         credit: l.credito_att,
         old_id: l.id_log_bollini,
-        aircraft: Ygg::Acao::Aircraft.find_by(registration: aircraft_reg),
+        aircraft: aircraft_reg ? Ygg::Acao::Aircraft.find_by(registration: aircraft_reg) : nil,
       )
 
     },
@@ -78,7 +80,7 @@ class TokenTransaction < Ygg::PublicModel
       r.assign_attributes(
         amount: l.credito_att - l.credito_prec,
         recorded_at: troiano_datetime_to_utc(l.log_data),
-        aircraft: Ygg::Acao::Aircraft.find_by(registration: aircraft_reg),
+        aircraft: aircraft_reg ? Ygg::Acao::Aircraft.find_by(registration: aircraft_reg) : nil,
       )
 
       if r.deep_changed?
@@ -90,60 +92,9 @@ class TokenTransaction < Ygg::PublicModel
 
   end
 
-  def self.merge(l:, r:, l_cmp_r:, l_to_r:, r_to_l:, lr_update:)
-    r_enum = r.each
-    l_enum = l.each
-
-    r = r_enum.next rescue nil
-    l = l_enum.next rescue nil
-
-    while r || l
-      if !l || (r && l_cmp_r.call(l, r) == 1)
-        r_to_l.call(r)
-
-        r = r_enum.next rescue nil
-      elsif !r || (l &&  l_cmp_r.call(l, r) == -1)
-        l_to_r.call(l)
-
-        l = l_enum.next rescue nil
-      else
-        lr_update.call(l, r)
-
-        l = l_enum.next rescue nil
-        r = r_enum.next rescue nil
-      end
-    end
-  end
-
   def self.troiano_datetime_to_utc(dt)
     ActiveSupport::TimeZone.new('Europe/Rome').local_to_utc(dt)
   end
-
-  def self.merge(l:, r:, l_cmp_r:, l_to_r:, r_to_l:, lr_update:)
-    r_enum = r.each
-    l_enum = l.each
-
-    r = r_enum.next rescue nil
-    l = l_enum.next rescue nil
-
-    while r || l
-      if !l || (r && l_cmp_r.call(l, r) == 1)
-        r_to_l.call(r)
-
-        r = r_enum.next rescue nil
-      elsif !r || (l &&  l_cmp_r.call(l, r) == -1)
-        l_to_r.call(l)
-
-        l = l_enum.next rescue nil
-      else
-        lr_update.call(l, r)
-
-        l = l_enum.next rescue nil
-        r = r_enum.next rescue nil
-      end
-    end
-  end
-
 end
 
 end
