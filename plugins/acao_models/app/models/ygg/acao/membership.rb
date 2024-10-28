@@ -157,12 +157,12 @@ class Membership < Ygg::PublicModel
       enabled: false,
     }
 
-#    services << {
-#      service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'METEOWIND').id,
-#      removable: false,
-#      toggable: true,
-#      enabled: false,
-#    }
+    services << {
+      service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'METEOWIND').id,
+      removable: false,
+      toggable: true,
+      enabled: false,
+    }
 
     pilot.acao_aircrafts.each do |x|
       srvt = if x.hangar
