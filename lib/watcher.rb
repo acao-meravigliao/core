@@ -94,7 +94,7 @@ loop do
     puts "LogBar2 has been changed" if debug >= 1
     logbar_changed = true
 
-    Ygg::Acao::Flight.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
+    Ygg::Acao::BarTransaction.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
 
     Ygg::Acao::MainDb::LogBar2.update_last_update!
   end
@@ -103,7 +103,7 @@ loop do
     puts "CassettaBarLocale has been changed" if debug >= 1
     logbar_changed = true
 
-    Ygg::Acao::Flight.sync_from_maindb2!(from_time: Time.now - 30.days, debug: debug)
+    Ygg::Acao::BarTransaction.sync_from_maindb2!(from_time: Time.now - 30.days, debug: debug)
 
     Ygg::Acao::MainDb::CassettaBarLocale.update_last_update!
   end
@@ -123,6 +123,9 @@ loop do
     time0 = Time.new
     Ygg::Acao::Onda::DocTesta.trigger_replacement(debug: debug)
     puts "trigger replacement done, took #{Time.new - time0} seconds" if debug >= 1
+
+    Ygg::Acao::Invoice.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
+
     Ygg::Acao::Onda::DocTesta.update_last_update!
   end
 
