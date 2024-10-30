@@ -49,6 +49,8 @@ Rails.application.configure do
   config.ml.sms_skebby_debug = 2
 
   config.acao.soci_ml_dry_run = true
+
+  config.acao.faac_dry_run = true
   config.acao.faac_endpoint = 'https://ac-controller.acao.it/'
   config.acao.faac_generic_user = 'acao'
   config.acao.faac_debug = 2
@@ -66,16 +68,6 @@ Rails.application.configure do
       'http://linobis.acao.it:4200',
       'http://linobis.acao.it:4201',
       'http://linobis.acao.it:4242',
-      'http://dashboard-linobis.acao.it:3330',
-      'http://dashboard-linobis.acao.it:3331',
-      'http://dashboard-linobis.acao.it:3332',
-      'http://dashboard-linobis.acao.it:4200',
-      'http://dashboard-linobis.acao.it:4201',
-      'http://services-linobis.acao.it:3330',
-      'http://services-linobis.acao.it:3331',
-      'http://services-linobis.acao.it:3332',
-      'http://services-linobis.acao.it:4200',
-      'http://services-linobis.acao.it:4201',
       'https://servizi-dev.acao.it',
       'https://servizi-dev-lilc.acao.it',
       'https://servizi-dev.lilc.acao.it',
@@ -107,16 +99,6 @@ Rails.application.configure do
       'http://linobis.acao.it:4200',
       'http://linobis.acao.it:4201',
       'http://linobis.acao.it:4242',
-      'http://dashboard-linobis.acao.it:3330',
-      'http://dashboard-linobis.acao.it:3331',
-      'http://dashboard-linobis.acao.it:3332',
-      'http://dashboard-linobis.acao.it:4200',
-      'http://dashboard-linobis.acao.it:4201',
-      'http://services-linobis.acao.it:3330',
-      'http://services-linobis.acao.it:3331',
-      'http://services-linobis.acao.it:3332',
-      'http://services-linobis.acao.it:4200',
-      'http://services-linobis.acao.it:4201',
       'https://servizi-dev.acao.it',
       'https://servizi-dev-lilc.acao.it',
       'https://servizi-dev.lilc.acao.it',
