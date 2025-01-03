@@ -235,9 +235,9 @@ class Pilot < Ygg::Core::Person
     acao_memberships.any? { |x| time > x.valid_from && time < x.valid_to }
   end
 
-  def active_to(time: Time.now)
-    m = acao_memberships.select { |x| time > x.valid_from && time < x.valid_to }.max { |x| x.valid_to }
-    m ? m.valid_to : nil
+  def active_to(time: Time.now, grace_period: 31.days)
+    m = acao_memberships.select { |x| time > x.valid_from && time < (x.valid_to + grace_period) }.max { |x| x.valid_to }
+    m ? m.valid_to + grace_period : nil
   end
 
   # Verifica che i turni di linea necessari siano stati selezionati
@@ -359,8 +359,10 @@ class Pilot < Ygg::Core::Person
   def access_validity_ranges(from: Time.now, grace_period:)
     ranges = RangeArray.new
 
-    if active_to
-      ranges << (nil .. (active_to + grace_period).round)
+    act_to = active_to(grace_period: grace_period)
+
+    if act_to
+      ranges << (nil .. (act_to.round))
     end
 
     if acao_socio.tessere_inizio || acao_socio.tessere_fine
@@ -1070,16 +1072,15 @@ class Pilot < Ygg::Core::Person
     end
   end
 
-  def self.sync_from_maindb!(debug: 0)
+  BANNED_IDS = [-1, 0, 1, 4000, 4001, 7000, 8888, 9999]
 
-    l_records = Ygg::Acao::MainDb::Socio.order(id_soci_dati_generale: :asc).lock
-    r_records = Ygg::Acao::Pilot.where('acao_ext_id IS NOT NULL').order(acao_ext_id: :asc).lock
+  def self.sync_from_maindb!(debug: 0)
+    l_records = Ygg::Acao::MainDb::Socio.where.not(codice_socio_dati_generale: BANNED_IDS).order(id_soci_dati_generale: :asc).lock
+    r_records = self.where.not(acao_code: BANNED_IDS).where('acao_ext_id IS NOT NULL').order(acao_ext_id: :asc).lock
 
     merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| l.id_soci_dati_generale <=> r.acao_ext_id },
     l_to_r: lambda { |l|
-      return if [ -1, 0, 1, 4000, 4001, 7000, 8888, 9999 ].include?(l.codice_socio_dati_generale)
-
       transaction do
         puts "ADDING SOCIO ID=#{l.id_soci_dati_generale} CODICE=#{l.codice_socio_dati_generale}" if debug >= 1
 
@@ -1111,7 +1112,7 @@ class Pilot < Ygg::Core::Person
       puts "UPD CHK #{l.codice_socio_dati_generale} #{l.Nome} #{l.Cognome}" if debug >= 3
 
       transaction do
-        r.sync_from_maindb(l)
+        r.sync_from_maindb(l, debug: debug)
       end
     })
   end
@@ -1174,17 +1175,22 @@ class Pilot < Ygg::Core::Person
 
       self.acao_bollini = other.Acconto_Voli
 
-      if sync_tessere(debug: debug)
-        puts "PILOT #{acao_code} #{first_name} #{last_name} TESSERE UPDATED" if debug >= 1
-        save!
-      end
-
       self.acao_lastmod = other.lastmod.floor(6)
 
       if deep_changed?
         puts "PILOT #{acao_code} #{first_name} #{last_name} CHANGED" if debug >= 1
         puts deep_changes.awesome_inspect(plain: true)
 
+        begin
+          save!
+        rescue ActiveRecord::RecordInvalid
+          puts "VALIDATION ERROR: #{errors.inspect}"
+          raise
+        end
+      end
+
+      if sync_tessere(debug: debug)
+        puts "PILOT #{acao_code} #{first_name} #{last_name} TESSERE UPDATED" if debug >= 1
         save!
       end
 
@@ -1215,7 +1221,13 @@ class Pilot < Ygg::Core::Person
       self.acao_bar_credit = other.visita.acconto_bar_euro
 
       self.acao_visita_lastmod = other.visita.lastmod.floor(6)
-      save!
+
+      begin
+        save!
+      rescue ActiveRecord::RecordInvalid
+        puts "VALIDATION ERROR: #{errors.inspect}"
+        raise
+      end
     end
   end
 
