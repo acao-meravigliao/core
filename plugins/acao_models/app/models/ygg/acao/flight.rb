@@ -173,7 +173,7 @@ class Flight < Ygg::PublicModel
     r: r_relation,
     l_cmp_r: lambda { |l,r| l.id_voli <=> r.source_id },
     l_to_r: lambda { |l|
-      puts "TOW CHK ADD #{l.id_voli}" if debug >= 2
+      puts "TOW CHK ADD #{l.id_voli}" if debug >= 3
 
       begin
         if !l.marche_aereo.blank? &&
@@ -203,7 +203,7 @@ class Flight < Ygg::PublicModel
       r.destroy!
     },
     lr_update: lambda { |l,r|
-      puts "TOW CMP #{l.id_voli}" if debug >= 2
+      puts "TOW CMP #{l.id_voli}" if debug >= 3
 
       transaction do
         r.sync_from_maindb_as_tow(l)
