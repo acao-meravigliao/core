@@ -50,49 +50,52 @@ class RosterDay < Ygg::PublicModel
     # primo gennaio
     # patrono 8 maggio (3 persone)
 
-    day = Time.new(year).beginning_of_week
-    day = day.next_week if day.year < year
+    saturday = Time.new(year).beginning_of_week + 5.days
 
     transaction do
-      while day.year == year do
+      while saturday.year == year do
+        create_day(date: saturday)
 
-        high_season = day.between?(Time.new(day.year, 3, 8).beginning_of_day, Time.new(day.year, 7, 7).end_of_day)
-
-        if high_season
-          needed_people = 4
-        elsif day.between?(Time.new(day.year, 13, 7).beginning_of_day, Time.new(day.year, 10, 26).beginning_of_day)
-          needed_people = 3
-        elsif day.between?(Time.new(day.year, 2, 22).beginning_of_day, Time.new(day.year, 3, 8).beginning_of_day)
-          needed_people = 3
-        else
-          needed_people = 2
+        if (saturday + 1.days).year == year # Sunday
+          create_day(date: saturday + 1.days)
         end
 
-        if (day + 5.days).year == year # Saturday
-          create_day(date: day + 5.days, high_season: high_season, needed_people: needed_people)
-        end
-
-        if (day + 6.days).year == year # Sunday
-          create_day(date: day + 6.days, high_season: high_season, needed_people: needed_people)
-        end
-
-        day += 1.week
+        saturday += 1.week
       end
 
-      create_day(date: Time.new(year, 1, 1), high_season: false, needed_people: 2, descr: 'Capodanno')
-      create_day(date: Time.new(year, 1, 6), high_season: false, needed_people: 2, descr: 'Epifania')
-      create_day(date: Time.new(year, 4, 25), high_season: true, needed_people: 4, descr: 'Liberazione')
-      create_day(date: Time.new(year, 5, 1), high_season: true, needed_people: 4, descr: 'Festa del Lavoro')
-      create_day(date: Time.new(year, 5, 8), high_season: true, needed_people: 3, descr: 'Patrono di Varese')
-      create_day(date: Time.new(year, 6, 2), high_season: true, needed_people: 4, descr: 'Festa della Repubblica')
-      create_day(date: Time.new(year, 8, 15), high_season: true, needed_people: 2, descr: 'Ferragosto')
-      create_day(date: Time.new(year, 11, 1), high_season: false, needed_people: 2, descr: 'Ognisanti')
-      create_day(date: Time.new(year, 12, 8), high_season: false, needed_people: 2, descr: 'Immacolata concezione')
+      create_day(date: Time.new(year, 1, 1), descr: 'Capodanno')
+      create_day(date: Time.new(year, 1, 6), descr: 'Epifania')
+      create_day(date: Time.new(year, 4, 25), descr: 'Liberazione')
+      create_day(date: Time.new(year, 5, 1), descr: 'Festa del Lavoro')
+      create_day(date: Time.new(year, 5, 8), descr: 'Patrono di Varese')
+      create_day(date: Time.new(year, 6, 2), descr: 'Festa della Repubblica')
+      create_day(date: Time.new(year, 8, 15), descr: 'Ferragosto')
+      create_day(date: Time.new(year, 11, 1),  descr: 'Ognisanti')
+      create_day(date: Time.new(year, 12, 8), descr: 'Immacolata concezione')
     end
   end
 
-  def self.create_day(**args)
-    create(**args) unless find_by(date: args[:date])
+  def self.create_day(date:, descr: nil)
+    high_season = date.between?(Time.new(date.year, 3, 8).beginning_of_day, Time.new(date.year, 7, 7).end_of_day)
+
+    if high_season
+      needed_people = 4
+    elsif date.between?(Time.new(date.year, 12, 7).beginning_of_day, Time.new(date.year, 10, 26).beginning_of_day)
+      needed_people = 3
+    elsif date.between?(Time.new(date.year, 2, 22).beginning_of_day, Time.new(date.year, 3, 8).beginning_of_day)
+      needed_people = 3
+    else
+      needed_people = 2
+    end
+
+    if !find_by(date: date)
+      create!(
+        date: date,
+        high_season: high_season,
+        needed_people: needed_people,
+        descr: descr,
+      )
+    end
   end
 
   def check_and_mark_chief!
