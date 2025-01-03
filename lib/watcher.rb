@@ -1,6 +1,6 @@
 #! /usr/bin/ruby
 
-debug = 2
+debug = 1
 
 puts "---------------- Watcher Started ----------------" if debug >= 1
 
@@ -8,7 +8,11 @@ ino = File.stat(__FILE__).ino
 
 loop do
 
-  if File.stat(__FILE__).ino != ino
+  cur_ino = File.stat(__FILE__).ino
+
+  puts "#{__FILE__} cur_ino=#{cur_ino} ino=#{ino}" if debug >= 4
+
+  if cur_ino != ino
     puts "==================== WATCHER REPLACED, RELOADING ====================="
     exit
   end
@@ -67,7 +71,7 @@ loop do
 
     time0 = Time.new
     puts "  FAAC update started" if debug >= 1
-    Ygg::Acao::Pilot.sync_with_faac!(grace_period: 1.month, debug: 1)
+    Ygg::Acao::Pilot.sync_with_faac!(grace_period: 1.month, debug: debug)
     puts "  FAAC update done, took #{Time.new - time0} seconds" if debug >= 1
 
     Ygg::Acao::MainDb::Socio.update_last_update!
