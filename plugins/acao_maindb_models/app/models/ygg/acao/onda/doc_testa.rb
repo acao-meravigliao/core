@@ -51,7 +51,7 @@ class DocTesta < ActiveRecord::Base
 
       puts "-----------------------------------------------------------------------------------" if debug >= 1
 
-      year = self.DataDocumento.year
+      year = Ygg::Acao::Year.renewal_year.year
 
       puts "DOCUMENTO NUMERO=#{self.NumeroDocumento} TIPO=#{self.TipoDocumento} #{self.DataDocumento}" if debug >= 1
 
@@ -74,8 +74,10 @@ class DocTesta < ActiveRecord::Base
         puts "Riga #{riga.CodArt} #{tipo_servizio && tipo_servizio.descrizione_servizio}"
 
         case riga.CodArt
-        when '0001S' # Associazione annuale
-          iscr = mdb_socio.iscrizioni.find_by(anno_iscrizione: self.DataDocumento.year)
+        when '0001S', # Associazione annuale
+             '0003S' # Associazione Trainatori Istruttori
+
+          iscr = mdb_socio.iscrizioni.find_by(anno_iscrizione: year)
           if iscr
             puts "  Iscrizione trovata" if debug >= 1
             if iscr.note.include?(self.NumeroDocumento)
@@ -91,6 +93,18 @@ class DocTesta < ActiveRecord::Base
         when '0009S'
         when '0014S'
         when '0015S' # Noleggio biposto
+        when '0017S' # CAA
+        when '0018S' # CAP
+        when '0031S' # Posto carrello
+        when '0065S' # Tessera Fai
+        when '84S' # Assicurazione tessera FAI
+        when '0022S' # Posto Hangar Motoaliante
+        when '0022S' # Posto Hangar
+        when '0020S' # Posto Hangar 20-25 m
+        when '0023S' # Posto Hangar 15-18 m
+        when '0077S' # Posto Hangar DuoDiscus
+        when '0075S' # Posto Hangar Motore
+        when '0025S' # Posto Hangar Standard
         else
           puts "  Ignorata"
 
