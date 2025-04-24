@@ -64,6 +64,9 @@ Rails.application.configure do
   config.rails_amqp.url = 'amqp://agent@linobis.acao.it'
   config.rails_amqp.debug = 1
 
+  config.core.lc_enabled = false
+  #config.core.lc_exchange = ''
+
   config.ml.email_disabled = false
   config.ml.email_redirect_to = 'daniele@orlandi.com'
   config.ml.sms_disabled = true
