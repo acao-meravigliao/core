@@ -37,6 +37,7 @@ gem 'phone'
 gem 'prawn'
 gem 'prawn-table'
 gem 'matrix'
+gem 'concurrent-ruby', '1.3.4'
 
 gem 'airbrake'
 
