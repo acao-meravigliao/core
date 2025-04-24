@@ -149,8 +149,8 @@ class Person < OrgaPerson
 
 #  has_many :accesses, class_name: 'Ygg::Sevio::Access'
 
-  gs_rel_map << { from: :person, to: :contact, rel: :contacts }
-  gs_rel_map << { from: :person, to: :credential, rel: :credentials }
+  gs_rel_map << { from: :person, to: :contact, to_cls: '::Ygg::Core::Person::Contact', to_key: 'person_id' }
+  gs_rel_map << { from: :person, to: :credential, to_cls: '::Ygg::Core::Person::Credential', to_key: 'person_id' }
 
   has_meta_class
   has_acl
@@ -186,36 +186,6 @@ class Person < OrgaPerson
     end
 
     nil
-  end
-
-
-
-
-  def self.gs_fetch(gs:, node:)
-
-    rel = all
-
-    if node.id
-      if !gs.objs[node.id]
-        rel = rel.where(id: node.id)
-      end
-    elsif node.filter
-      rel = rel.where(node.filter)
-    end
-
-    if node.dig
-    end
-
-    gs.transaction do
-      rel.each do |model|
-        if model
-          if !gs.objs[node.id]
-            gs.obj_add(model)
-          end
-        end
-      end
-    end
-
   end
 
   def name
