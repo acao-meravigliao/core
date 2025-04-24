@@ -23,6 +23,10 @@ class DocTesta < ActiveRecord::Base
 
   extend Ygg::Acao::Onda::LastUpdateTracker
 
+  def socio
+    Ygg::Acao::MainDb::Socio.find_by(codice_socio: anagrafica.IdAnagrafica)
+  end
+
   class DryRun < StandardError ; end
 
   def self.trigger_replacement(from: nil, dry_run: false, debug: 0)
@@ -92,6 +96,7 @@ class DocTesta < ActiveRecord::Base
         when '0005S' # CAV ridotto
         when '0009S'
         when '0014S'
+        when '00G1S' # Associazione 2025 <23 anni
         when '0015S' # Noleggio biposto
         when '0017S' # CAA
         when '0018S' # CAP
