@@ -7,7 +7,7 @@ module Rails::ConsoleMethods
     raise "Multiple results" if res.count > 1
     return res.first if res.count == 1
 
-    res = Ygg::Acao::Pilot.where('\'%?%\' ILIKE last_name', s.downcase)
+    res = Ygg::Acao::Pilot.where('last_name ILIKE ?', '%' + s.downcase + '%')
     raise "Multiple results" if res.count > 1
     return res.first if res.count == 1
 
