@@ -26,6 +26,8 @@ class RosterDay < Ygg::PublicModel
   has_many :roster_entries,
            class_name: 'Ygg::Acao::RosterEntry'
 
+  gs_rel_map << { from: :day, to: :entry, to_cls: '::Ygg::Acao::RosterEntry', to_key: 'roster_day_id' }
+
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 

@@ -24,7 +24,7 @@ class ModelsEngine < Rails::Engine
       has_one :acao_member,
                class_name: '::Ygg::Acao::Member'
 
-      gs_rel_map << { from: :person, to: :acao_member, rel: :acao_member }
+      gs_rel_map << { from: :person, to: :acao_member, to_cls: '::Ygg::Acao::Member', to_key: 'person_id' }
     end
   end
 

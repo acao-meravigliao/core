@@ -30,6 +30,9 @@ class Year < Ygg::PublicModel
            foreign_key: :reference_year_id,
            class_name: 'Ygg::Acao::Membership'
 
+  gs_rel_map << { from: :year, to: :membership, to_cls: 'Ygg::Acao::Membership', from_key: 'year_id', }
+  gs_rel_map << { from: :membership, to: :member, to_cls: 'Ygg::Acao::Member', to_key: 'member_id', }
+
   def self.renewal_year
     Ygg::Acao::Year.where('renew_opening_time < ?', Time.now).order(year: :desc).first
   end
