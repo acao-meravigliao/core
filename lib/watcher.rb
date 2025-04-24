@@ -59,7 +59,7 @@ loop do
 
     time0 = Time.new
     puts "  FAAC update started" if debug >= 1
-    Ygg::Acao::Member.sync_with_faac!(grace_period: 1.month, debug: 1)
+    Ygg::Acao::Member.sync_with_faac!(debug: 1)
     puts "  FAAC update done, took #{Time.new - time0} seconds" if debug >= 1
 
     Ygg::Acao::MainDb::Socio.update_last_update!
