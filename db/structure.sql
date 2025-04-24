@@ -343,7 +343,7 @@ CREATE TABLE acao.flights (
     towed_by_id uuid,
     tow_release_location_id uuid,
     aircraft_owner_id_old uuid,
-    pilot1_id uuid NOT NULL,
+    pilot1_id uuid,
     pilot2_id uuid,
     aircraft_owner_id uuid
 );
@@ -368,11 +368,10 @@ CREATE TABLE acao.gates (
 CREATE TABLE acao.invoice_details (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     invoice_id uuid NOT NULL,
-    count integer NOT NULL,
-    price numeric(14,6) NOT NULL,
+    count integer,
+    price numeric(14,6),
     descr character varying(255) DEFAULT NULL::character varying,
-    data text,
-    service_type_id uuid NOT NULL
+    data text
 );
 
 
@@ -390,7 +389,7 @@ CREATE TABLE acao.invoices (
     state character varying DEFAULT 'NEW'::character varying NOT NULL,
     payment_state character varying DEFAULT 'UNPAID'::character varying NOT NULL,
     person_id uuid,
-    member_id uuid NOT NULL,
+    member_id uuid,
     source_id integer,
     recipient character varying NOT NULL,
     codice_fiscale character varying,
@@ -5559,24 +5558,17 @@ CREATE INDEX index_invoice_details_on_invoice_id ON acao.invoice_details USING b
 
 
 --
--- Name: index_invoice_details_on_service_type_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_invoice_details_on_service_type_id ON acao.invoice_details USING btree (service_type_id);
-
-
---
--- Name: index_invoices_on_identifier; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE UNIQUE INDEX index_invoices_on_identifier ON acao.invoices USING btree (identifier);
-
-
---
 -- Name: index_invoices_on_member_id; Type: INDEX; Schema: acao; Owner: -
 --
 
 CREATE INDEX index_invoices_on_member_id ON acao.invoices USING btree (member_id);
+
+
+--
+-- Name: index_invoices_on_person_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_invoices_on_person_id ON acao.invoices USING btree (person_id);
 
 
 --
@@ -6410,13 +6402,6 @@ CREATE UNIQUE INDEX index_core_credentials_on_x509_i_dn_and_x509_m_serial ON cor
 --
 
 CREATE INDEX index_core_http_sessions_on_updated_at ON core.sessions USING btree (updated_at);
-
-
---
--- Name: index_core_http_sessions_on_uuid; Type: INDEX; Schema: core; Owner: -
---
-
-CREATE INDEX index_core_http_sessions_on_uuid ON core.sessions USING btree (id);
 
 
 --
@@ -7642,14 +7627,6 @@ ALTER TABLE ONLY acao.timetable_entries
 
 
 --
--- Name: invoice_details fk_rails_327bf47ebf; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.invoice_details
-    ADD CONSTRAINT fk_rails_327bf47ebf FOREIGN KEY (service_type_id) REFERENCES acao.service_types(id);
-
-
---
 -- Name: trailers fk_rails_3375839e63; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8485,9 +8462,10 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO public;
+SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20241222132719'),
 ('20241027134506'),
 ('20240925182027'),
 ('20240925182020'),
