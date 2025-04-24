@@ -157,9 +157,9 @@ class Pilot < Ygg::Core::Person
     Ygg::Acao::Pilot.where.not('acao_sleeping')
   end
 
-  def self.active_members(time: Time.now, grace_period: 31.days)
+  def self.active_members(time: Time.now)
     members = alive_pilots.where('EXISTS (SELECT * FROM acao.memberships WHERE acao.memberships.person_id=core.people.id ' +
-                        'AND ? BETWEEN acao.memberships.valid_from AND (acao.memberships.valid_to + (? || \' seconds\')::interval))', time, grace_period)
+                        'AND ? BETWEEN acao.memberships.valid_from AND (acao.memberships.valid_to))', time)
     members
   end
 
@@ -232,12 +232,12 @@ class Pilot < Ygg::Core::Person
   end
 
   def active?(time: Time.now)
-    acao_memberships.any? { |x| time > x.valid_from && time < x.valid_to }
+    acao_memberships.any? { |x| x.active?(time: time) }
   end
 
-  def active_to(time: Time.now, grace_period: 31.days)
-    m = acao_memberships.select { |x| time > x.valid_from && time < (x.valid_to + grace_period) }.max { |x| x.valid_to }
-    m ? m.valid_to + grace_period : nil
+  def active_to(time: Time.now)
+    m = acao_memberships.select { |x| x.active?(time: time) }.max { |x| x.valid_to }
+    m ? m.valid_to : nil
   end
 
   # Verifica che i turni di linea necessari siano stati selezionati
@@ -299,29 +299,29 @@ class Pilot < Ygg::Core::Person
       act = active_members.to_a
       act << Ygg::Core::Person.find_by(acao_code: 554) # Special entry for Fabio
       act << Ygg::Core::Person.find_by(acao_code: 7002) # Special entry for Daniela
-      act << Ygg::Core::Person.find_by(acao_code: 7024) # Special entry for Chicca
+      act << Ygg::Core::Person.find_by(acao_code: 7024) # Special entry for Kicca
       act << Ygg::Core::Person.find_by(acao_code: 7017) # Special entry for Matteo Negri
       act << Ygg::Core::Person.find_by(acao_code: 7023) # Special entry for Clara
 
-      sync_ml!(symbol: 'ACTIVE_MEMBERS', members: act.compact.uniq)
+      Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').sync_from_people!(people: act.compact.uniq)
 
       vot = voting_members.to_a
       vot << Ygg::Core::Person.find_by(acao_code: 7002)
 
-      sync_ml!(symbol: 'VOTING_MEMBERS', members: vot.compact.uniq)
+      Ygg::Ml::List.find_by!(symbol: 'VOTING_MEMBERS').sync_from_people!(people: vot.compact.uniq)
 
-      sync_ml!(symbol: 'STUDENTS', members: active_members.where(acao_ml_students: true))
-      sync_ml!(symbol: 'INSTRUCTORS', members: active_members.where(acao_ml_instructors: true))
-      sync_ml!(symbol: 'TUG_PILOTS', members: active_members.where(acao_ml_tug_pilots: true))
-      sync_ml!(symbol: 'BOARD_MEMBERS', members: board_members)
+      Ygg::Ml::List.find_by!(symbol: 'STUDENTS').sync_from_people!(people: active_members.where(acao_ml_students: true))
+      Ygg::Ml::List.find_by!(symbol: 'INSTRUCTORS').sync_from_people!(people: active_members.where(acao_ml_instructors: true))
+      Ygg::Ml::List.find_by!(symbol: 'TUG_PILOTS').sync_from_people!(people: active_members.where(acao_ml_tug_pilots: true))
+      Ygg::Ml::List.find_by!(symbol: 'BOARD_MEMBERS').sync_from_people!(people: board_members)
     end
 
     transaction do
-      sync_mailman!(list_name: 'soci', symbol: 'ACTIVE_MEMBERS')
-#      sync_mailman!(list_name: 'scuola', symbol: 'STUDENTS')
-      sync_mailman!(list_name: 'istruttori', symbol: 'INSTRUCTORS')
-#      sync_mailman!(list_name: 'consiglio', symbol: 'BOARD_MEMBERS')
-      sync_mailman!(list_name: 'trainatori', symbol: 'TUG_PILOTS')
+      Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').sync_to_mailman!(list_name: 'soci')
+#     Ygg::Ml::List.find_by!(symbol: 'STUDENTS'). sync_to_mailman!(list_name: 'scuola')
+      Ygg::Ml::List.find_by!(symbol: 'INSTRUCTORS').sync_to_mailman!(list_name: 'istruttori')
+#      Ygg::Ml::List.find_by!(symbol: 'BOARD_MEMBERS').sync_to_mailman!(list_name: 'consiglio')
+      Ygg::Ml::List.find_by!(symbol: 'TUG_PILOTS').sync_to_mailman!(list_name: 'trainatori')
     end
   end
 
@@ -356,10 +356,10 @@ class Pilot < Ygg::Core::Person
     derive_uuid_from_data([ uuid.delete('-') ].pack('H*'))
   end
 
-  def access_validity_ranges(from: Time.now, grace_period:)
+  def access_validity_ranges(from: Time.now)
     ranges = RangeArray.new
 
-    act_to = active_to(grace_period: grace_period)
+    act_to = active_to
 
     if act_to
       ranges << (nil .. (act_to.round))
@@ -380,7 +380,7 @@ class Pilot < Ygg::Core::Person
     ranges
   end
 
-  def self.sync_with_faac!(grace_period: 1.month, debug: Rails.application.config.acao.faac_debug || 0)
+  def self.sync_with_faac!(debug: Rails.application.config.acao.faac_debug || 0)
     faac = FaacApi::Client.new(
       endpoint: Rails.application.config.acao.faac_endpoint,
       debug: debug - 2
@@ -540,7 +540,7 @@ class Pilot < Ygg::Core::Person
 
       pilot = l.person.becomes(Ygg::Acao::Pilot)
 
-      ranges = pilot.access_validity_ranges(grace_period: grace_period)
+      ranges = pilot.access_validity_ranges
       range = ranges.first
 
       validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
@@ -574,7 +574,7 @@ class Pilot < Ygg::Core::Person
 
       pilot = l.person.becomes(Ygg::Acao::Pilot)
 
-      ranges = pilot.access_validity_ranges(grace_period: grace_period)
+      ranges = pilot.access_validity_ranges
       range = ranges.first
 
       validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
@@ -828,95 +828,8 @@ class Pilot < Ygg::Core::Person
     })
   end
 
-  ########## Mailing lists synchronization
-
-  def self.sync_ml!(symbol:, members:, time: Time.now)
-    list = Ygg::Ml::List.find_by!(symbol: symbol)
-    current_members = list.members.where(owner_type: 'Ygg::Core::Person').order(owner_id: :asc)
-
-    merge(l: members, r: current_members,
-      l_cmp_r: lambda { |l,r| l.id <=> r.owner_id },
-      l_to_r: lambda { |l|
-        l.contacts.where(type: 'email').each do |contact|
-          addr = Ygg::Ml::Address.find_or_create_by(addr: contact.value, addr_type: 'EMAIL')
-          addr.name = l.name
-          addr.save!
-
-          list.members << Ygg::Ml::List::Member.new(
-            address: addr,
-            subscribed_on: Time.now,
-            owner: l,
-          )
-        end
-      },
-      r_to_l: lambda { |r|
-        r.destroy
-      },
-      lr_update: lambda { |l,r|
-        r.address.name = l.name
-        r.address.save!
-      },
-    )
-  end
-
-  def self.sync_mailman!(symbol:, list_name:, dry_run: Rails.application.config.acao.soci_ml_dry_run)
-
-    l_full_emails = Hash[Ygg::Ml::List.find_by!(symbol: symbol).addresses.
-                     where(addr_type: 'EMAIL').order(addr: :asc).map { |x| [ x.addr.downcase, x.name ] }]
-
-    l_emails = l_full_emails.keys.sort
-    r_emails = []
-
-    IO::popen([ '/usr/bin/ssh', '-i', '/var/lib/yggdra/lino', 'root@lists.acao.it', '/usr/sbin/list_members', list_name ]) do |io|
-      data = io.read
-      io.close
-
-      if !$?.success?
-        raise "Cannot list list members"
-      end
-
-      r_emails = data.split("\n").map { |x| x.strip.downcase }.sort
-    end
-
-    members_to_add = []
-    members_to_remove = []
-
-    merge(l: l_emails, r: r_emails,
-      l_cmp_r: lambda { |l,r| l <=> r },
-      l_to_r: lambda { |l|
-        members_to_add << "#{l_full_emails[l]} <#{l}>"
-      },
-      r_to_l: lambda { |r|
-        members_to_remove << r
-      },
-      lr_update: lambda { |l,r|
-      }
-    )
-
-    if members_to_add.any?
-      puts "MAILMAN MEMBERS TO ADD TO LIST #{list_name}:\n#{members_to_add}"
-
-      if !dry_run
-        IO::popen([ '/usr/bin/ssh', '-i', '/var/lib/yggdra/lino', 'root@lists.acao.it', '/usr/sbin/add_members',
-                      '-r', '-', '--admin-notify=n', '--welcome-msg=n', list_name ], 'w') do |io|
-          io.write(members_to_add.join("\n"))
-          io.close
-        end
-      end
-    end
-
-    if members_to_remove.any?
-      puts "MAILMAN MEMBERS TO REMOVE FROM LIST #{list_name}:\n#{members_to_remove}"
-
-      if !dry_run
-        IO::popen([ '/usr/bin/ssh', '-i', '/var/lib/yggdra/lino', 'root@lists.acao.it', '/usr/sbin/remove_members',
-                      '--file', '-', '--nouserack', '--noadminack', list_name ], 'w') do |io|
-          io.write(members_to_remove.join("\n"))
-          io.close
-        end
-      end
-    end
-  end
+  # Roles for which we are authoritative
+  WP_AUTH_ROLES = [ 'src_acao', 'socio', 'trainatore', 'allievo', 'istruttore' ]
 
   def self.sync_to_acao_for_wp!(relation: alive_pilots, debug: 0)
     data = ''
@@ -933,9 +846,6 @@ class Pilot < Ygg::Core::Person
           'user', 'list', '--format=json' ], 'r+') do |io|
       data = JSON.parse(io.read, symbolize_names: true)
     end
-
-    # Roles for which we are authoritative
-    auth_roles = [ 'src_acao', 'socio', 'trainatore', 'allievo' ]
 
     updates = []
 
@@ -956,7 +866,7 @@ class Pilot < Ygg::Core::Person
         l.first_name,
         l.last_name,
         l.name,
-        sync_to_acao_for_wp_roles(l).join(','),
+        l.wp_roles.join(','),
         l.acao_code.to_s,
       ]
     },
@@ -970,11 +880,11 @@ class Pilot < Ygg::Core::Person
       r_roles = r[:roles].split(',').sort
 
       # Current roles for which we are authoritative
-      r_our_roles = r_roles & auth_roles
+      r_our_roles = r_roles & WP_AUTH_ROLES
 
-      roles = sync_to_acao_for_wp_roles(l)
+      roles = l.wp_roles
 
-      new_roles = ((r_roles - auth_roles) + roles).sort
+      new_roles = ((r_roles - WP_AUTH_ROLES) + roles).sort
 
       if debug >= 3
         puts "Current Roles = #{r_roles}"
@@ -1035,11 +945,12 @@ class Pilot < Ygg::Core::Person
     puts "Done!" if debug > 0
   end
 
-  def self.sync_to_acao_for_wp_roles(pilot)
+  def wp_roles
     roles = [ 'src_acao' ]
-    roles << 'socio' if pilot.active?
-    roles << 'trainatore' if pilot.acao_is_tug_pilot
-    roles << 'allievo' if pilot.acao_is_student
+    roles << 'socio' if active?
+    roles << 'trainatore' if acao_is_tug_pilot
+    roles << 'allievo' if acao_is_student
+    roles << 'istruttore' if acao_is_instructor
 
     roles
   end
@@ -1074,7 +985,7 @@ class Pilot < Ygg::Core::Person
 
   BANNED_IDS = [-1, 0, 1, 4000, 4001, 7000, 8888, 9999]
 
-  def self.sync_from_maindb!(debug: 0)
+  def self.sync_from_maindb!(force: false, debug: 0)
     l_records = Ygg::Acao::MainDb::Socio.where.not(codice_socio_dati_generale: BANNED_IDS).order(id_soci_dati_generale: :asc).lock
     r_records = self.where.not(acao_code: BANNED_IDS).where('acao_ext_id IS NOT NULL').order(acao_ext_id: :asc).lock
 
@@ -1089,7 +1000,7 @@ class Pilot < Ygg::Core::Person
           acao_roster_allowed: true,
         })
 
-        person.sync_from_maindb(l)
+        person.sync_from_maindb(l, force: force, debug: debug)
 
         person.save!
 
@@ -1112,13 +1023,13 @@ class Pilot < Ygg::Core::Person
       puts "UPD CHK #{l.codice_socio_dati_generale} #{l.Nome} #{l.Cognome}" if debug >= 3
 
       transaction do
-        r.sync_from_maindb(l, debug: debug)
+        r.sync_from_maindb(l, force: force, debug: debug)
       end
     })
   end
 
-  def sync_from_maindb(other = acao_socio, debug: 0)
-    if other.lastmod.floor(6) != acao_lastmod
+  def sync_from_maindb(other = acao_socio, force: false, debug: 0)
+    if other.lastmod.floor(6) != acao_lastmod || force
       self.first_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ').first
       self.middle_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ')[1..-1].join(' ')
       self.last_name = other.Cognome.strip
@@ -1491,7 +1402,7 @@ class Pilot < Ygg::Core::Person
   end
 
   def self.voting_members(time: Time.now)
-    active_members(time: time, grace_period: 0).where('birth_date < ?', time.to_date - 18.years)
+    active_members(time: time).where('birth_date < ?', time.to_date - 18.years)
   end
 
   def self.students
