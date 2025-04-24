@@ -165,72 +165,20 @@ class Member < Ygg::PublicModel
              foreign_key: 'ext_id',
              optional: true
 
-
-  def self.gs_fetch(gs:, node:)
-
-    rel = all
-
-    if node.id
-      rel = rel.where(id: node.id)
-    elsif node.filter
-      rel = rel.where(node.filter)
-    end
-
-    if node.dig
-      node.dig.each do |dig|
-puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
-
-        related = nil
-
-        if dig.from == 'member' && dig.to == 'keyfob'
-          rel = rel.joins(:key_fobs).preload(:key_fobs)
-        end
-
-        if dig.from == 'member' && dig.to == 'person'
-        end
-      end
-    end
-
-    gs.transaction do
-      rel.each do |model|
-        if model
-          if !gs.objs[node.id]
-            gs.obj_add(model)
-          end
-
-          model.key_fobs.each do |related|
-            if !gs.objs[related.id]
-              gs.obj_add(related)
-              gs.rel_add(a: model.id, a_as: :person, b: related.id, b_as: :keyfob)
-            end
-          end
-        end
-      end
-    end
-
-  end
-
-#  include Comparable
-#  def <=>(other)
-#    id <=> other.id
-#  end
-
-
-
-
-
-
-  def self.lc_class_name
-    'Ygg::Core::Person'
-  end
+  gs_rel_map << { from: :member, to: :membership, to_cls: 'Ygg::Acao::Membership', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :key_fob, to_cls: 'Ygg::Acao::KeyFob', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :roster_entry, to_cls: 'Ygg::Acao::RosterEntry', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :bar_transaction, to_cls: 'Ygg::Acao::BarTransaction', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :token_transaction, to_cls: 'Ygg::Acao::TokenTransaction', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :invoice, to_cls: 'Ygg::Acao::Invoice', to_key: 'member_id', }
 
   def self.alive_pilots
     where.not('sleeping')
   end
 
-  def self.active_members(time: Time.now, grace_period: 31.days)
+  def self.active_members(time: Time.now)
     members = alive_pilots.where('EXISTS (SELECT * FROM acao.memberships WHERE acao.memberships.member_id=acao.members.id ' +
-                        'AND ? BETWEEN acao.memberships.valid_from AND (acao.memberships.valid_to + (? || \' seconds\')::interval))', time, grace_period)
+                        'AND ? BETWEEN acao.memberships.valid_from AND (acao.memberships.valid_to))', time)
     members
   end
 
@@ -303,11 +251,11 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
   end
 
   def active?(time: Time.now)
-    memberships.any? { |x| time > x.valid_from && time < x.valid_to }
+    memberships.any? { |x| x.active?(time: time) }
   end
 
   def active_to(time: Time.now)
-    m = memberships.select { |x| time > x.valid_from && time < x.valid_to }.max { |x| x.valid_to }
+    m = memberships.select { |x| x.active?(time: time) }.max { |x| x.valid_to }
     m ? m.valid_to : nil
   end
 
@@ -370,28 +318,28 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
       act = active_members.to_a
       act << Ygg::Acao::Member.find_by!(code: 554) # Special entry for Fabio
       act << Ygg::Acao::Member.find_by!(code: 7002) # Special entry for Daniela
-      act << Ygg::Acao::Member.find_by!(code: 7024) # Special entry for Chicca
+      act << Ygg::Acao::Member.find_by!(code: 7024) # Special entry for Kicca
       act << Ygg::Acao::Member.find_by!(code: 7017) # Special entry for Matteo Negri
+      act << Ygg::Core::Member.find_by!(code: 7023) # Special entry for Clara
 
-      sync_ml!(symbol: 'ACTIVE_MEMBERS', members: act.compact.uniq)
+      Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').sync_from_people!(people: act.compact.uniq)
 
       vot = voting_members.to_a
       vot << Ygg::Acao::Member.find_by!(code: 7002)
 
-      sync_ml!(symbol: 'VOTING_MEMBERS', members: vot.compact.uniq)
-
-      sync_ml!(symbol: 'STUDENTS', members: active_members.where(ml_students: true))
-      sync_ml!(symbol: 'INSTRUCTORS', members: active_members.where(ml_instructors: true))
-      sync_ml!(symbol: 'TUG_PILOTS', members: active_members.where(ml_tug_pilots: true))
-      sync_ml!(symbol: 'BOARD_MEMBERS', members: board_members)
+      Ygg::Ml::List.find_by!(symbol: 'VOTING_MEMBERS').sync_from_people!(people: vot.compact.uniq)
+      Ygg::Ml::List.find_by!(symbol: 'STUDENTS').sync_from_people!(people: active_members.where(ml_students: true))
+      Ygg::Ml::List.find_by!(symbol: 'INSTRUCTORS').sync_from_people!(people: active_members.where(ml_instructors: true))
+      Ygg::Ml::List.find_by!(symbol: 'TUG_PILOTS').sync_from_people!(people: active_members.where(ml_tug_pilots: true))
+      Ygg::Ml::List.find_by!(symbol: 'BOARD_MEMBERS').sync_from_people!(people: board_members)
     end
 
     transaction do
-      sync_mailman!(list_name: 'soci', symbol: 'ACTIVE_MEMBERS')
-#      sync_mailman!(list_name: 'scuola', symbol: 'STUDENTS')
-      sync_mailman!(list_name: 'istruttori', symbol: 'INSTRUCTORS')
-#      sync_mailman!(list_name: 'consiglio', symbol: 'BOARD_MEMBERS')
-      sync_mailman!(list_name: 'trainatori', symbol: 'TUG_PILOTS')
+      Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').sync_to_mailman!(list_name: 'soci')
+#     Ygg::Ml::List.find_by!(symbol: 'STUDENTS'). sync_to_mailman!(list_name: 'scuola')
+      Ygg::Ml::List.find_by!(symbol: 'INSTRUCTORS').sync_to_mailman!(list_name: 'istruttori')
+#      Ygg::Ml::List.find_by!(symbol: 'BOARD_MEMBERS').sync_to_mailman!(list_name: 'consiglio')
+      Ygg::Ml::List.find_by!(symbol: 'TUG_PILOTS').sync_to_mailman!(list_name: 'trainatori')
     end
   end
 
@@ -422,11 +370,13 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
     derive_uuid_from_data([ uuid.delete('-') ].pack('H*'))
   end
 
-  def access_validity_ranges(from: Time.now, grace_period:)
+  def access_validity_ranges(from: Time.now)
     ranges = RangeArray.new
 
-    if active_to
-      ranges << (nil .. (active_to + grace_period).round)
+    act_to = active_to
+
+    if act_to
+      ranges << (nil .. (act_to.round))
     end
 
     if socio.tessere_inizio || socio.tessere_fine
@@ -444,7 +394,7 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
     ranges
   end
 
-  def self.sync_with_faac!(grace_period: 1.month, debug: Rails.application.config.acao.faac_debug || 0)
+  def self.sync_with_faac!(debug: Rails.application.config.acao.faac_debug || 0)
 
     if Rails.application.config.acao.faac_dry_run
       puts "FAAC dry run"
@@ -608,7 +558,7 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
     l_to_r: lambda { |l|
       puts "Media create: #{l.id} num=#{l.number} code=#{l.code} oct=#{l.code_for_faac}" if debug > 0
 
-      ranges = access_validity_ranges(grace_period: grace_period)
+      ranges = access_validity_ranges
       range = ranges.first
 
       validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
@@ -641,7 +591,7 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
     lr_update: lambda { |l,r|
       puts "Media update check #{l.id} #{l.code}" if debug > 1
 
-      ranges = access_validity_ranges(grace_period: grace_period)
+      ranges = access_validity_ranges
       range = ranges.first
 
       validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
@@ -898,97 +848,8 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
     })
   end
 
-  ########## Mailing lists synchronization
-
-  def self.sync_ml!(symbol:, members:, time: Time.now)
-    list = Ygg::Ml::List.find_by!(symbol: symbol)
-    current_members = list.members.where(owner_type: 'Ygg::Acao::Member').order(owner_id: :asc)
-
-    Ygg::Toolkit.merge(l: members.to_a.sort { |a,b| a.id <=> b.id }, r: current_members,
-      l_cmp_r: lambda { |l,r| l.id <=> r.owner_id },
-      l_to_r: lambda { |l|
-        l.person.contacts.where(type: 'email').each do |contact|
-          addr = Ygg::Ml::Address.find_or_create_by(addr: contact.value, addr_type: 'EMAIL')
-          addr.name = l.person.name
-          addr.save!
-
-          list.members << Ygg::Ml::List::Member.new(
-            address: addr,
-            subscribed_on: Time.now,
-            owner: l,
-          )
-        end
-      },
-      r_to_l: lambda { |r|
-        r.destroy
-      },
-      lr_update: lambda { |l,r|
-        r.address.name = l.person.name
-        r.address.save! if r.address.changed?
-      },
-    )
-  end
-
-  def self.sync_mailman!(symbol:, list_name:, dry_run: Rails.application.config.acao.soci_ml_dry_run)
-
-    return if Rails.application.config.ml.mailman_sync_disabled
-
-    l_full_emails = Hash[Ygg::Ml::List.find_by!(symbol: symbol).addresses.
-                     where(addr_type: 'EMAIL').order(addr: :asc).map { |x| [ x.addr.downcase, x.name ] }]
-
-    l_emails = l_full_emails.keys.sort
-    r_emails = []
-
-    IO::popen([ '/usr/bin/ssh', '-i', '/var/lib/yggdra/lino', 'root@lists.acao.it', '/usr/sbin/list_members', list_name ]) do |io|
-      data = io.read
-      io.close
-
-      if !$?.success?
-        raise "Cannot list list members"
-      end
-
-      r_emails = data.split("\n").map { |x| x.strip.downcase }.sort
-    end
-
-    members_to_add = []
-    members_to_remove = []
-
-    Ygg::Toolkit.merge(l: l_emails, r: r_emails,
-      l_cmp_r: lambda { |l,r| l <=> r },
-      l_to_r: lambda { |l|
-        members_to_add << "#{l_full_emails[l]} <#{l}>"
-      },
-      r_to_l: lambda { |r|
-        members_to_remove << r
-      },
-      lr_update: lambda { |l,r|
-      }
-    )
-
-    if members_to_add.any?
-      puts "MAILMAN MEMBERS TO ADD TO LIST #{list_name}:\n#{members_to_add}"
-
-      if !dry_run
-        IO::popen([ '/usr/bin/ssh', '-i', '/var/lib/yggdra/lino', 'root@lists.acao.it', '/usr/sbin/add_members',
-                      '-r', '-', '--admin-notify=n', '--welcome-msg=n', list_name ], 'w') do |io|
-          io.write(members_to_add.join("\n"))
-          io.close
-        end
-      end
-    end
-
-    if members_to_remove.any?
-      puts "MAILMAN MEMBERS TO REMOVE FROM LIST #{list_name}:\n#{members_to_remove}"
-
-      if !dry_run
-        IO::popen([ '/usr/bin/ssh', '-i', '/var/lib/yggdra/lino', 'root@lists.acao.it', '/usr/sbin/remove_members',
-                      '--file', '-', '--nouserack', '--noadminack', list_name ], 'w') do |io|
-          io.write(members_to_remove.join("\n"))
-          io.close
-        end
-      end
-    end
-  end
+  # Roles for which we are authoritative
+  WP_AUTH_ROLES = [ 'src_acao', 'socio', 'trainatore', 'allievo', 'istruttore' ]
 
   def self.sync_wordpress!(relation: alive_pilots, debug: Rails.application.config.acao.wp_sync_debug || 0)
 
@@ -1009,9 +870,6 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
       data = JSON.parse(io.read, symbolize_names: true)
     end
 
-    # Roles for which we are authoritative
-    auth_roles = [ 'src_acao', 'socio', 'trainatore', 'allievo' ]
-
     updates = []
 
     puts "Computing changes..." if debug >= 1
@@ -1024,7 +882,7 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
     Ygg::Toolkit.merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| l.code.to_s <=> r[:user_login] },
     l_to_r: lambda { |l|
-      puts "CREATE: #{l.acao_code}" if debug >= 2
+      puts "CREATE: #{l.code}" if debug >= 2
 
       updates << [
         l.code.to_s,
@@ -1033,7 +891,7 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
         l.person.first_name,
         l.person.last_name,
         l.person.name,
-        wordpress_roles(l).join(','),
+        l.wp_roles.join(','),
         l.code.to_s,
       ]
     },
@@ -1041,17 +899,17 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
       puts "REMOVE: #{r[:user_login]}" if debug >= 2
     },
     lr_update: lambda { |l,r|
-      puts "UPDATE CHK #{l.acao_code}" if debug >= 2
+      puts "UPDATE CHK #{l.code}" if debug >= 2
 
       # All current roles
       r_roles = r[:roles].split(',').sort
 
       # Current roles for which we are authoritative
-      r_our_roles = r_roles & auth_roles
+      r_our_roles = r_roles & WP_AUTH_ROLES
 
-      roles = wordpress_roles(l)
+      roles = l.wp_roles
 
-      new_roles = ((r_roles - auth_roles) + roles).sort
+      new_roles = ((r_roles - WP_AUTH_ROLES) + roles).sort
 
       if debug >= 3
         puts "Current Roles = #{r_roles}"
@@ -1112,21 +970,24 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
     puts "Done!" if debug > 0
   end
 
-  def self.wordpress_roles(pilot)
+  def wp_roles
     roles = [ 'src_acao' ]
-    roles << 'socio' if pilot.active?
-    roles << 'trainatore' if pilot.is_tug_pilot
-    roles << 'allievo' if pilot.is_student
+    roles << 'socio' if active?
+    roles << 'trainatore' if is_tug_pilot
+    roles << 'allievo' if is_student
+    roles << 'istruttore' if is_instructor
 
     roles
   end
 
   ############ Old Database Synchronization
 
-  def self.sync_from_maindb!(debug: 0)
+  BANNED_IDS = [-1, 0, 1, 4000, 4001, 7000, 8888, 9999]
 
-    l_records = Ygg::Acao::MainDb::Socio.order(id_soci_dati_generale: :asc).lock
-    r_records = where('ext_id IS NOT NULL').order(ext_id: :asc).lock
+  def self.sync_from_maindb!(force: false, debug: 0)
+
+    l_records = Ygg::Acao::MainDb::Socio.where.not(codice_socio_dati_generale: BANNED_IDS).order(id_soci_dati_generale: :asc).lock
+    r_records = self.where.now(code: BANNED_IDS).where('ext_id IS NOT NULL').order(ext_id: :asc).lock
 
     Ygg::Toolkit.merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| l.id_soci_dati_generale <=> r.ext_id },
@@ -1145,7 +1006,7 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
           roster_allowed: true,
         )
 
-        member.sync_from_maindb(l, person: person, debug: debug)
+        member.sync_from_maindb(l, person: person, force: force, debug: debug)
 
         member.save!
         person.save!
@@ -1171,7 +1032,7 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
       if l.lastmod != r.lastmod || l.visita.lastmod != r.visita_lastmod
         transaction do
           p = r.person
-          r.sync_from_maindb(l, person: p, debug: debug)
+          r.sync_from_maindb(l, person: p, force: force, debug: debug)
 
           if r.deep_changed? || p.deep_changed?
             puts "UPDATING #{l.id_soci_dati_generale} <=> #{r.ext_id} (#{r.person.first_name} #{r.person.last_name})" if debug >= 1
@@ -1185,8 +1046,8 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
     })
   end
 
-  def sync_from_maindb(other = socio, person: self.person, with_logbar: true, with_logbollini: true, debug: 0)
-    if other.lastmod.floor(6) != lastmod
+  def sync_from_maindb(other = socio, person: self.person, with_logbar: true, with_logbollini: true, force: false, debug: 0)
+    if other.lastmod.floor(6) != lastmod || force
       person.first_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ').first
       person.middle_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ')[1..-1].join(' ')
       person.last_name = other.Cognome.strip
@@ -1277,7 +1138,12 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
         puts "MEMBER #{code} #{person.first_name} #{person.last_name} CHANGED" if debug >= 1
         puts deep_changes.awesome_inspect(plain: true)
 
-        save!
+        begin
+          save!
+        rescue ActiveRecord::RecordInvalid
+          puts "VALIDATION ERROR: #{errors.inspect}"
+          raise
+        end
       end
     end
 
@@ -1512,7 +1378,9 @@ puts "FFFFFFFFFFFFFFFFFFFFFFFFF #{dig}"
   end
 
   def self.voting_members(time: Time.now)
-    active_members(time: time, grace_period: 0)
+    # active_members(time: time).where('birth_date < ?', time.to_date - 18.years)
+
+    active_members(time: time)
   end
 
   def self.students
