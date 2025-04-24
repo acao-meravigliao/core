@@ -219,10 +219,15 @@ class Flight < Ygg::PublicModel
     self.takeoff_location_raw = takeoff_airfield ? takeoff_airfield.name : other.dep.strip.upcase
     self.landing_location_raw = landing_airfield ? landing_airfield.name : other.arr.strip.upcase
 
-    begin
-      self.pilot1 = Ygg::Acao::Member.find_by!(code: other.codice_pilota_aliante)
-    rescue ActiveRecord::RecordNotFound
-      raise InvalidRecord, "Missing referenced pilot1 code=#{other.codice_pilota_aliante}"
+    if !other.codice_pilota_aliante.blank? &&
+        other.codice_pilota_aliante != 0
+      begin
+        self.pilot1 = Ygg::Acao::Member.find_by!(code: other.codice_pilota_aliante)
+      rescue ActiveRecord::RecordNotFound
+        raise InvalidRecord, "Missing referenced pilot1 code=#{other.codice_pilota_aliante}"
+      end
+    else
+      self.pilot1 = nil
     end
 
     if !other.codice_secondo_pilota_aliante.blank? &&
