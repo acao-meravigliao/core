@@ -150,12 +150,12 @@ class Membership < Ygg::PublicModel
       enabled: false,
     }
 
-    services << {
-      service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'SKYSIGHT').id,
-      removable: false,
-      toggable: true,
-      enabled: false,
-    }
+#    services << {
+#      service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'SKYSIGHT').id,
+#      removable: false,
+#      toggable: true,
+#      enabled: false,
+#    }
 
     services << {
       service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'METEOWIND').id,
@@ -284,8 +284,8 @@ class Membership < Ygg::PublicModel
           person: person,
           service_type: service_type,
           invoice_detail: invoice_detail,
-          valid_from: Time.new(renewal_year.year).beginning_of_year,
-          valid_to: Time.new(renewal_year.year).end_of_year,
+          valid_from: Time.local(renewal_year.year).beginning_of_year,
+          valid_to: (Time.local(renewal_year.year).end_of_year + 31.days).end_of_day,
           service_data: service[:extra_info],
         )
       end
@@ -302,7 +302,7 @@ class Membership < Ygg::PublicModel
       status: 'WAITING_PAYMENT',
       invoice_detail: ass_invoice_detail,
       valid_from: Time.now,
-      valid_to: Time.new(renewal_year.year).end_of_year,
+      valid_to: (Time.local(renewal_year.year).end_of_year + 31.days).end_of_day,
       possible_roster_chief: person.acao_roster_chief,
       student: person.acao_is_student,
       tug_pilot: person.acao_is_tug_pilot,
@@ -356,7 +356,7 @@ class Membership < Ygg::PublicModel
         si = mdb_socio.iscrizioni.create!(
           anno_iscrizione: reference_year.year,
           tipo_iscr: si_prev ? si_prev.tipo_iscr : 1,
-          data_scadenza: Time.new(reference_year.year).end_of_year,
+          data_scadenza: (Time.local(reference_year.year).end_of_year + 31.days).end_of_day,
           euro_pagati: invoice_detail.invoice.total,
           note: "Fattura #{invoice_detail.invoice.identifier}",
           temporanea: false,
@@ -408,10 +408,7 @@ class Membership < Ygg::PublicModel
   end
 
   def active?(time: Time.now)
-    ym = Ygg::Acao::Year.find_by(year: year)
-    return false if !ym
-
-    time.between?(Time.new(ym.year).beginning_of_year, Time.new(ym.year).ending_of_year)
+    time.between?(valid_from, valid_to)
   end
 
 end
