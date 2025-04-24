@@ -11,6 +11,10 @@ class Anagrafica < ActiveRecord::Base
   has_many :doc_teste,
            class_name: '::Ygg::Acao::Onda::DocTesta',
            foreign_key: 'IdAnagrafica'
+
+  def socio
+    Ygg::Acao::MainDb::Socio.find_by(codice_socio: anagrafica.IdAnagrafica)
+  end
 end
 
 end

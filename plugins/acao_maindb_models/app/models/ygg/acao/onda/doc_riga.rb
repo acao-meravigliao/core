@@ -8,6 +8,10 @@ class DocRiga < ActiveRecord::Base
 
   self.table_name = 'ATTDocRighe'
   self.primary_key = 'IdRiga'
+
+  belongs_to :doc_testa,
+           class_name: '::Ygg::Acao::Onda::DocTesta',
+           foreign_key: 'IdDoc'
 end
 
 end
