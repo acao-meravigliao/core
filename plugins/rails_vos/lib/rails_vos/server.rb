@@ -88,7 +88,7 @@ class Server
   def initialize(routes_config:)
     @routes_config = DeepOpenStruct.new(routes_config)
 
-    actor_initialize(actor_id: :rails_vos_server)
+    super(actor_id: :rails_vos_server)
   end
 
   def actor_boot
@@ -101,6 +101,7 @@ class Server
 
     @ds = actor_supervise_new(AM::GrafoStore::Store, config: {
       actor_id: :ds,
+      hooks: ::Ygg::Core::Grafo,
     }, shut_order: 1000)
 
     @vos = actor_supervise_new(AM::VOS::Server, config: {
@@ -114,7 +115,7 @@ class Server
       auth_manager: nil,
       calls_to: self.actor_ref,
       events_to: self.actor_ref,
-      debug: 3||@debug,
+      debug: @debug,
     }, shut_order: 100)
 
     @amqp = RailsAmqp::Connection.connection
@@ -202,7 +203,23 @@ class Server
   end
 
   def actor_handle(msg)
+
+puts "ACTOR HANDLE #{msg}"
+
     case msg
+    when AM::VOS::Server::MsgCall
+      actor_reply(msg, AM::VOS::Server::MsgCallFail.new)
+
+    when AM::VOS::Server::MsgClassCall
+
+      begin
+        body = msg.cls.send(**msg.params)
+      rescue StandardError => e
+        actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: e))
+      else
+        actor_reply(msg, AM::VOS::Server::MsgCallOk.new(body: body))
+      end
+
     when AM::HTTP::Server::MsgRequest
       actor_redirect(msg, @vos)
 
