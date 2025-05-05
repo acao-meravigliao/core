@@ -23,7 +23,7 @@ class StatsController < Ygg::Hel::BaseController
       numero_giorni_di_linea_non_pieni: Ygg::Acao::RosterDay.for_year.to_a.select { |x| x.roster_entries.count < x.needed_people }.count,
       slot_totali: Ygg::Acao::RosterDay.for_year.sum(:needed_people),
       slot_occupati: Ygg::Acao::RosterDay.for_year.map { |x| x.roster_entries }.flatten.count,
-      piloti_iscritti_pagato_senza_tutti_turni: Ygg::Acao::Pilot.members_for_year.order(:acao_code).to_a.select { |x| !x.roster_needed_entries_present }.map { |x| { code: x.acao_code, name: x.name, needed: x.roster_entries_needed, entries: x.acao_roster_entries.map { |y| y.roster_day.date }.sort.map { |y| y.strftime('%Y-%m-%d') } } },
+      piloti_iscritti_pagato_senza_tutti_turni: Ygg::Acao::Member.members_for_year.order(:code).to_a.select { |x| !x.roster_needed_entries_present }.map { |x| { code: x.code, name: x.person.name, needed: x.roster_entries_needed, entries: x.roster_entries.map { |y| y.roster_day.date }.sort.map { |y| y.strftime('%Y-%m-%d') } } },
     }
 
     respond_to do |format|

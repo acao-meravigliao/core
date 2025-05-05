@@ -40,7 +40,7 @@ class Transaction
     @params = args
     @store = {}
     @id = SecureRandom.uuid
-    execute(&blk)if block_given?
+    execute(&blk) if block_given?
   end
 
   # trn = Ygg::Core::Transaction.new("human readable description")

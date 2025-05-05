@@ -2,26 +2,93 @@
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
 #
-# This file is the source Rails uses to define your schema when running `rails
-# db:schema:load`. When creating a new database, `rails db:schema:load` tends to
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
 # be faster and is potentially less error prone than running all of your
 # migrations from scratch. Old migrations may fail to apply correctly if those
 # migrations use external dependencies or application code.
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_28_235158) do
+ActiveRecord::Schema.define(version: 2024_02_19_133727) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
   enable_extension "uuid-ossp"
 
+  create_table "acao_bar_transactions_acl", force: :cascade do |t|
+    t.bigint "obj_id", null: false
+    t.bigint "person_id"
+    t.bigint "group_id"
+    t.string "capability", limit: 64, null: false
+    t.string "owner_type"
+    t.bigint "owner_id"
+    t.index ["group_id"], name: "index_acao_bar_transactions_acl_on_group_id"
+    t.index ["obj_id"], name: "index_acao_bar_transactions_acl_on_obj_id"
+    t.index ["owner_type", "owner_id"], name: "index_acao_bar_transactions_acl_on_owner_type_and_owner_id"
+    t.index ["person_id"], name: "index_acao_bar_transactions_acl_on_person_id"
+  end
+
+  create_table "acao_memberships_acl", force: :cascade do |t|
+    t.bigint "obj_id", null: false
+    t.bigint "person_id"
+    t.bigint "group_id"
+    t.string "capability", limit: 64, null: false
+    t.string "owner_type"
+    t.bigint "owner_id"
+    t.index ["group_id"], name: "index_acao_memberships_acl_on_group_id"
+    t.index ["obj_id"], name: "index_acao_memberships_acl_on_obj_id"
+    t.index ["owner_type", "owner_id"], name: "index_acao_memberships_acl_on_owner_type_and_owner_id"
+    t.index ["person_id"], name: "index_acao_memberships_acl_on_person_id"
+  end
+
+  create_table "acao_payments_acl", force: :cascade do |t|
+    t.bigint "obj_id", null: false
+    t.bigint "person_id"
+    t.bigint "group_id"
+    t.string "capability", limit: 64, null: false
+    t.string "owner_type"
+    t.bigint "owner_id"
+    t.index ["group_id"], name: "index_acao_payments_acl_on_group_id"
+    t.index ["obj_id"], name: "index_acao_payments_acl_on_obj_id"
+    t.index ["owner_type", "owner_id"], name: "index_acao_payments_acl_on_owner_type_and_owner_id"
+    t.index ["person_id"], name: "index_acao_payments_acl_on_person_id"
+  end
+
   create_table "active_planes", id: :serial, force: :cascade do |t|
     t.integer "plane_id", null: false
     t.string "flying_state", limit: 32
     t.string "towing_state", limit: 32
     t.integer "towed_plane_id"
+  end
+
+  create_table "core_organizations_acl", force: :cascade do |t|
+    t.bigint "obj_id", null: false
+    t.bigint "person_id"
+    t.bigint "group_id"
+    t.string "role", limit: 64, null: false
+    t.string "owner_type"
+    t.bigint "owner_id"
+    t.index ["group_id"], name: "index_core_organizations_acl_on_group_id"
+    t.index ["obj_id"], name: "index_core_organizations_acl_on_obj_id"
+    t.index ["owner_type", "owner_id"], name: "index_core_organizations_acl_on_owner_type_and_owner_id"
+    t.index ["person_id"], name: "index_core_organizations_acl_on_person_id"
+    t.index ["role"], name: "index_core_organizations_acl_on_role"
+  end
+
+  create_table "core_people_acl", force: :cascade do |t|
+    t.bigint "obj_id", null: false
+    t.bigint "person_id"
+    t.bigint "group_id"
+    t.string "role", limit: 64, null: false
+    t.string "owner_type"
+    t.bigint "owner_id"
+    t.index ["group_id"], name: "index_core_people_acl_on_group_id"
+    t.index ["obj_id"], name: "index_core_people_acl_on_obj_id"
+    t.index ["owner_type", "owner_id"], name: "index_core_people_acl_on_owner_type_and_owner_id"
+    t.index ["person_id"], name: "index_core_people_acl_on_person_id"
+    t.index ["role"], name: "index_core_people_acl_on_role"
   end
 
   create_table "flights", id: :serial, force: :cascade do |t|
@@ -55,7 +122,20 @@ ActiveRecord::Schema.define(version: 2021_03_28_235158) do
     t.index ["towplane_pilot2_id"], name: "index_flights_on_towplane_pilot2_id"
   end
 
-  create_table "idxc_entries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+  create_table "flights_acl", id: :serial, force: :cascade do |t|
+    t.integer "obj_id", null: false
+    t.integer "identity_id"
+    t.integer "group_id"
+    t.string "capability", limit: 64, null: false
+    t.index ["capability"], name: "index_flights_acl_on_capability"
+    t.index ["group_id"], name: "index_flights_acl_on_group_id"
+    t.index ["identity_id"], name: "index_flights_acl_on_identity_id"
+    t.index ["obj_id", "group_id", "capability"], name: "flights_acl_ogc", unique: true
+    t.index ["obj_id", "identity_id", "capability"], name: "flights_acl_oic", unique: true
+    t.index ["obj_id"], name: "index_flights_acl_on_obj_id"
+  end
+
+  create_table "idxc_entries", id: :uuid, default: -> { "public.gen_random_uuid()" }, force: :cascade do |t|
     t.string "obj_type", limit: 255, null: false
     t.uuid "obj_id", null: false
     t.datetime "created_at", default: -> { "now()" }, null: false
@@ -67,7 +147,7 @@ ActiveRecord::Schema.define(version: 2021_03_28_235158) do
     t.index ["person_id"], name: "index_idxc_entries_on_person_id"
   end
 
-  create_table "idxc_statuses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+  create_table "idxc_statuses", id: :uuid, default: -> { "public.gen_random_uuid()" }, force: :cascade do |t|
     t.string "obj_type", limit: 255, null: false
     t.datetime "updated_at", default: -> { "now()" }
     t.boolean "has_dirty", default: false, null: false
@@ -203,7 +283,7 @@ ActiveRecord::Schema.define(version: 2021_03_28_235158) do
   end
 
   create_table "str_channels", id: :serial, force: :cascade do |t|
-    t.uuid "uuid", default: -> { "gen_random_uuid()" }
+    t.uuid "uuid", default: -> { "public.gen_random_uuid()" }
     t.string "name"
     t.string "descr"
     t.string "poster"
@@ -213,6 +293,11 @@ ActiveRecord::Schema.define(version: 2021_03_28_235158) do
     t.boolean "condemned", default: false, null: false
     t.index ["agent_id"], name: "index_str_channels_on_agent_id"
     t.index ["uuid"], name: "index_str_channels_on_uuid", unique: true
+  end
+
+  create_table "sync_status", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "symbol", limit: 255, null: false
+    t.datetime "synced_at", default: -> { "now()" }, null: false
   end
 
   create_table "trk_contest_days", id: :serial, force: :cascade do |t|

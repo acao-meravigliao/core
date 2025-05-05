@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #
 # Copyright (C) 2017-2018, Daniele Orlandi
 #
@@ -25,8 +26,8 @@ class FaiCard < Ygg::PublicModel
     [ :must_have_fk, {to_table: "core_people", column: "person_id", primary_key: "id", on_delete: nil, on_update: nil}],
   ]
 
-  belongs_to :person,
-             class_name: 'Ygg::Core::Person'
+  belongs_to :member,
+             class_name: '::Ygg::Acao::Member'
 
   include Ygg::Core::Loggable
   define_default_log_controller(self)

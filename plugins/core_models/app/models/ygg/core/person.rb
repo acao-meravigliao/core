@@ -149,6 +149,9 @@ class Person < OrgaPerson
 
 #  has_many :accesses, class_name: 'Ygg::Sevio::Access'
 
+  gs_rel_map << { from: :person, to: :contact, to_cls: '::Ygg::Core::Person::Contact', to_key: 'person_id' }
+  gs_rel_map << { from: :person, to: :credential, to_cls: '::Ygg::Core::Person::Credential', to_key: 'person_id' }
+
   has_meta_class
   has_acl
 

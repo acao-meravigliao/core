@@ -18,8 +18,10 @@ class PasswordRecoveryController < Ygg::Hel::BaseController
 
   def recover
 
-    person = Ygg::Core::Person.find_by(acao_code: json_request[:acao_code])
-    raise AccountNotFound if !person
+    member = Ygg::Acao::Member.find_by(code: json_request[:code])
+    raise AccountNotFound if !member
+
+    person = member.person
 
     credential = person.credentials.where('fqda LIKE \'%@cp.acao.it\'').first
     raise CredentialNotFound if !credential

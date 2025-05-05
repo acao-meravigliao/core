@@ -1,28 +1,17 @@
 source 'https://rubygems.org'
 
-#gem 'activerecord', '~> 7.1.0'
-#gem 'activemodel', '~> 7.1.0'
-#gem 'actionpack', '~> 7.1.0'
-#gem 'actionview', '~> 7.1.0'
-#gem 'activesupport', '~> 7.1.0'
-#gem 'railties', '~> 7.1.0'
-##gem 'sprockets-rails'
-
-gem 'activerecord', '~> 6.1.0'
-gem 'activemodel', '~> 6.1.0'
-gem 'actionpack', '~> 6.1.0'
-gem 'actionview', '~> 6.1.0'
-gem 'activesupport', '~> 6.1.0'
-gem 'railties', '~> 6.1.0'
+gem 'activerecord', '~> 8.0.0'
+gem 'activemodel', '~> 8.0.0'
+gem 'actionpack', '~> 8.0.0'
+gem 'actionview', '~> 8.0.0'
+gem 'activesupport', '~> 8.0.0'
+gem 'railties', '~> 8.0.0'
 
 gem 'pg'
-gem 'tiny_tds'#, '~> 1.1.0'
-#gem 'activerecord-sqlserver-adapter', '~> 7.1.0'
-gem 'activerecord-sqlserver-adapter', '~> 6.1.2.1'
-#gem 'activerecord-sqlserver-adapter'#, git: 'https://github.com/rails-sqlserver/activerecord-sqlserver-adapter.git'
+gem 'tiny_tds'
+gem 'activerecord-sqlserver-adapter', '~> 8.0'
 
 gem 'puma'
-gem 'puma-plugin-systemd'
 
 gem 'rbtrace'
 
@@ -49,18 +38,18 @@ source 'https://gems.vihai.it/' do
   gem 'json_exceptions'
   gem 'vihai-password-rails'
   gem 'rails_actor_model'
-  gem 'rails_amqp', '= 1.0.5'
+  gem 'rails_amqp'
 
   gem 'am-smtp'
   gem 'am-satispay'
   gem 'am-ssh'
   gem 'am-ws'
+  gem 'am-vos'
   gem 'ygg-diffable'
   gem 'iarray'
 
   group :hel_together do
-    #gem 'hel_together', '~> 1.5.2' # For rails 6.0
-    gem 'hel_together', '~> 1.6.1' # For rails 6.0
+    gem 'hel_together', '~> 1.6.1'
     gem 'nisse_hel', path: 'plugins/nisse_hel'
     gem 'core_heltog', path: 'plugins/core_heltog'
     gem 'ml_heltog', path: 'plugins/ml_heltog'
@@ -88,7 +77,7 @@ group :controllers do
   gem 'acao_hel', path: 'plugins/acao_hel'
   #gem 'trk_hel', path: '../acao-plugins/trk_hel'
   gem 'streaming_hel', path: 'plugins/streaming_hel'
-  gem 'amqp_ws_gw', path: 'plugins/amqp_ws_gw'
+  #gem 'amqp_ws_gw', path: 'plugins/amqp_ws_gw'
   gem 'rails_vos', path: 'plugins/rails_vos'
 end
 

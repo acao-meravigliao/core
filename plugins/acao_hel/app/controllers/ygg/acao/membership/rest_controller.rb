@@ -126,9 +126,11 @@ class Membership::RestController < Ygg::Hel::RestController
     puts json_request
     puts "============================================================================="
 
+    # FIXME Check if acao_person is not null
+
     hel_transaction('Membership renewal wizard') do
       membership = Ygg::Acao::Membership.renew(
-        person: aaa_context.auth_person,
+        acao_person: aaa_context.auth_person.acao_person,
         payment_method: json_request[:payment_method],
         enable_email: json_request[:enable_email],
         services: json_request[:services],

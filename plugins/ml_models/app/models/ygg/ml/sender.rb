@@ -49,7 +49,7 @@ class Sender < Ygg::PublicModel
   has_many :messages,
            class_name: 'Ygg::Ml::Msg'
 
-  serialize :email_smtp_pars, JSON
+  serialize :email_smtp_pars, coder: JSON
 
   def email_domain
     ::Mail::Address.new(email_address).domain

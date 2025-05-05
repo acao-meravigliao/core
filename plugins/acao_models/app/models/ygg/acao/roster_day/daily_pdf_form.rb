@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #
 # Copyright (C) 2017-2017, Daniele Orlandi
 #
@@ -47,7 +48,7 @@ class DailyPdfForm < Prawn::Document
         pad(5) do
           @day.roster_entries.each do |entry|
             ##### #{entry.chief ? ', Capolinea' : ', Aiuto'}
-            text "<font size=\"14\">#{entry.person.name}</font>, #{entry.person.acao_code}", inline_format: true
+            text "<font size=\"14\">#{entry.person.name}</font>, #{entry.person.code}", inline_format: true
           end
         end
       end

@@ -27,7 +27,7 @@ module RailsVos
     end
 
     begin
-        Server.new(routes_config: routes.deep_dup)
+      Server.new(routes_config: routes.deep_dup)
     rescue Exception => e
       puts "EXCEPTION: #{e}"
     end

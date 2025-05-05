@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #
 # Copyright (C) 2017-2017, Daniele Orlandi
 #
@@ -46,8 +47,8 @@ class Payment < Ygg::PublicModel
              class_name: 'Ygg::Acao::Invoice',
              optional: true # TEMPORARY FIXME
 
-  belongs_to :person,
-             class_name: 'Ygg::Core::Person'
+  belongs_to :member,
+             class_name: 'Ygg::Core::Member'
 
   has_many :satispay_charges,
            class_name: 'Ygg::Acao::Payment::SatispayCharge',

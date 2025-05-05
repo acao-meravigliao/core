@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #
 # Copyright (C) 2017-2017, Daniele Orlandi
 #
@@ -12,27 +13,8 @@ module Acao
 class BarTransaction < Ygg::PublicModel
   self.table_name = 'acao.bar_transactions'
 
-  self.porn_migration += [
-    [ :must_have_column, { name: "id", type: :integer, null: false, limit: 4 } ],
-    [ :must_have_column, { name: "uuid", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-    [ :must_have_column, {name: "person_id", type: :integer, default: nil, limit: 4, null: false}],
-    [ :must_have_column, {name: "prev_credit", type: :decimal, default: nil, precision: 14, scale: 6, null: true}],
-    [ :must_have_column, {name: "credit", type: :decimal, default: nil, precision: 14, scale: 6, null: true}],
-    [ :must_have_column, {name: "amount", type: :decimal, default: nil, precision: 14, scale: 6, null: false}],
-    [ :must_have_column, {name: "descr", type: :string, default: nil, null: false}],
-    [ :must_have_column, {name: "recorded_at", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "uuid", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-    [ :must_have_column, {name: "session_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "cnt", type: :integer, default: 1, limit: 4, null: false}],
-    [ :must_have_column, {name: "unit", type: :string, default: "€", null: false}],
-    [ :must_have_index, {columns: ["uuid"], unique: true}],
-    [ :must_have_index, {columns: ["recorded_at"], unique: false}],
-    [ :must_have_fk, {to_table: "core_people", column: "person_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core_sessions", column: "session_id", primary_key: "id", on_delete: nil, on_update: nil}],
-  ]
-
-  belongs_to :person,
-             class_name: '::Ygg::Core::Person'
+  belongs_to :member,
+             class_name: '::Ygg::Acao::Member'
 
   include Ygg::Core::Loggable
   define_default_log_controller(self)
@@ -68,7 +50,7 @@ class BarTransaction < Ygg::PublicModel
     r_relation = r_relation.where('old_id >= ?', start) if start
     r_relation = r_relation.where('old_id <= ?', stop) if stop
 
-    merge(
+    Ygg::Toolkit.merge(
     l: l_relation,
     r: r_relation,
     l_cmp_r: lambda { |l,r| l.id_logbar <=> r.old_id },
@@ -76,7 +58,7 @@ class BarTransaction < Ygg::PublicModel
       puts "LOGBAR ADD #{l.id_logbar}" if debug >= 1
 
       Ygg::Acao::BarTransaction.create!(
-        person: Ygg::Acao::Pilot.find_by!(acao_code: l.codice_socio),
+        member: Ygg::Acao::Member.find_by!(code: l.codice_socio),
         recorded_at: troiano_datetime_to_utc(l.data_reg),
         cnt: 1,
         unit: '€',
@@ -123,7 +105,7 @@ class BarTransaction < Ygg::PublicModel
     r_relation = r_relation.where('old_cassetta_id >= ?', start) if start
     r_relation = r_relation.where('old_cassetta_id <= ?', stop) if stop
 
-    merge(
+    Ygg::Toolkit.merge(
     l: l_relation,
     r: r_relation,
     l_cmp_r: lambda { |l,r| l.id_cassetta_bar_locale <=> r.old_cassetta_id },
@@ -131,7 +113,7 @@ class BarTransaction < Ygg::PublicModel
       puts "LOGBARD ADD #{l.id_cassetta_bar_locale}" if debug >= 1
 
       Ygg::Acao::BarTransaction.create!(
-        person: Ygg::Acao::Pilot.find_by!(acao_code: l.codice),
+        member: Ygg::Acao::Member.find_by!(code: l.codice),
         recorded_at: troiano_datetime_to_utc(l.data_reg),
         cnt: 1,
         unit: '€',
@@ -164,32 +146,6 @@ class BarTransaction < Ygg::PublicModel
   def self.troiano_datetime_to_utc(dt)
     ActiveSupport::TimeZone.new('Europe/Rome').local_to_utc(dt)
   end
-
-  def self.merge(l:, r:, l_cmp_r:, l_to_r:, r_to_l:, lr_update:)
-    r_enum = r.each
-    l_enum = l.each
-
-    r = r_enum.next rescue nil
-    l = l_enum.next rescue nil
-
-    while r || l
-      if !l || (r && l_cmp_r.call(l, r) == 1)
-        r_to_l.call(r)
-
-        r = r_enum.next rescue nil
-      elsif !r || (l &&  l_cmp_r.call(l, r) == -1)
-        l_to_r.call(l)
-
-        l = l_enum.next rescue nil
-      else
-        lr_update.call(l, r)
-
-        l = l_enum.next rescue nil
-        r = r_enum.next rescue nil
-      end
-    end
-  end
-
 
 end
 

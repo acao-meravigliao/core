@@ -166,7 +166,7 @@ class Msg::Email < Ygg::Ml::Msg
         flush: true,
         **args)
 
-    sender = Ygg::Ml::Sender.find_by_symbol!(sender) unless sender.is_a?(Ygg::Ml::Sender)
+    sender = Ygg::Ml::Sender.find_by!(symbol: sender) unless sender.is_a?(Ygg::Ml::Sender)
 
     destinations = [ destinations ] if !destinations.kind_of?(Array)
     objects = [ objects ] if !objects.kind_of?(Array)

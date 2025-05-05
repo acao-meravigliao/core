@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #
 # Copyright (C) 2016-2017, Daniele Orlandi
 #
@@ -12,75 +13,15 @@ module Acao
 class Flight < Ygg::PublicModel
   self.table_name = 'acao.flights'
 
-  self.porn_migration += [
-    [ :must_have_column, { name: "id", type: :integer, null: false, limit: 4 } ],
-    [ :must_have_column, { name: "uuid", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-    [ :must_have_column, {name: "aircraft_reg", type: :string, default: nil, null: false}],
-    [ :must_have_column, {name: "aircraft_id", type: :integer, default: nil, limit: 4, null: false}],
-    [ :must_have_column, {name: "takeoff_time", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "landing_time", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "pilot1_id", type: :integer, default: nil, limit: 4, null: false}],
-    [ :must_have_column, {name: "pilot2_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "pilot1_role", type: :string, default: nil, limit: 16, null: true}],
-    [ :must_have_column, {name: "pilot2_role", type: :string, default: nil, limit: 16, null: true}],
-    [ :must_have_column, {name: "source", type: :string, default: nil, limit: 16, null: true}],
-    [ :must_have_column, {name: "source_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "source_expansion", type: :string, default: nil, limit: 16, null: true}],
-    [ :must_have_column, {name: "acao_tipo_volo_club", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "acao_tipo_aereo_aliante", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "acao_durata_volo_aereo_minuti", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "acao_durata_volo_aliante_minuti", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "acao_quota", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "acao_bollini_volo", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "acao_data_att", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "towed_by_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "tow_release_location_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "takeoff_airfield_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "landing_airfield_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "takeoff_location_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "landing_location_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "takeoff_location_raw", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "landing_location_raw", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "aircraft_owner", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "aircraft_owner_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "instruction_flight", type: :boolean, default: false, null: false}],
-    [ :must_have_column, {name: "aircraft_class", type: :string, default: nil, limit: 16, null: true}],
-    [ :must_have_column, {name: "launch_type", type: :string, default: nil, limit: 16, null: true}],
-    [ :must_have_index, {columns: ["uuid"], unique: true}],
-    [ :must_have_index, {columns: ["aircraft_id"], unique: false}],
-    [ :must_have_index, {columns: ["aircraft_owner_id"], unique: false}],
-    [ :must_have_index, {columns: ["landing_airfield_id"], unique: false}],
-    [ :must_have_index, {columns: ["landing_location_id"], unique: false}],
-    [ :must_have_index, {columns: ["pilot1_id"], unique: false}],
-    [ :must_have_index, {columns: ["pilot2_id"], unique: false}],
-    [ :must_have_index, {columns: ["takeoff_airfield_id"], unique: false}],
-    [ :must_have_index, {columns: ["takeoff_location_id"], unique: false}],
-    [ :must_have_index, {columns: ["tow_release_location_id"], unique: false}],
-    [ :must_have_index, {columns: ["towed_by_id"], unique: false}],
-    [ :must_have_index, {columns: ["source_id", "source_expansion"], unique: true}],
-    [ :must_have_index, {columns: ["takeoff_time"], unique: false}],
-    [ :must_have_index, {columns: ["landing_time"], unique: false}],
-    [ :must_have_fk, {to_table: "acao_aircrafts", column: "aircraft_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core_people", column: "aircraft_owner_id", primary_key: "id", on_delete: :nullify, on_update: nil}],
-    [ :must_have_fk, {to_table: "acao_airfields", column: "landing_airfield_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core_locations", column: "landing_location_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core_people", column: "pilot1_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core_people", column: "pilot2_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "acao_airfields", column: "takeoff_airfield_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core_locations", column: "takeoff_location_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core_locations", column: "tow_release_location_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "acao_flights", column: "towed_by_id", primary_key: "id", on_delete: nil, on_update: nil}],
-  ]
-
   belongs_to :aircraft,
              class_name: 'Ygg::Acao::Aircraft'
 
   belongs_to :pilot1,
-             class_name: 'Ygg::Core::Person',
+             class_name: 'Ygg::Acao::Member',
              optional: true
 
   belongs_to :pilot2,
-             class_name: 'Ygg::Core::Person',
+             class_name: 'Ygg::Acao::Member',
              optional: true
 
   belongs_to :takeoff_location,
@@ -118,31 +59,6 @@ class Flight < Ygg::PublicModel
     :towed_by_id,
   ]
 
-  def self.merge(l:, r:, l_cmp_r:, l_to_r:, r_to_l:, lr_update:)
-    r_enum = r.each
-    l_enum = l.each
-
-    r = r_enum.next rescue nil
-    l = l_enum.next rescue nil
-
-    while r || l
-      if !l || (r && l_cmp_r.call(l, r) == 1)
-        r_to_l.call(r)
-
-        r = r_enum.next rescue nil
-      elsif !r || (l &&  l_cmp_r.call(l, r) == -1)
-        l_to_r.call(l)
-
-        l = l_enum.next rescue nil
-      else
-        lr_update.call(l, r)
-
-        l = l_enum.next rescue nil
-        r = r_enum.next rescue nil
-      end
-    end
-  end
-
   class InvalidRecord < StandardError ; end
 
   def self.sync_from_maindb!(from_time: nil, start: nil, stop: nil, debug: 0)
@@ -168,7 +84,7 @@ class Flight < Ygg::PublicModel
     r_relation = r_relation.where('source_id >= ?', start) if start
     r_relation = r_relation.where('source_id <= ?', stop) if stop
 
-    merge(
+    Ygg::Toolkit.merge(
     l: l_relation,
     r: r_relation,
     l_cmp_r: lambda { |l,r| l.id_voli <=> r.source_id },
@@ -225,7 +141,7 @@ class Flight < Ygg::PublicModel
     r_relation = r_relation.where('source_id >= ?', start) if start
     r_relation = r_relation.where('source_id <= ?', stop) if stop
 
-    merge(
+    Ygg::Toolkit.merge(
     l: l_relation,
     r: r_relation,
     l_cmp_r: lambda { |l,r| l.id_voli <=> r.source_id },
@@ -303,10 +219,15 @@ class Flight < Ygg::PublicModel
     self.takeoff_location_raw = takeoff_airfield ? takeoff_airfield.name : other.dep.strip.upcase
     self.landing_location_raw = landing_airfield ? landing_airfield.name : other.arr.strip.upcase
 
-    begin
-      self.pilot1 = Ygg::Acao::Pilot.find_by!(acao_code: other.codice_pilota_aliante)
-    rescue ActiveRecord::RecordNotFound
-      raise InvalidRecord, "Missing referenced pilot1 code=#{other.codice_pilota_aliante}"
+    if !other.codice_pilota_aliante.blank? &&
+        other.codice_pilota_aliante != 0
+      begin
+        self.pilot1 = Ygg::Acao::Member.find_by!(code: other.codice_pilota_aliante)
+      rescue ActiveRecord::RecordNotFound
+        raise InvalidRecord, "Missing referenced pilot1 code=#{other.codice_pilota_aliante}"
+      end
+    else
+      self.pilot1 = nil
     end
 
     if !other.codice_secondo_pilota_aliante.blank? &&
@@ -314,7 +235,7 @@ class Flight < Ygg::PublicModel
         other.codice_secondo_pilota_aliante != 1 &&
         other.codice_secondo_pilota_aliante != 9999 &&
         other.codice_secondo_pilota_aliante != 8888
-      self.pilot2 = Ygg::Acao::Pilot.find_by(acao_code: other.codice_secondo_pilota_aliante)
+      self.pilot2 = Ygg::Acao::Member.find_by(code: other.codice_secondo_pilota_aliante)
       if pilot2
         self.pilot2_role = 'PAX'
       else
@@ -325,7 +246,7 @@ class Flight < Ygg::PublicModel
 
     self.aircraft_class = aircraft.aircraft_type ? aircraft.aircraft_type.aircraft_class : nil
     self.aircraft_owner_id = aircraft.owner_id
-    self.aircraft_owner = ((aircraft.owner && aircraft.owner.name) || aircraft.fn_owner_name).presence
+    self.aircraft_owner = ((aircraft.owner && aircraft.owner.person.name) || aircraft.fn_owner_name).presence
 
     if other.marche_aereo.strip == 'AUTO'
       self.launch_type = 'SELF'
@@ -417,14 +338,14 @@ class Flight < Ygg::PublicModel
     self.landing_location = landing_airfield.location if landing_airfield
 
     begin
-      self.pilot1 = Ygg::Acao::Pilot.find_by!(acao_code: other.codice_pilota_aereo)
+      self.pilot1 = Ygg::Acao::Member.find_by!(code: other.codice_pilota_aereo)
     rescue ActiveRecord::RecordNotFound
       raise InvalidRecord, "Missing referenced pilot1 code=#{other.codice_pilota_aereo}"
     end
 
     if !other.codice_secondo_pilota_aereo.blank? &&
         other.codice_secondo_pilota_aereo != 0
-      self.pilot2 = Ygg::Acao::Pilot.find_by!(acao_code: other.codice_secondo_pilota_aereo)
+      self.pilot2 = Ygg::Acao::Member.find_by!(code: other.codice_secondo_pilota_aereo)
 
       if !pilot2
         raise InvalidRecord, "Missing referenced pilot2 code=#{other.codice_secondo_pilota_aereo}"

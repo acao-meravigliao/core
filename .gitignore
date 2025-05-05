@@ -16,5 +16,7 @@
 !/log/.keep
 /tmp
 
-/config/secrets.yml
+/config/master.key
+/config/credentials.yml
+/config/credentials.yml.enc
 /config/database.yml

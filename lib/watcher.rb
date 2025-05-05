@@ -1,22 +1,10 @@
 #! /usr/bin/ruby
 
-debug = 1
+debug = 2
 
 puts "---------------- Watcher Started ----------------" if debug >= 1
 
-ino = File.stat(__FILE__).ino
-
 loop do
-
-  cur_ino = File.stat(__FILE__).ino
-
-  puts "#{__FILE__} cur_ino=#{cur_ino} ino=#{ino}" if debug >= 4
-
-  if cur_ino != ino
-    puts "==================== WATCHER REPLACED, RELOADING ====================="
-    exit
-  end
-
   soci_changed = false
   mezzo_changed = false
   volo_changed = false
@@ -63,15 +51,15 @@ loop do
   end
 
   if soci_changed
-    puts "Updating Pilot(s)" if debug >= 1
+    puts "Updating Member(s)" if debug >= 1
 
     time0 = Time.new
-    Ygg::Acao::Pilot.sync_from_maindb!(debug: debug)
-    puts "Pilots update done, took #{Time.new - time0} seconds" if debug >= 1
+    Ygg::Acao::Member.sync_from_maindb!(debug: debug)
+    puts "Member update done, took #{Time.new - time0} seconds" if debug >= 1
 
     time0 = Time.new
     puts "  FAAC update started" if debug >= 1
-    Ygg::Acao::Pilot.sync_with_faac!(debug: debug)
+    Ygg::Acao::Member.sync_with_faac!(debug: 1)
     puts "  FAAC update done, took #{Time.new - time0} seconds" if debug >= 1
 
     Ygg::Acao::MainDb::Socio.update_last_update!
@@ -135,6 +123,9 @@ loop do
     time0 = Time.new
     Ygg::Acao::Onda::DocTesta.trigger_replacement(debug: debug)
     puts "trigger replacement done, took #{Time.new - time0} seconds" if debug >= 1
+
+    Ygg::Acao::Invoice.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
+
     Ygg::Acao::Onda::DocTesta.update_last_update!
   end
 

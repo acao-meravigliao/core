@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #
 # Copyright (C) 2016-2017, Daniele Orlandi
 #
@@ -15,39 +16,6 @@ module Acao
 class Aircraft < Ygg::PublicModel
   self.table_name = 'acao.aircrafts'
 
-  self.porn_migration += [
-    [ :must_have_column, { name: "id", type: :uuid, null: false, default_function: "gen_random_uuid()",  } ],
-    [ :must_have_column, {name: "aircraft_type_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "owner_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "club_owner_id", type: :uuid, default: nil, null: true}],
-    [ :must_have_column, {name: "club_id", type: :uuid, default: nil, null: true}],
-    [ :must_have_column, {name: "race_registration", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "registration", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "flarm_identifier", type: :string, default: nil, limit: 16, null: true}],
-    [ :must_have_column, {name: "icao_identifier", type: :string, default: nil, limit: 16, null: true}],
-    [ :must_have_column, {name: "hangar", type: :boolean, default: false, null: false}],
-    [ :must_have_column, {name: "notes", type: :text, default: nil, null: true}],
-    [ :must_have_column, {name: "serial_number", type: :string, default: nil, limit: 32, null: true}],
-    [ :must_have_column, {name: "arc_valid_to", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "insurance_valid_to", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "available", type: :boolean, default: true, null: false}],
-    [ :must_have_column, {name: "fn_owner_name", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "fn_home_airport", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "fn_type_name", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "fn_common_radio_frequency", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_index, {columns: ["id"], unique: true}],
-    [ :must_have_index, {columns: ["flarm_identifier"], unique: true}],
-    [ :must_have_index, {columns: ["icao_identifier"], unique: true}],
-    [ :must_have_index, {columns: ["registration"], unique: false}],
-    [ :must_have_index, {columns: ["owner_id"], unique: false}],
-    [ :must_have_index, {columns: ["club_owner_id"], unique: false}],
-    [ :must_have_index, {columns: ["club_id"], unique: false}],
-    [ :must_have_fk, {to_table: "acao_aircraft_types", column: "aircraft_type_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core_people", column: "owner_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "acao_clubs", column: "club_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "acao_clubs", column: "club_owner_id", primary_key: "id", on_delete: nil, on_update: nil}],
-  ]
-
   has_many :trackers,
            class_name: 'Ygg::Acao::Tracker'
 
@@ -64,7 +32,7 @@ class Aircraft < Ygg::PublicModel
              optional: true
 
   belongs_to :owner,
-             class_name: 'Ygg::Core::Person',
+             class_name: 'Ygg::Acao::Member',
              optional: true
 
   has_many :flights,

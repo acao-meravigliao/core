@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #
 # Copyright (C) 2016-2017, Daniele Orlandi
 #
@@ -13,6 +14,28 @@ module Acao
 
 class WolTarget < Ygg::PublicModel
   self.table_name = 'acao.wol_targets'
+
+  def self.gs_fetch(gs:, node:)
+
+    rel = all
+
+    if node.id
+      rel = rel.where(id: node.id)
+    elsif node.filter
+      rel = rel.where(node.filter)
+    end
+
+    gs.transaction do
+      rel.each do |model|
+        if model
+          if !gs.objs[node.id]
+            gs.obj_add(model)
+          end
+        end
+      end
+    end
+
+  end
 
   def wake!
     system('ssh',

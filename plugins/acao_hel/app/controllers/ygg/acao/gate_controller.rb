@@ -29,7 +29,7 @@ class GateController < Ygg::Hel::BaseController
     # FIXME: use personal credentials
     faac.login(
       username: Rails.application.config.acao.faac_generic_user,
-      password: Rails.application.secrets.faac_generic_user_password,
+      password: Rails.application.credentials.faac_generic_user_password,
     )
 
     faac.action_perform(uuid: action_uuid)

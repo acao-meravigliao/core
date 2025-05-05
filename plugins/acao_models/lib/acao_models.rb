@@ -21,25 +21,44 @@ class ModelsEngine < Rails::Engine
 
   config.to_prepare do
     Ygg::Core::Person.class_eval do
-#      has_one :acao_pilot,
-#               class_name: '::Ygg::Acao::Pilot'
+      has_one :acao_member,
+               class_name: '::Ygg::Acao::Member'
 
-      has_many :acao_memberships,
-               class_name: '::Ygg::Acao::Membership'
-
-      has_many :acao_payments,
-               class_name: '::Ygg::Acao::Payment'
-
-      has_many :acao_roster_entries,
-               class_name: '::Ygg::Acao::RosterEntry'
-
-      has_many :acao_token_transactions,
-               class_name: '::Ygg::Acao::TokenTransaction'
-
-      has_many :acao_bar_transactions,
-               class_name: '::Ygg::Acao::BarTransaction'
+      gs_rel_map << { from: :person, to: :acao_member, to_cls: '::Ygg::Acao::Member', to_key: 'person_id' }
     end
   end
+
+
+#  Ygg::Core::ReplicaDef.define(
+#    name: 'FAAC',
+#    query: {
+#      cls: 'Ygg::Core::Person',
+#      dig: [
+#       {
+#        from: :person,
+#        to: :member,
+#        dig: [
+#         {
+#          from: :member,
+#          to: :keyfob,
+#         },
+#         {
+#          from: :member,
+#          to: :access_remote,
+#         },
+#        ],
+#       },
+#       {
+#        from: :person,
+#        to: :credential,
+#       },
+#       {
+#        from: :person,
+#        to: :contacts,
+#       },
+#      ]
+#    }
+#   )
 end
 
 end

@@ -12,6 +12,8 @@ require 'deep_open_struct'
 
 require 'rails_vos/server/connection'
 
+require 'am/vos/server'
+
 module RailsVos
 
 class Server
@@ -25,39 +27,39 @@ class Server
 
   self.actor_ref_class = Ref
 
-  class MsgNewConnection < AM::Msg
-    attr_accessor :env
-    attr_accessor :session
-    attr_accessor :headers
-    attr_accessor :socket
-    attr_accessor :routes_config
-    attr_accessor :debug
-  end
+##  class MsgNewConnection < AM::Msg
+##    attr_accessor :env
+##    attr_accessor :session
+##    attr_accessor :headers
+##    attr_accessor :socket
+##    attr_accessor :routes_config
+##    attr_accessor :debug
+##  end
 
-  class MsgCall < AM::Msg
-    attr_accessor :object_id
-    attr_accessor :method
-    attr_accessor :params
-    attr_accessor :body
-    attr_accessor :session_id
-    attr_accessor :person_id
-    attr_accessor :object
-  end
-  class MsgCallOk < AM::Msg
-    attr_accessor :body
-  end
-  class MsgCallFail < AM::MsgException
-  end
+#  class MsgCall < AM::Msg
+#    attr_accessor :object_id
+#    attr_accessor :method
+#    attr_accessor :params
+#    attr_accessor :body
+#    attr_accessor :session_id
+#    attr_accessor :person_id
+#    attr_accessor :object
+#  end
+#  class MsgCallOk < AM::Msg
+#    attr_accessor :body
+#  end
+#  class MsgCallFail < AM::MsgException
+#  end
 
-  # Sent from Connection(s) to subscribe to an exchange
-  #
-  class MsgSub < AM::Msg
-    attr_accessor :exchange
-  end
-
-  class MsgUnsub < AM::Msg
-    attr_accessor :exchange
-  end
+#  # Sent from Connection(s) to subscribe to an exchange
+#  #
+#  class MsgSub < AM::Msg
+#    attr_accessor :exchange
+#  end
+#
+#  class MsgUnsub < AM::Msg
+#    attr_accessor :exchange
+#  end
 
 
   class MsgGetConnections < AM::Msg
@@ -72,18 +74,21 @@ class Server
     attr_accessor :idle_state
   end
 
-  class MsgSubscribe < AM::Msg
-    attr_accessor :exchange_name
+  module DS
   end
 
-  class MsgUnsubscribe < AM::Msg
-    attr_accessor :exchange_name
-  end
+#  class MsgSubscribe < AM::Msg
+#    attr_accessor :exchange_name
+#  end
+#
+#  class MsgUnsubscribe < AM::Msg
+#    attr_accessor :exchange_name
+#  end
 
   def initialize(routes_config:)
     @routes_config = DeepOpenStruct.new(routes_config)
 
-    actor_initialize(actor_id: :rails_vos_server)
+    super(actor_id: :rails_vos_server)
   end
 
   def actor_boot
@@ -91,8 +96,27 @@ class Server
 
     @conns = []
 
-    @routes = {}
-    @queues = {}
+#    @routes = {}
+#    @queues = {}
+
+    @ds = actor_supervise_new(AM::GrafoStore::Store, config: {
+      actor_id: :ds,
+      hooks: ::Ygg::Core::Grafo,
+    }, shut_order: 1000)
+
+    @vos = actor_supervise_new(AM::VOS::Server, config: {
+      actor_id: :vos,
+      class_base: ::Object, ####################################### FIMXE
+      welcome_extra_params: {
+        app_version: '0.0.0',
+        server_identifier: Rails.application.class.module_parent_name,
+      },
+      ds: @ds,
+      auth_manager: nil,
+      calls_to: self.actor_ref,
+      events_to: self.actor_ref,
+      debug: @debug,
+    }, shut_order: 100)
 
     @amqp = RailsAmqp::Connection.connection
     @amqp.tell(AM::Actor::MsgMonitor.new)
@@ -118,16 +142,20 @@ class Server
     rescue StandardError => e
       log.fatal "Permanent failure while initializing AMPQ: #{e}"
 
-      Airbrake[:default].notify("Permanent failure while initializing AMPQ: #{e}") do |notice|
-        notice[:context][:component] = self.class.name
-        notice[:context][:severity] = 'critical'
-      end
+#      Airbrake[:default].notify("Permanent failure while initializing AMPQ: #{e}") do |notice|
+#        notice[:context][:component] = self.class.name
+#        notice[:context][:severity] = 'critical'
+#      end
 
       @online = false
       return
     end
 
     @online = true
+
+  rescue Exception => e
+    puts "RailsVos Crash: #{e}"
+    puts e.backtrace
   end
 
   def open_channels
@@ -175,52 +203,71 @@ class Server
   end
 
   def actor_handle(msg)
+
+puts "ACTOR HANDLE #{msg}"
+
     case msg
-    when MsgNewConnection
-      conn = actor_supervise_new(Connection, config: {
-        server: self.actor_ref,
-        socket: msg.socket,
-        remote_endpoint_real: AM::Sockets::Endpoint.from_addrinfo(msg.socket.remote_address),
-        instance_id: @instance_id,
-        welcome_extra_params: {},
-        headers: msg.headers,
-        calls_to: @calls_to,
-        events_to: @events_to,
-        monitored_by: self,
-        debug: @debug,
-      }, crash_action: :none, exit_action: :none)
+    when AM::VOS::Server::MsgCall
+      actor_reply(msg, AM::VOS::Server::MsgCallFail.new)
 
-      @conns << conn
+    when AM::VOS::Server::MsgClassCall
 
-    when MsgSub
-      route = @routes[msg.exchange]
-      return if !route
-
-      if route[:refcount] == 0
-        @amqp.ask(AM::AMQP::Client::MsgQueueBind.new(channel_id: @amqp_chan, queue_name: route[:queue],
-                      exchange_name: route[:exchange], routing_key: route[:routing_key])).value
+      begin
+        body = msg.cls.send(**msg.params)
+      rescue StandardError => e
+        actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: e))
+      else
+        actor_reply(msg, AM::VOS::Server::MsgCallOk.new(body: body))
       end
 
-      route[:refcount] += 1
+    when AM::HTTP::Server::MsgRequest
+      actor_redirect(msg, @vos)
 
-    when MsgUnsub
-      route = @routes[msg.exchange]
-      return if !route
+#      conn = actor_supervise_new(Connection, config: {
+#        server: self.actor_ref,
+#        socket: msg.socket,
+#        remote_endpoint_real: AM::Sockets::Endpoint.from_addrinfo(msg.socket.remote_address),
+#        instance_id: @instance_id,
+#        welcome_extra_params: {},
+#        headers: msg.headers,
+#        session: msg.session,
+#        calls_to: @calls_to,
+#        events_to: @events_to,
+#        monitored_by: self,
+#        debug: @debug,
+#      }, crash_action: :none, exit_action: :none)
 
-      if route[:refcount] > 0
-        route[:refcount] -= 1
+#      @conns << conn
 
-        if route[:refcount] == 0
-          @amqp.ask(AM::AMQP::Client::MsgQueueUnbind.new(channel_id: @amqp_chan, queue_name: route[:queue],
-                        exchange_name: route[:exchange], routing_key: route[:routing_key])).value
-        end
-      end
-
-    when AM::AMQP::Client::MsgQueueBindFailure
-      log.error "Bind failure: #{msg}"
-
-    when AM::AMQP::Client::MsgQueueUnbindFailure
-      log.error "Unbind failure: #{msg}"
+#    when MsgSub
+#      route = @routes[msg.exchange]
+#      return if !route
+#
+#      if route[:refcount] == 0
+#        @amqp.ask(AM::AMQP::Client::MsgQueueBind.new(channel_id: @amqp_chan, queue_name: route[:queue],
+#                      exchange_name: route[:exchange], routing_key: route[:routing_key])).value
+#      end
+#
+#      route[:refcount] += 1
+#
+#    when MsgUnsub
+#      route = @routes[msg.exchange]
+#      return if !route
+#
+#      if route[:refcount] > 0
+#        route[:refcount] -= 1
+#
+#        if route[:refcount] == 0
+#          @amqp.ask(AM::AMQP::Client::MsgQueueUnbind.new(channel_id: @amqp_chan, queue_name: route[:queue],
+#                        exchange_name: route[:exchange], routing_key: route[:routing_key])).value
+#        end
+#      end
+#
+#    when AM::AMQP::Client::MsgQueueBindFailure
+#      log.error "Bind failure: #{msg}"
+#
+#    when AM::AMQP::Client::MsgQueueUnbindFailure
+#      log.error "Unbind failure: #{msg}"
 
     when AM::AMQP::Client::MsgOperationalStateChange
       if msg.state == :bad
@@ -238,21 +285,21 @@ class Server
 #        pubsub_unsub_by_actor(msg.sender)
       end
 
-    when AM::AMQP::Client::MsgDelivery
-      route = @routes[msg.exchange]
-      return if !route
-
-      if route[:handler] == :model
-        payload = JSON.parse(msg.payload)
-
-        obj = nil
-        begin
-#          ActiveRecord::Base.connection_pool.with_connection do
-            obj = payload['model'].constantize.find(payload['object_id'])
-#          end
-        rescue NameError, ActiveRecord::RecordNotFound
-          obj = nil
-        end
+#    when AM::AMQP::Client::MsgDelivery
+#      route = @routes[msg.exchange]
+#      return if !route
+#
+#      if route[:handler] == :model
+#        payload = JSON.parse(msg.payload)
+#
+#        obj = nil
+#        begin
+##          ActiveRecord::Base.connection_pool.with_connection do
+#            obj = payload['model'].constantize.find(payload['object_id'])
+##          end
+#        rescue NameError, ActiveRecord::RecordNotFound
+#          obj = nil
+#        end
 
 ###        @conns.each do |conn|
 ###          conn.tell(Connection::MsgModelPublish.new(
@@ -269,18 +316,18 @@ class Server
 ###            http_request_id: payload['http_request_id'],
 ###          ))
 ###        end
-      else
-        @conns.each do |conn|
-          conn.tell(Connection::MsgDeliver.new(
-            routing_key: msg.routing_key,
-            exchange: msg.exchange,
-            headers: msg.headers,
-            payload: JSON.parse(msg.payload).deep_symbolize_keys,
-          ))
-        end
-      end
-
-      @amqp.tell AM::AMQP::Client::MsgAck.new(channel_id: msg.channel_id, delivery_tag: msg.delivery_tag)
+#      else
+#        @conns.each do |conn|
+#          conn.tell(Connection::MsgDeliver.new(
+#            routing_key: msg.routing_key,
+#            exchange: msg.exchange,
+#            headers: msg.headers,
+#            payload: JSON.parse(msg.payload).deep_symbolize_keys,
+#          ))
+#        end
+#      end
+#
+#      @amqp.tell AM::AMQP::Client::MsgAck.new(channel_id: msg.channel_id, delivery_tag: msg.delivery_tag)
     else
       super
     end
