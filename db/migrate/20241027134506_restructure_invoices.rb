@@ -23,13 +23,30 @@ class RestructureInvoices < ActiveRecord::Migration[7.2]
 
     change_column_null 'invoices', 'member_id', true
 
-    add_foreign_key 'invoices', 'core.people', column: 'person_id'
+    remove_foreign_key 'invoice_details', 'invoices', column: 'invoice_id'
+    add_foreign_key 'invoice_details', 'invoices', column: 'invoice_id', on_delete: :cascade
 
-    add_index 'invoices', 'member_id'
+    remove_foreign_key 'payments', 'invoices', column: 'invoice_id'
+    add_foreign_key 'payments', 'invoices', column: 'invoice_id', on_delete: :cascade
+
+    add_foreign_key 'invoices', 'core.people', column: 'person_id'
+    add_index 'invoices', 'person_id'
 
     remove_column 'invoice_details', 'service_type_id'
     change_column_null 'invoice_details', 'count', true
     change_column_null 'invoice_details', 'price', true
+
+    add_column 'invoices', 'document_type', :string
+    add_column 'invoices', 'year', :integer
+
+    change_column 'invoices', 'identifier', :string
+    remove_index 'invoices', 'identifier', name: 'index_invoices_on_identifier'
+    add_index 'invoices', 'identifier'
+
+    add_column 'invoices', 'identifier_full', :string
+    add_index 'invoices', 'identifier_full'
+
+    add_index 'invoices', [ 'document_type', 'year', 'identifier' ]
 
     ActiveRecord::Base.connection.schema_search_path = current_schema
   end

@@ -73,7 +73,7 @@ EOF
   end
 
   def down
-    drop_table 'acao.people'
+    drop_table 'acao.members'
   end
 
   def fk_move(table, from_column, to_column, to_table, foreign_column, idx_name: nil)

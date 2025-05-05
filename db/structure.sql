@@ -779,7 +779,6 @@ CREATE TABLE acao.roster_days (
 --
 
 CREATE TABLE acao.roster_entries (
-    person_id_old integer,
     chief boolean DEFAULT false NOT NULL,
     notes text,
     roster_day_id_old integer,
@@ -2814,6 +2813,15 @@ CREATE TABLE ml.templates (
 
 
 --
+-- Name: a; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.a (
+    a integer
+);
+
+
+--
 -- Name: acao_bar_transactions_acl; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2954,8 +2962,17 @@ ALTER SEQUENCE public.active_planes_id_seq OWNED BY public.active_planes.id;
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: b; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.b (
+    b integer
 );
 
 
@@ -3479,7 +3496,7 @@ CREATE TABLE public.radusergroup (
 --
 
 CREATE TABLE public.schema_migrations (
-    version character varying NOT NULL
+    version character varying(255) NOT NULL
 );
 
 
@@ -5138,14 +5155,6 @@ ALTER TABLE ONLY public.radreply
 
 
 --
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
-
-
---
 -- Name: str_channel_variants str_channel_variants_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5289,13 +5298,6 @@ CREATE UNIQUE INDEX acao_payment_satispay_charges_charge_id_idx ON acao.payment_
 --
 
 CREATE UNIQUE INDEX acao_roster_days_date_idx ON acao.roster_days USING btree (date);
-
-
---
--- Name: acao_roster_entries_person_id_roster_day_id_idx; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE UNIQUE INDEX acao_roster_entries_person_id_roster_day_id_idx ON acao.roster_entries USING btree (person_id_old, roster_day_id_old);
 
 
 --
@@ -5555,6 +5557,13 @@ CREATE INDEX index_gates_on_agent_id ON acao.gates USING btree (agent_id);
 --
 
 CREATE INDEX index_invoice_details_on_invoice_id ON acao.invoice_details USING btree (invoice_id);
+
+
+--
+-- Name: index_invoices_on_identifier; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_invoices_on_identifier ON acao.invoices USING btree (identifier);
 
 
 --
@@ -6402,6 +6411,13 @@ CREATE UNIQUE INDEX index_core_credentials_on_x509_i_dn_and_x509_m_serial ON cor
 --
 
 CREATE INDEX index_core_http_sessions_on_updated_at ON core.sessions USING btree (updated_at);
+
+
+--
+-- Name: index_core_http_sessions_on_uuid; Type: INDEX; Schema: core; Owner: -
+--
+
+CREATE INDEX index_core_http_sessions_on_uuid ON core.sessions USING btree (id);
 
 
 --
@@ -7707,6 +7723,14 @@ ALTER TABLE ONLY acao.payments
 
 
 --
+-- Name: payments fk_rails_62d18ea517; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.payments
+    ADD CONSTRAINT fk_rails_62d18ea517 FOREIGN KEY (invoice_id) REFERENCES acao.invoices(id) ON DELETE CASCADE;
+
+
+--
 -- Name: flights fk_rails_7827e04cc2; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -7760,14 +7784,6 @@ ALTER TABLE ONLY acao.key_fobs
 
 ALTER TABLE ONLY acao.flights
     ADD CONSTRAINT fk_rails_98c45e0307 FOREIGN KEY (landing_airfield_id) REFERENCES acao.airfields(id);
-
-
---
--- Name: invoice_details fk_rails_996719b8f3; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.invoice_details
-    ADD CONSTRAINT fk_rails_996719b8f3 FOREIGN KEY (invoice_id) REFERENCES acao.invoices(id);
 
 
 --
@@ -7955,6 +7971,14 @@ ALTER TABLE ONLY acao.tows
 
 
 --
+-- Name: invoice_details fk_rails_e5cda32dbb; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.invoice_details
+    ADD CONSTRAINT fk_rails_e5cda32dbb FOREIGN KEY (invoice_id) REFERENCES acao.invoices(id) ON DELETE CASCADE;
+
+
+--
 -- Name: licenses fk_rails_e67293dadf; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -7968,14 +7992,6 @@ ALTER TABLE ONLY acao.licenses
 
 ALTER TABLE ONLY acao.meters
     ADD CONSTRAINT fk_rails_e9e4aa7ceb FOREIGN KEY (member_id) REFERENCES acao.members(id);
-
-
---
--- Name: payments fk_rails_f28f139829; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.payments
-    ADD CONSTRAINT fk_rails_f28f139829 FOREIGN KEY (invoice_id) REFERENCES acao.invoices(id);
 
 
 --
@@ -8462,7 +8478,7 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO "$user", public;
+SET search_path TO public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20241222132719'),
