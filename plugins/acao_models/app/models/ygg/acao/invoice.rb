@@ -37,6 +37,10 @@ class Invoice < Ygg::PublicModel
 
   include Ygg::Core::Notifiable
 
+  DOC_TYPES = {
+    4 => 'invoice',
+    6 => 'receipt',
+  }
 
   def self.sync_from_maindb!(from_time: nil, start: nil, stop: nil, debug: 0)
     if from_time
@@ -45,7 +49,7 @@ class Invoice < Ygg::PublicModel
       start = ff.IdDoc
     end
 
-    l_relation = Ygg::Acao::Onda::DocTesta.all.order(IdDoc: :asc)
+    l_relation = Ygg::Acao::Onda::DocTesta.all.where(TipoDocumento: [5,6]).order(IdDoc: :asc)
     l_relation = l_relation.where('IdDoc >= ?', start) if start
     l_relation = l_relation.where('IdDoc <= ?', stop) if stop
 
@@ -67,12 +71,16 @@ class Invoice < Ygg::PublicModel
       anagrafica_cliente = l.anagrafica_cliente
       mdb_socio = Ygg::Acao::MainDb::Socio.find_by(codice_socio_dati_generale: anagrafica_cliente.RifInterno)
       member = mdb_socio ? Ygg::Acao::Member.find_by!(ext_id: mdb_socio.id_soci_dati_generale) : nil
+      year = l.DataDocumento.year
 
       invoice = Ygg::Acao::Invoice.new(
         member: member,
         person: member && member.person,
         source_id: l.IdDoc,
+        year: year,
         identifier: l.NumeroDocumento,
+        identifier_full: l.Riferimento,
+        document_type: l.TipoDocumento,
         document_date: l.DataDocumento,
         registered_at: l.DataRegistrazione,
         payment_method: l.CodPagamento,
@@ -106,11 +114,15 @@ class Invoice < Ygg::PublicModel
       anagrafica_cliente = l.anagrafica_cliente
       mdb_socio = Ygg::Acao::MainDb::Socio.find_by(codice_socio_dati_generale: anagrafica_cliente.RifInterno)
       member = mdb_socio ? Ygg::Acao::Member.find_by!(ext_id: mdb_socio.id_soci_dati_generale) : nil
+      year = l.DataDocumento.year
 
       r.assign_attributes(
         member: member,
         person: member && member.person,
+        year: year,
         identifier: l.NumeroDocumento,
+        identifier_full: l.Riferimento,
+        document_type: l.TipoDocumento,
         document_date: l.DataDocumento,
         registered_at: l.DataRegistrazione,
         payment_method: l.CodPagamento,
