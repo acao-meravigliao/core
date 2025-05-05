@@ -1,15 +1,15 @@
 source 'https://rubygems.org'
 
-gem 'activerecord', '~> 7.2.0'
-gem 'activemodel', '~> 7.2.0'
-gem 'actionpack', '~> 7.2.0'
-gem 'actionview', '~> 7.2.0'
-gem 'activesupport', '~> 7.2.0'
-gem 'railties', '~> 7.2.0'
+gem 'activerecord', '~> 8.0.0'
+gem 'activemodel', '~> 8.0.0'
+gem 'actionpack', '~> 8.0.0'
+gem 'actionview', '~> 8.0.0'
+gem 'activesupport', '~> 8.0.0'
+gem 'railties', '~> 8.0.0'
 
 gem 'pg'
 gem 'tiny_tds'
-gem 'activerecord-sqlserver-adapter', '~> 7.2'
+gem 'activerecord-sqlserver-adapter', '~> 8.0'
 
 gem 'puma'
 

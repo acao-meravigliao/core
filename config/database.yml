@@ -1,15 +1,17 @@
 acao_sql_server:
   adapter: sqlserver
-  mode: dblib
-  dataserver: acao_sql_server
+  appname: <%= "core_#{Process.pid}" %>
+  host: onda.acao.it
+  port: 1433
   database: acao_pro
   username: lino
   password: PMXNbfJP4QbfXpv5
 
 acao_onda:
   adapter: sqlserver
-  mode: dblib
-  dataserver: acao_sql_server
+  appname: <%= "core_#{Process.pid}" %>
+  host: onda.acao.it
+  port: 1433
   database: acao
   username: lino
   password: PMXNbfJP4QbfXpv5
