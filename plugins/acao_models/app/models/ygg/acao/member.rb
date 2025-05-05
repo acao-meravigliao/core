@@ -320,7 +320,7 @@ class Member < Ygg::PublicModel
       act << Ygg::Acao::Member.find_by!(code: 7002) # Special entry for Daniela
       act << Ygg::Acao::Member.find_by!(code: 7024) # Special entry for Kicca
       act << Ygg::Acao::Member.find_by!(code: 7017) # Special entry for Matteo Negri
-      act << Ygg::Core::Member.find_by!(code: 7023) # Special entry for Clara
+      act << Ygg::Acao::Member.find_by!(code: 7023) # Special entry for Clara
 
       Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').sync_from_people!(people: act.compact.uniq)
 
@@ -987,7 +987,7 @@ class Member < Ygg::PublicModel
   def self.sync_from_maindb!(force: false, debug: 0)
 
     l_records = Ygg::Acao::MainDb::Socio.where.not(codice_socio_dati_generale: BANNED_IDS).order(id_soci_dati_generale: :asc).lock
-    r_records = self.where.now(code: BANNED_IDS).where('ext_id IS NOT NULL').order(ext_id: :asc).lock
+    r_records = self.where.not(code: BANNED_IDS).where('ext_id IS NOT NULL').order(ext_id: :asc).lock
 
     Ygg::Toolkit.merge(l: l_records, r: r_records,
     l_cmp_r: lambda { |l,r| l.id_soci_dati_generale <=> r.ext_id },
