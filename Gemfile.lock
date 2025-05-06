@@ -22,6 +22,14 @@ PATH
       roxml
 
 PATH
+  remote: plugins/amqp_ws_gw
+  specs:
+    amqp_ws_gw (1.0.0)
+      am-amqp (~> 2.0)
+      am-ws
+      ygg-diffable
+
+PATH
   remote: plugins/ca_hel
   specs:
     ca_hel (1.0.0)
@@ -142,7 +150,7 @@ GEM
       sqlite3
       vihai-password
       ygg-exception
-    am-grafo-store (2.4.1)
+    am-grafo-store (2.4.2)
       actor_model
       grafo-store (~> 2)
       iarray
@@ -177,7 +185,7 @@ GEM
       amazing_print
       rubynary
       ygg-exception
-    am-vos (2.2.1)
+    am-vos (2.3.0)
       activesupport
       am-auth-manager
       am-grafo-store
@@ -195,12 +203,12 @@ GEM
       am-io-buffer
       am-sockets (>= 0.18)
     deep_open_struct (2.0.2)
-    grafo-store (2.4.2)
+    grafo-store (2.5.0)
       activesupport
       iarray
       ygg-exception
       ynetaddr
-    hel_together (1.6.1)
+    hel_together (2.0.1)
       rack (>= 1.5.2)
       ygg_agent (~> 2.9)
     iarray (0.1.1)
@@ -535,6 +543,7 @@ DEPENDENCIES
   am-vos!
   am-ws!
   amazing_print
+  amqp_ws_gw!
   byebug
   ca_hel!
   ca_models!
@@ -544,7 +553,7 @@ DEPENDENCIES
   core_models!
   geocoder
   hel!
-  hel_together (~> 1.6.1)!
+  hel_together (~> 2.0)!
   i18n_hel!
   i18n_models!
   iarray!

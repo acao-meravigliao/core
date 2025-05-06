@@ -49,7 +49,7 @@ source 'https://gems.vihai.it/' do
   gem 'iarray'
 
   group :hel_together do
-    gem 'hel_together', '~> 1.6.1'
+    gem 'hel_together', '~> 2.0'
     gem 'nisse_hel', path: 'plugins/nisse_hel'
     gem 'core_heltog', path: 'plugins/core_heltog'
     gem 'ml_heltog', path: 'plugins/ml_heltog'
@@ -77,7 +77,7 @@ group :controllers do
   gem 'acao_hel', path: 'plugins/acao_hel'
   #gem 'trk_hel', path: '../acao-plugins/trk_hel'
   gem 'streaming_hel', path: 'plugins/streaming_hel'
-  #gem 'amqp_ws_gw', path: 'plugins/amqp_ws_gw'
+  gem 'amqp_ws_gw', path: 'plugins/amqp_ws_gw'
   gem 'rails_vos', path: 'plugins/rails_vos'
 end
 
