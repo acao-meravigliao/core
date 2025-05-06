@@ -137,7 +137,7 @@ class Member < Ygg::PublicModel
            foreign_key: 'member_id'
 
   has_many :person_access_remotes,
-           class_name: '::Ygg::Acao::PersonAccessRemote',
+           class_name: '::Ygg::Acao::MemberAccessRemote',
            foreign_key: 'member_id'
 
   has_many :access_remotes,
@@ -349,7 +349,7 @@ class Member < Ygg::PublicModel
     attr_accessor :code
     attr_accessor :code_for_faac
     attr_accessor :descr
-    attr_accessor :person
+    attr_accessor :member
     attr_accessor :member_id
 
     def initialize(**args)
@@ -461,8 +461,8 @@ class Member < Ygg::PublicModel
         registrationNumber: l.code.to_s,
 #        address: (l.person.residence_location && l.residence_location.full_address),
         phone: l.person.contacts.where(type: 'phone').first.try(:value),
-        mobile: l.contacts.where(type: 'mobile').first.try(:value),
-#        email: l.contacts.where(type: 'email').first.try(:value),
+        mobile: l.person.contacts.where(type: 'mobile').first.try(:value),
+#        email: l.person.contacts.where(type: 'email').first.try(:value),
       }
 
       diff = intended.select { |k,v| v != r[k] }
@@ -485,17 +485,17 @@ class Member < Ygg::PublicModel
     l_records = []
     l_records += Ygg::Acao::KeyFob.all.
       select { |x| users[x.member_id] }.
-      map { |x| Media.new(id: x.id, number: nil, code: x.code, person: users[x.member_id],
+      map { |x| Media.new(id: x.id, number: nil, code: x.code, member: users[x.member_id],
                           member_id: x.member_id, code_for_faac: x.code_for_faac) }
 
-    Ygg::Acao::PersonAccessRemote.all.each do |x|
+    Ygg::Acao::MemberAccessRemote.all.each do |x|
       if users[x.member_id] && x.remote.ch1_code
         l_records << Media.new(
           id: x.id,
           number: 10000 + (x.remote.symbol.to_i * 10) + 1,
           code: x.remote.ch1_code,
           member_id: x.member_id,
-          person: users[x.member_id],
+          member: users[x.member_id],
           code_for_faac: x.remote.ch1_code_for_faac
         )
       end
@@ -506,7 +506,7 @@ class Member < Ygg::PublicModel
           number: 10000 + (x.remote.symbol.to_i * 10) + 2,
           code: x.remote.ch2_code,
           member_id: x.member_id,
-          person: users[x.member_id],
+          member: users[x.member_id],
           code_for_faac: x.remote.ch2_code_for_faac
         ) if x.remote.ch2_code
       end
@@ -517,7 +517,7 @@ class Member < Ygg::PublicModel
           number: 10000 + (x.remote.symbol.to_i * 10) + 3,
           code: x.remote.ch3_code,
           member_id: x.member_id,
-          person: users[x.member_id],
+          member: users[x.member_id],
           code_for_faac: x.remote.ch3_code_for_faac
         ) if x.remote.ch3_code
       end
@@ -528,7 +528,7 @@ class Member < Ygg::PublicModel
           number: 10000 + (x.remote.symbol.to_i * 10) + 4,
           code: x.remote.ch4_code,
           member_id: x.member_id,
-          person: users[x.member_id],
+          member: users[x.member_id],
           code_for_faac: x.remote.ch4_code_for_faac
         )
       end
@@ -558,12 +558,12 @@ class Member < Ygg::PublicModel
     l_to_r: lambda { |l|
       puts "Media create: #{l.id} num=#{l.number} code=#{l.code} oct=#{l.code_for_faac}" if debug > 0
 
-      ranges = access_validity_ranges
+      ranges = l.member.access_validity_ranges
       range = ranges.first
 
       validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
       validity_end = range && range.end && (range.end.to_i * 1000) || 0
-      always_valid = FAAC_ACTIVE.include?(l.person.code)
+      always_valid = FAAC_ACTIVE.include?(l.member.code)
 
       faac.media_create(data: {
         uuid: l.id,
@@ -591,12 +591,12 @@ class Member < Ygg::PublicModel
     lr_update: lambda { |l,r|
       puts "Media update check #{l.id} #{l.code}" if debug > 1
 
-      ranges = access_validity_ranges
+      ranges = l.member.access_validity_ranges
       range = ranges.first
 
       validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
       validity_end = range && range.end && (range.end.to_i * 1000) || 0
-      always_valid = FAAC_ACTIVE.include?(l.person.code)
+      always_valid = FAAC_ACTIVE.include?(l.member.code)
 
       intended = {
         identifier: l.code_for_faac,
