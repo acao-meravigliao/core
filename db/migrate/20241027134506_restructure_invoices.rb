@@ -11,7 +11,7 @@ class RestructureInvoices < ActiveRecord::Migration[7.2]
     remove_column 'invoices', 'last_chore'
 
     add_column 'invoices', 'source_id', :integer
-    add_column 'invoices', 'recipient', :string, null: false
+    add_column 'invoices', 'recipient', :string
     add_column 'invoices', 'codice_fiscale', :string
     add_column 'invoices', 'partita_iva', :string
     add_column 'invoices', 'email', :string

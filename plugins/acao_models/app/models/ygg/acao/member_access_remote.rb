@@ -11,8 +11,8 @@
 module Ygg
 module Acao
 
-class PersonAccessRemote < Ygg::PublicModel
-  self.table_name = 'acao.person_access_remotes'
+class MemberAccessRemote < Ygg::PublicModel
+  self.table_name = 'acao.member_access_remotes'
 
   include Ygg::Core::Loggable
   define_default_log_controller(self)
