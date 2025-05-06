@@ -9,7 +9,7 @@
 module Ygg
 module Acao
 
-class Pilot::RestController < Ygg::Hel::RestController
+class Member::RestController < Ygg::Hel::RestController
   ar_controller_for Ygg::Acao::Member
 end
 

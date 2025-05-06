@@ -8,8 +8,8 @@ class CollectionRoleDef < Ygg::BasicModel
   belongs_to :klass,
              class_name: '::Ygg::Core::Klass'
 
-  serialize :attrs, JSON
-  serialize :actions, JSON
+  serialize :attrs, coder: JSON
+  serialize :actions, coder: JSON
 
   define_default_log_controller(self)
 end

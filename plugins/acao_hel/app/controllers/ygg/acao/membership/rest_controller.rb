@@ -43,12 +43,12 @@ class Membership::RestController < Ygg::Hel::RestController
       attribute(:year) { show! }
     end
 
-    attribute(:invoice_detail) do
-      show!
-      attribute(:invoice) do
-        show!
-      end
-    end
+#    attribute(:invoice_detail) do
+#      show!
+#      attribute(:invoice) do
+#        show!
+#      end
+#    end
 
     attribute :acl_entries do
       show!

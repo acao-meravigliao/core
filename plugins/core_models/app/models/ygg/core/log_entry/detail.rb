@@ -12,7 +12,7 @@ class Detail < ActiveRecord::Base
              polymorphic: true,
              optional: true
 
-  serialize :obj_snapshot
+  serialize :obj_snapshot, coder: JSON
 
   def previous
     self.class.order('id DESC').where('id < ?', id).where(obj_id: obj_id, obj_type: obj_type).first

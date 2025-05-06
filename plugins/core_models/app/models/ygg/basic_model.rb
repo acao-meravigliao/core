@@ -7,6 +7,7 @@
 #
 
 require 'active_rest/controller'
+require 'grafo_store/obj'
 
 module Ygg
 
