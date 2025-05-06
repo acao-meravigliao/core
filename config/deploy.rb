@@ -3,14 +3,15 @@ require 'mina/rails'
 set :application_name, 'acao-core'
 set :user, 'yggdra'
 set :shared_dirs, fetch(:shared_dirs, []) + [ ]
-set :shared_files, fetch(:shared_files, []) + [ 'config/database.yml', 'config/secrets.yml', ]
+set :shared_files, fetch(:shared_files, []) + [ 'config/database.yml', 'config/credentials.yml.enc', 'config/master.key' ]
 set :repository, 'foobar'
 set :keep_releases, 20
 set :rails_env, 'staging'
 set :rsync_excludes, [
   '.git*',
   '/config/database.yml',
-  '/config/secrets.yml',
+  '/config/credentials.yml.enc',
+  '/config/master.key',
   '/vendor/bundle',
   '/tmp/cache',
   '/log',
@@ -23,9 +24,7 @@ end
 task :setup do
   command %[touch "#{fetch(:deploy_to)}/shared/config/database.yml"]
   comment "Be sure to edit 'shared/config/database.yml'."
-
-  command %[touch "#{fetch(:deploy_to)}/shared/config/secrets.yml"]
-  comment "Be sure to edit 'shared/config/secrets.yml'."
+  comment "Be sure to edit 'shared/config/credentials.yml.enc' with 'rails credentials:edit'."
 end
 
 task :restart do
