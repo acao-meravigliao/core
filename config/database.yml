@@ -5,7 +5,7 @@ acao_sql_server:
   port: 1433
   database: acao_pro
   username: lino
-  password: PMXNbfJP4QbfXpv5
+  password: <%= Rails.application.credentials.ondadb_password %>
 
 acao_onda:
   adapter: sqlserver
@@ -14,7 +14,7 @@ acao_onda:
   port: 1433
   database: acao
   username: lino
-  password: PMXNbfJP4QbfXpv5
+  password: <%= Rails.application.credentials.ondadb_password %>
 
 acao_for_wp:
   adapter: postgresql
