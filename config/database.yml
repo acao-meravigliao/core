@@ -31,16 +31,9 @@ production:
   password:
   pool: 30
 
-staging:
-  adapter: postgresql
-  encoding: unicode
-  database: acao_staging
-  username:
-  password:
-
 development:
   adapter: postgresql
   encoding: unicode
-  database: acao_dev_old
+  database: acao_dev
   username:
   password:
