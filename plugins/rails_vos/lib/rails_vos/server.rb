@@ -13,8 +13,42 @@ require 'deep_open_struct'
 require 'rails_vos/server/connection'
 
 require 'am/vos/server'
+require 'am/auth_manager'
 
 module RailsVos
+
+class AuthManager
+  include AM::Actor
+
+  def actor_handle(msg)
+    case msg
+    when AM::AuthManager::MsgSessionGet
+
+      session = nil
+
+      ActiveRecord::Base.connection_pool.with_connection do
+        session = Ygg::Core::HttpSession.find_by(id: msg.id)
+      end
+
+      if !session
+        actor_reply msg, AM::AuthManager::MsgSessionGetNotFound.new
+        return
+      end
+
+      actor_reply(msg, AM::AuthManager::MsgSessionGetOk.new(
+        id: msg.id,
+        authenticated: session.authenticated?,
+        data: session.data,
+      ))
+
+    when AM::AuthManager::MsgSessionSet
+    when AM::AuthManager::MsgSessionDel
+    when AM::AuthManager::MsgSessionAuth
+    else
+     super
+    end
+  end
+end
 
 class Server
   include AM::Actor
@@ -99,6 +133,8 @@ class Server
 #    @routes = {}
 #    @queues = {}
 
+    @auth_manager = AuthManager.new()
+
     @ds = actor_supervise_new(AM::GrafoStore::Store, config: {
       actor_id: :ds,
       hooks: ::Ygg::Core::Grafo,
@@ -112,7 +148,7 @@ class Server
         server_identifier: Rails.application.class.module_parent_name,
       },
       ds: @ds,
-      auth_manager: nil,
+      auth_manager: @auth_manager,
       calls_to: self.actor_ref,
       events_to: self.actor_ref,
       debug: @debug,
@@ -189,7 +225,11 @@ class Server
         arguments: ex.arguments.to_h || {},
       )).value
 
-      consumer_tag  = @amqp.ask(AM::AMQP::Client::MsgConsume.new(channel_id: @amqp_chan, queue_name: queue_name, send_to: actor_ref)).value.consumer_tag
+      consumer_tag  = @amqp.ask(AM::AMQP::Client::MsgConsume.new(
+        channel_id: @amqp_chan,
+        queue_name: queue_name,
+        send_to: actor_ref)
+      ).value.consumer_tag
 
       @routes[ex_name.to_s] = {
         queue: queue_name,
@@ -202,9 +242,13 @@ class Server
     end
   end
 
+  class ControllerNotFound < Ygg::Exception ; end
+  class MethodNotFound < Ygg::Exception ; end
+  class AAAContextNotFoundError < Ygg::Exception ; end
+
   def actor_handle(msg)
 
-puts "ACTOR HANDLE #{msg}"
+puts "VOS ACTOR HANDLE #{msg}"
 
     case msg
     when AM::VOS::Server::MsgCall
@@ -212,10 +256,37 @@ puts "ACTOR HANDLE #{msg}"
 
     when AM::VOS::Server::MsgClassCall
 
+      session = Ygg::Core::HttpSession.find_by(id: msg.session_id)
+      if !session
+        actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: AAAContextNotFoundError.new))
+        return
+      end
+
+      ctr_cls = nil
       begin
-        body = msg.cls.send(**msg.params)
+        ctr_cls = msg.cls.const_get('VosController', false)
+      rescue NameError
+        actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: ControllerNotFound.new))
+        return
+      end
+
+      ctr = ctr_cls.new
+
+      meth = nil
+      begin
+        meth = ctr.method(msg.method)
+      rescue NameError
+        actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: MethodNotFound.new))
+        return
+      end
+
+      begin
+        body = meth.call(session: session, **(msg.params || {}))
       rescue StandardError => e
         actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: e))
+
+        log.error "Call error: #{e}"
+        log.error e.backtrace
       else
         actor_reply(msg, AM::VOS::Server::MsgCallOk.new(body: body))
       end

@@ -20,6 +20,7 @@ class RosterEntry < Ygg::PublicModel
              class_name: 'Ygg::Acao::RosterDay'
 
   gs_rel_map << { from: :entry, to: :day, to_cls: '::Ygg::Acao::RosterDay', from_key: 'roster_day_id' }
+  gs_rel_map << { from: :entry, to: :member, to_cls: '::Ygg::Acao::Member', from_key: 'member_id' }
 
   include Ygg::Core::Loggable
   define_default_log_controller(self)

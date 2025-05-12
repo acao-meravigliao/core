@@ -95,8 +95,8 @@ class BaseController < ActionController::Base
       sess = find_session($1)
     end
 
-    sess = find_session(request.headers['X-Ygg-Session-Id']) if request.headers['X-Ygg-Session-Id']
-    sess = find_session(request.cookies['X-Ygg-Session-Id']) if request.cookies['X-Ygg-Session-Id']
+    sess = find_session(request.headers['Session-Id']) if request.headers['Session-Id']
+    sess = find_session(request.cookies['Session-Id']) if request.cookies['Session-Id']
 
     ::I18n.locale = (sess && (sess.language &&
                               sess.language.iso_639_1 ||

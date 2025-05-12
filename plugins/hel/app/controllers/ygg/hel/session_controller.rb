@@ -81,7 +81,7 @@ class SessionController < Ygg::Hel::BaseController
     end
 
     # Uh??
-    response.set_cookie('X-Ygg-Language', request.cookies['X-Ygg-Language'])
+    response.set_cookie('Language', request.cookies['Language'])
 
     respond_with_session(aaa_context)
   end
@@ -534,8 +534,8 @@ class SessionController < Ygg::Hel::BaseController
   end
 
   def create_http_session_from_http_connection
-    if cookies['X-Ygg-Language']
-      lang = Ygg::I18n::Language.find_by(iso_639_1: cookies['X-Ygg-Language'])
+    if cookies['Language']
+      lang = Ygg::I18n::Language.find_by(iso_639_1: cookies['Language'])
     else
       pref_langs = user_preferred_languages(request.headers['Accept-Language'])
 
@@ -626,9 +626,9 @@ class SessionController < Ygg::Hel::BaseController
 
     if session
       headers['X-Ygg-Session-Id'] = session.id
-      #cookies['X-Ygg-Session-Id'] = { value: session.id, secure: true }
-      cookies['X-Ygg-Session-Id'] = { value: session.id, expires: session.expires }
-      cookies['X-Ygg-Language'] = session.language.iso_639_1
+      #cookies['Session-Id'] = { value: session.id, secure: true }
+      cookies['Session-Id'] = { value: session.id, expires: session.expires }
+      cookies['Language'] = session.language.iso_639_1
     end
 
     ar_respond_with(response)

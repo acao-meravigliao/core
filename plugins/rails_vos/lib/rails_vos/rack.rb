@@ -22,15 +22,15 @@ module Rack
 
     req = ActionDispatch::Request.new(env)
 
-    sess = Ygg::Core::HttpSession.find_by(id: req.cookies['X-Ygg-Session-Id'])
+    sess = Ygg::Core::HttpSession.find_by(id: req.cookies['Session-Id'])
     if !sess && Rails.application.config.rails_vos.authentication_needed
-      Rails.logger.error("Session '#{req.cookies['X-Ygg-Session-Id']}' not found")
+      Rails.logger.error("Session '#{req.cookies['Session-Id']}' not found")
 
       return [ 403, { 'Content-Type' => 'text/plain' }, [ 'Forbidden' ] ]
     end
 
     if Rails.application.config.rails_vos.authentication_needed && !sess.active?
-      Rails.logger.error("Session '#{req.cookies['X-Ygg-Session-Id']}' not active")
+      Rails.logger.error("Session '#{req.cookies['Session-Id']}' not active")
 
       return [ 403, { 'Content-Type' => 'text/plain' }, [ 'Forbidden' ] ]
     end
@@ -40,6 +40,7 @@ module Rack
     env['rack.hijack'].call
     socket = env['rack.hijack_io']
 
+    # Emulate a HTTP request to VOS server
     res = srv.ask(AM::HTTP::Server::MsgRequest.new(
       id: SecureRandom.uuid,
       scheme: req.scheme,
@@ -66,8 +67,6 @@ module Rack
 #      routes_config: Rails.application.config.rails_vos.routes,
 #      debug: Rails.application.config.rails_vos.debug,
     )).value
-
-    puts "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV #{res}"
 
     if res.is_a?(AM::HTTP::Server::MsgRequestHijack)
     end

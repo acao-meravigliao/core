@@ -22,15 +22,15 @@ module Rack
 
     req = ActionDispatch::Request.new(env)
 
-    sess = Ygg::Core::HttpSession.find_by(id: req.cookies['X-Ygg-Session-Id'])
+    sess = Ygg::Core::HttpSession.find_by(id: req.cookies['Session-Id'])
     if !sess && Rails.application.config.amqp_ws_gw.authentication_needed
-      Rails.logger.error("Session '#{req.cookies['X-Ygg-Session-Id']}' not found")
+      Rails.logger.error("Session '#{req.cookies['Session-Id']}' not found")
 
       return [ 403, { 'Content-Type' => 'text/plain' }, [ 'Forbidden' ] ]
     end
 
     if Rails.application.config.amqp_ws_gw.authentication_needed && !sess.active?
-      Rails.logger.error("Session '#{req.cookies['X-Ygg-Session-Id']}' not active")
+      Rails.logger.error("Session '#{req.cookies['Session-Id']}' not active")
 
       return [ 403, { 'Content-Type' => 'text/plain' }, [ 'Forbidden' ] ]
     end

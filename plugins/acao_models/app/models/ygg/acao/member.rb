@@ -166,11 +166,12 @@ class Member < Ygg::PublicModel
              optional: true
 
   gs_rel_map << { from: :member, to: :membership, to_cls: 'Ygg::Acao::Membership', to_key: 'member_id', }
-  gs_rel_map << { from: :member, to: :key_fob, to_cls: 'Ygg::Acao::KeyFob', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :keyfob, to_cls: 'Ygg::Acao::KeyFob', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :roster_entry, to_cls: 'Ygg::Acao::RosterEntry', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :bar_transaction, to_cls: 'Ygg::Acao::BarTransaction', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :token_transaction, to_cls: 'Ygg::Acao::TokenTransaction', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :invoice, to_cls: 'Ygg::Acao::Invoice', to_key: 'member_id', }
+  gs_rel_map << { from: :acao_member, to: :person, to_cls: 'Ygg::Core::Person', from_key: 'person_id', }
 
   def self.alive_pilots
     where.not('sleeping')
@@ -225,7 +226,7 @@ class Member < Ygg::PublicModel
     #  needed[:total] = 0
     #  needed[:high_season] = 0
     #  needed[:reason] = 'cav_not_paid'
-    if birth_date && compute_completed_years(birth_date, ym.renew_opening_time) >= 65
+    if person.birth_date && compute_completed_years(person.birth_date, ym.renew_opening_time) >= 65
       needed[:total] = 0
       needed[:high_season] = 0
       needed[:reason] = 'older_than_65'
@@ -264,13 +265,13 @@ class Member < Ygg::PublicModel
   def roster_needed_entries_present(year: Time.now.year)
     needed = roster_entries_needed(year: year)
 
-    roster_entries = roster_entries.joins(:roster_day).where('roster_days.date': (
+    entries = roster_entries.joins(:roster_day).where('roster_days.date': (
       DateTime.new(year).beginning_of_year..DateTime.new(year).end_of_year
     ))
 
-    roster_entries_high = roster_entries.where('roster_days.high_season')
+    entries_high = entries.where('roster_days.high_season')
 
-    roster_entries.count >= needed[:total] && roster_entries_high.count >= needed[:high_season]
+    entries.count >= needed[:total] && entries_high.count >= needed[:high_season]
   end
 
   def send_initial_password!
@@ -874,7 +875,9 @@ class Member < Ygg::PublicModel
 
     puts "Computing changes..." if debug >= 1
 
-    l_records = relation.includes(:contacts).includes(:credentials).sort_by { |x| x.code.to_s }
+    l_records = relation.joins(:person).includes(:person).
+                         joins(:person => :contacts).includes(:person => :contacts).
+                         joins(:person => :credentials).sort_by { |x| x.code.to_s }
     r_records = data.select { |x| x[:roles].split(',').include?('src_acao') }.sort_by { |x| x[:user_login] }
 
     puts "Computing changes..." if debug >= 1

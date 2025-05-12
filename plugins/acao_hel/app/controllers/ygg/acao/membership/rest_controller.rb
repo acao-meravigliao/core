@@ -69,9 +69,9 @@ class Membership::RestController < Ygg::Hel::RestController
   end
 
   view :_default_ do
-    attribute :invoice_detail do
-      show!
-    end
+#    attribute :invoice_detail do
+#      show!
+#    end
 
     attribute :reference_year do
       show!
