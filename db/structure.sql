@@ -381,7 +381,7 @@ CREATE TABLE acao.invoice_details (
 
 CREATE TABLE acao.invoices (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    identifier character varying DEFAULT NULL::character varying,
+    identifier_full character varying DEFAULT NULL::character varying,
     address character varying(255) DEFAULT NULL::character varying,
     created_at timestamp without time zone,
     notes text,
@@ -391,16 +391,16 @@ CREATE TABLE acao.invoices (
     person_id uuid,
     member_id uuid,
     source_id integer,
-    recipient character varying,
+    recipient character varying NOT NULL,
     codice_fiscale character varying,
     partita_iva character varying,
     email character varying,
     document_date timestamp without time zone,
     registered_at timestamp without time zone,
     amount numeric(14,6) DEFAULT 0.0 NOT NULL,
-    document_type character varying,
+    identifier character varying,
     year integer,
-    identifier_full character varying
+    document_type character varying
 );
 
 
@@ -5575,13 +5575,6 @@ CREATE INDEX index_invoices_on_document_type_and_year_and_identifier ON acao.inv
 --
 
 CREATE INDEX index_invoices_on_identifier ON acao.invoices USING btree (identifier);
-
-
---
--- Name: index_invoices_on_identifier_full; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_invoices_on_identifier_full ON acao.invoices USING btree (identifier_full);
 
 
 --
