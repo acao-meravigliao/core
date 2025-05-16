@@ -107,7 +107,6 @@ module Grafo
   end
 
   def self.prefetch(selection:)
-
     begin
       sel = select(selection.query)
     rescue SelectFailure => e
@@ -121,11 +120,11 @@ module Grafo
     end
 
     sel[0].each do |obj|
-      selection.store.obj_add(obj)
+      selection.store.objs[obj.id] = obj
     end
 
     sel[1].each do |rel|
-      selection.store.rel_add(a: rel[:from], a_as: rel[:from_as], b: rel[:to], b_as: rel[:to_as])
+      selection.store.rels << ::GrafoStore::Rel.new(a: rel[:from], a_as: rel[:from_as], b: rel[:to], b_as: rel[:to_as])
     end
   end
 
