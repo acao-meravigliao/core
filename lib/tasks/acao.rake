@@ -46,7 +46,7 @@ namespace :acao do
     end
 
     task(:sync_wp => :environment) do
-      TimeoutActor.new(tout: 100).do do
+      TimeoutActor.new(tout: 250).do do
         Ygg::Acao::Member.sync_wordpress!
       end
     end
@@ -56,14 +56,6 @@ namespace :acao do
     task(:chores => :environment) do
       TimeoutActor.new(tout: 100).do do
         Ygg::Acao::Payment.run_chores!
-      end
-    end
-  end
-
-  namespace :invoices do
-    task(:chores => :environment) do
-      TimeoutActor.new(tout: 100).do do
-        Ygg::Acao::Invoice.run_chores!
       end
     end
   end
