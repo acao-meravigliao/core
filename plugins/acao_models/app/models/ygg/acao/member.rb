@@ -629,6 +629,12 @@ class Member < Ygg::PublicModel
 
 
   def run_chores!
+    run_notifications!
+    #run_bar_report!
+    #run_flights_report!
+  end
+
+  def run_notifications!
     transaction do
       now = Time.now
       last_run = last_notify_run || Time.new(0)
@@ -647,7 +653,9 @@ class Member < Ygg::PublicModel
 
       save!
     end
+  end
 
+  def run_bar_report!
     transaction do
       now = Time.now
       last_run = bar_last_summary || Time.new(0)
@@ -661,7 +669,9 @@ class Member < Ygg::PublicModel
         save!
       end
     end
+  end
 
+  def run_flights_report!
 #    transaction do
 #      now = Time.now
 #      last_run = flights_last_summary || Time.new(0)
