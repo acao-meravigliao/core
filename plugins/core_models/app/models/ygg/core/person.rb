@@ -175,6 +175,23 @@ class Person < OrgaPerson
     }
   end
 
+  def self.search(query)
+    (first_name, last_name) = query.split(' ')
+
+    if !last_name
+      last_name = first_name
+      first_name = nil
+    end
+
+    res = Ygg::Core::Person.where('last_name ILIKE ?', last_name.downcase + '%')
+
+    if first_name
+      res = res.where('first_name ILIKE ?', first_name.downcase + '%')
+    end
+
+    res
+  end
+
   def update_acls
     transaction do
       services.each do |service|
