@@ -128,6 +128,8 @@ class DocTesta < ActiveRecord::Base
           mdb_servizio.pagato = true
           mdb_servizio.data_pagamento = self.DataDocumento
           mdb_servizio.numero_ricevuta = self.NumeroDocumento
+          mdb_servizio.dati_aggiuntivi = ''
+          mdb_servizio.importo_pagato = self.TotDocumento
 
           puts "  Servizio MODIFICATO #{mdb_servizio.changes}"
 
