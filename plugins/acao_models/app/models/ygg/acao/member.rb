@@ -482,7 +482,7 @@ class Member < Ygg::PublicModel
 
     r_records = faac.medias_get_all
 
-    # l_recods will be a union of medias from KeyFob and AccessRemote(s)
+    # l_records will be a union of medias from KeyFob and AccessRemote(s)
     l_records = []
     l_records += Ygg::Acao::KeyFob.all.
       select { |x| users[x.member_id] }.
@@ -1119,31 +1119,9 @@ class Member < Ygg::PublicModel
       self.bollini = other.Acconto_Voli
       self.bar_credit = other.visita.acconto_bar_euro
 
-      if other.tag_code &&  other.tag_code.strip != '0' && other.tag_code.strip != ''
-        fob = Ygg::Acao::KeyFob.find_by(code: other.tag_code.strip.upcase)
-        if fob
-          if fob.member_id != self.id
-            puts "  keyfob #{fob.code} destroyed as it is not assigned to correct user" if debug >= 2
-            fob.destroy
-
-            puts "  keyfob #{fob.code} created" if debug >= 2
-            key_fobs.build(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
-          end
-
-          if fob.src != 'ALIANDRE' || fob.src_id != other.id_soci_dati_generale
-            fob.src = 'ALIANDRE'
-            fob.src_id = other.id_soci_dati_generale
-            fob.descr = "From Aliandre, #{other.codice_socio_dati_generale}"
-
-            puts "  keyfob #{fob.code} updated #{fob.changes}" if debug >= 2
-
-            fob.save!
-          end
-        else
-          fob = key_fobs.build(code: other.tag_code.strip.upcase, descr: 'Aliandre', media_type: 'RFID', src: 'ALIANDRE', src_id: other.id_soci_dati_generale)
-          puts "  keyfob #{fob.code} created" if debug >= 2
-        end
-      end
+      sync_contacts(other, person: person, debug: debug)
+      sync_credentials(other, debug: debug)
+      sync_tessere(debug: debug)
 
       if deep_changed?
         self.lastmod = other.lastmod.floor(6)
@@ -1354,6 +1332,58 @@ class Member < Ygg::PublicModel
     else
       medicals.where(type: type).destroy_all.any?
     end
+  end
+
+  def sync_tessere(debug: 0)
+    Ygg::Toolkit.merge(
+      l: socio.tessere.where('len(tag) = 10').order(tag: :asc).lock,
+      r: key_fobs.order(code: :asc).lock,
+      l_cmp_r: lambda { |l,r| l.tag <=> r.code },
+      l_to_r: lambda { |l|
+
+        puts "TESSERA => KEYFOB ADD #{l.tag}" if debug >= 1
+
+        key_fobs.create(
+          code: l.tag,
+          descr: "From Aliandre",
+          media_type: 'RFID',
+          src: 'ALIANDRE',
+          src_id: l.id,
+        )
+      },
+      r_to_l: lambda { |r|
+        puts "KEYFOB DEL #{r.code}"
+        r.destroy
+      },
+      lr_update: lambda { |l,r|
+        puts "KEYFOB CHECK #{l.tag}" if debug >= 3
+
+        ####
+      }
+    )
+
+    Ygg::Toolkit.merge(
+      l: socio.tessere.where('len(tag) < 10').order(tag: :asc).lock,
+      r: person_access_remotes.joins(:remote).merge(Ygg::Acao::AccessRemote.order(symbol: :asc )).lock,
+      l_cmp_r: lambda { |l,r| l.tag <=> r.remote.symbol },
+      l_to_r: lambda { |l|
+
+        puts "TESSERA => ACCESSREMOTE ADD #{l.tag}" if debug >= 1
+
+        person_access_remotes.create(
+          remote: Ygg::Acao::AccessRemote.find_by(symbol: l.tag),
+        )
+      },
+      r_to_l: lambda { |r|
+        puts "ACCESS REMOTE DEL #{r.remote.symbol}"
+        r.destroy
+      },
+      lr_update: lambda { |l,r|
+        puts "ACCESS REMOTE CHECK #{l.tag}" if debug >= 3
+
+        ####
+      }
+    )
   end
 
   def sync_contacts(r, person:, debug: 0)
