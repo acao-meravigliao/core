@@ -20,8 +20,13 @@ def person(s)
 end
 
 def pilot(s)
-  res = Ygg::Acao::Member.find_by(code: s.is_a?(Numeric) ? s : (s.match(/[0-9]+/) && s.to_i))
-  return res if res
+  if s.is_a?(Numeric)
+    res = Ygg::Acao::Member.find_by(code: s)
+    return res if res
+  elsif s.match(/[0-9]+/)
+    res = Ygg::Acao::Member.find_by(code: s.to_i)
+    return res if res
+  end
 
   res = persons(s)
   return nil if res.count == 0
