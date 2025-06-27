@@ -203,7 +203,7 @@ GEM
       am-io-buffer
       am-sockets (>= 0.18)
     deep_open_struct (2.0.2)
-    grafo-store (2.6.2)
+    grafo-store (2.6.3)
       activesupport
       iarray
       ygg-exception
