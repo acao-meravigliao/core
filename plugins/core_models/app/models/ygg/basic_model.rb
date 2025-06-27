@@ -40,6 +40,10 @@ class BasicModel < ActiveRecord::Base
 
   class FilterSyntaxError < RuntimeError ; end
 
+  def calls_to
+    AM::Registry[:rails_vos_server]
+  end
+
   def match_filter?(filter)
     filter.all? { |k,v|
       val = send(k)

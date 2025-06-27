@@ -137,7 +137,8 @@ class Server
 
     @ds = actor_supervise_new(AM::GrafoStore::Store, config: {
       actor_id: :ds,
-      hooks: ::Ygg::Core::Grafo,
+      store_class: ::Ygg::Core::SqlGrafoStore,
+      debug: 2,
     }, shut_order: 1000)
 
     @vos = actor_supervise_new(AM::VOS::Server, config: {
@@ -247,13 +248,7 @@ class Server
   class AAAContextNotFoundError < Ygg::Exception ; end
 
   def actor_handle(msg)
-
-puts "VOS ACTOR HANDLE #{msg}"
-
     case msg
-    when AM::VOS::Server::MsgCall
-      actor_reply(msg, AM::VOS::Server::MsgCallFail.new)
-
     when AM::VOS::Server::MsgClassCall
 
       session = Ygg::Core::HttpSession.find_by(id: msg.session_id)
@@ -270,7 +265,11 @@ puts "VOS ACTOR HANDLE #{msg}"
         return
       end
 
-      ctr = ctr_cls.new
+      ctr = ctr_cls.new(
+        vos_server: self,
+        ds: @ds,
+        session: session,
+      )
 
       meth = nil
       begin
@@ -281,7 +280,47 @@ puts "VOS ACTOR HANDLE #{msg}"
       end
 
       begin
-        body = meth.call(session: session, **(msg.params || {}))
+        body = meth.call(**(msg.params || {}))
+      rescue StandardError => e
+        actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: e))
+
+        log.error "Call error: #{e}"
+        log.error e.backtrace
+      else
+        actor_reply(msg, AM::VOS::Server::MsgCallOk.new(body: body))
+      end
+
+    when AM::VOS::Server::MsgCall
+      session = Ygg::Core::HttpSession.find_by(id: msg.session_id)
+      if !session
+        actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: AAAContextNotFoundError.new))
+        return
+      end
+
+      ctr_cls = nil
+      begin
+        ctr_cls = msg.obj.class.const_get('VosController', false)
+      rescue NameError
+        actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: ControllerNotFound.new))
+        return
+      end
+
+      ctr = ctr_cls.new(
+        vos_server: self,
+        ds: @ds,
+        session: session,
+      )
+
+      meth = nil
+      begin
+        meth = ctr.method(msg.method)
+      rescue NameError
+        actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: MethodNotFound.new))
+        return
+      end
+
+      begin
+        body = meth.call(obj: msg.obj, **(msg.params || {}))
       rescue StandardError => e
         actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: e))
 

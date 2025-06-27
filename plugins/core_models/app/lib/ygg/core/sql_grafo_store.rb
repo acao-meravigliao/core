@@ -6,30 +6,56 @@
 # License:: You can redistribute it and/or modify it under the terms of the LICENSE file.
 #
 
+require 'grafo_store/basic'
 require 'grafo_store/query'
 
 module Ygg
 module Core
 
-module Grafo
+class SqlGrafoStore < GrafoStore::Basic
+  def sel_destroyed(sel)
+    super
+
+    sel.objs.each do |obj_id,obj|
+      if @sels.none? { |x| x.objs[obj_id] }
+        @objs.delete(obj_id)
+        @rels.reject! { |x| x.match?(a: obj) }
+      end
+    end
+  end
+
+  def select(query, **params)
+    begin
+      sel = sql_select(query)
+    rescue SelectFailure => e
+      puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e}"
+      puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e.backtrace}"
+      raise ::GrafoStore::Selection::HookFailure.new
+    rescue StandardError => e
+      puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e}"
+      puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e.backtrace}"
+      raise ::GrafoStore::Selection::HookFailure.new
+    end
+
+    res = super(query, **params)
+
+    res
+  end
+
   class SelectFailure < Ygg::Exception ; end
   class FilterSyntaxError < SelectFailure ; end
   class MissingRelDef < SelectFailure ; end
 
-  def self.select(query)
-    query = GrafoStore::Query.new(query) unless query.is_a?(GrafoStore::Query)
+  def sql_select(query)
 
-    objs = Set.new
-    rels = Set.new
+    query = ::GrafoStore::Query.new(sel: nil, query: query) unless query.is_a?(GrafoStore::Query)
 
     query.root.each do |node|
-      select_collect_sub(objs, rels, node, nil, nil, nil)
+      select_collect_sub(node, nil, nil, nil)
     end
-
-    [ objs, rels ]
   end
 
-  def self.select_collect_sub(objs, rels, node, parent_node, parent_cls, parent_objs)
+  def select_collect_sub(node, parent_node, parent_cls, parent_objs)
     to_cls = nil
     reldef = nil
 
@@ -86,14 +112,16 @@ module Grafo
 
     node_objs = rel.to_a
 
-    objs.merge(node_objs)
+    node_objs.each do |obj|
+      @objs[obj.id] = obj
+    end
 
     if parent_objs
       parent_objs.each do |from_obj|
         node_objs.each do |to_obj|
           if (reldef[:to_key] && to_obj.send(reldef[:to_key]) == from_obj.id) ||
              (reldef[:from_key] && from_obj.send(reldef[:from_key]) == to_obj.id)
-            rels << { from: from_obj.id, from_as: node.from, to: to_obj.id, to_as: node.to }
+            @rels << ::GrafoStore::Rel.new(a: from_obj.id, a_as: node.from, b: to_obj.id, b_as: node.to)
           end
         end
       end
@@ -101,33 +129,10 @@ module Grafo
 
     if node.dig
       node.dig.each do |dig|
-        select_collect_sub(objs, rels, dig, node, to_cls, node_objs)
+        select_collect_sub(dig, node, to_cls, node_objs)
       end
     end
   end
-
-  def self.prefetch(selection:)
-    begin
-      sel = select(selection.query)
-    rescue SelectFailure => e
-      puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e}"
-      puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e.backtrace}"
-      raise ::GrafoStore::Selection::HookFailure.new
-    rescue StandardError => e
-      puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e}"
-      puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e.backtrace}"
-      raise ::GrafoStore::Selection::HookFailure.new
-    end
-
-    sel[0].each do |obj|
-      selection.store.objs[obj.id] = obj
-    end
-
-    sel[1].each do |rel|
-      selection.store.rels << ::GrafoStore::Rel.new(a: rel[:from], a_as: rel[:from_as], b: rel[:to], b_as: rel[:to_as])
-    end
-  end
-
 end
 
 end

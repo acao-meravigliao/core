@@ -11,8 +11,55 @@ Ygg::Acao::RosterEntry
 module Ygg
 module Acao
 
-class RosterEntry::VosController
-  def compute_status(session:)
+class RosterEntry::VosController < Ygg::Hel::VosBaseController
+  def create(obj:)
+    ensure_authenticated!
+    raise AuthorizationError unless session.has_global_roles?(:superuser)
+
+    new_obj = nil
+
+    ActiveRecord::Base.connection_pool.with_connection do
+      ActiveRecord::Base.transaction do
+        new_obj = Ygg::Acao::RosterEntry.create(
+          member: Ygg::Acao::Member.find(obj[:member_id]),
+          roster_day: Ygg::Acao::RosterDay.find(obj[:roster_day_id]),
+        )
+      end
+    end
+
+    ds.tell(::AM::GrafoStore::Store::MsgObjectCreate.new(
+      obj: new_obj,
+      rels: [
+        { from_as: :roster_entry, to_as: :member, to: new_obj.member_id },
+        { from_as: :entry, to_as: :day, to: new_obj.roster_day_id },
+      ]
+    ))
+  end
+
+  def move(obj:, to_day_id:)
+    old_day_id = obj.roster_day_id
+
+    obj.roster_day_id = to_day_id
+    obj.save!
+
+    ds.tell(::AM::GrafoStore::Store::MsgRelationDestroy.new(
+      a_as: :entry, a: obj.id,
+      b_as: :day, b: old_day_id,
+    ))
+
+    ds.tell(::AM::GrafoStore::Store::MsgRelationCreate.new(
+      a_as: :entry, a: obj.id,
+      b_as: :day, b: to_day_id,
+    ))
+  end
+
+  def destroy(obj:)
+    ds.tell(::AM::GrafoStore::Store::MsgObjectDestroy.new(id: obj.id))
+
+    obj.destroy!
+  end
+
+  def compute_status()
     member = session.auth_person.acao_member
 
     current_year = Ygg::Acao::Year.find_by(year: Time.new.year)
