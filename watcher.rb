@@ -4,7 +4,19 @@ debug = 2
 
 puts "---------------- Watcher Started ----------------" if debug >= 1
 
+ino = File.stat(__FILE__).ino
+
 loop do
+
+  cur_ino = File.stat(__FILE__).ino
+
+  puts "#{__FILE__} cur_ino=#{cur_ino} ino=#{ino}" if debug >= 4
+
+  if cur_ino != ino
+    puts "==================== WATCHER REPLACED, RELOADING ====================="
+    exit
+  end
+
   soci_changed = false
   mezzo_changed = false
   volo_changed = false
