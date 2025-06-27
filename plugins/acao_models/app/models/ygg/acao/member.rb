@@ -1008,7 +1008,7 @@ class Member < Ygg::PublicModel
       return if [ -1, 0, 1, 4000, 4001, 7000, 8888, 9999 ].include?(l.codice_socio_dati_generale)
 
       transaction do
-        puts "ADDING SOCIO ID=#{l.id_soci_dati_generale} CODICE=#{l.codice_socio_dati_generale}" if debug >= 1
+        puts "MEMBER ADDING SOCIO ID=#{l.id_soci_dati_generale} CODICE=#{l.codice_socio_dati_generale}" if debug >= 1
 
         person = Ygg::Core::Person.new(
         )
@@ -1029,31 +1029,25 @@ class Member < Ygg::PublicModel
 
         member.send_welcome_message!
 
-        puts "ADDED #{member.awesome_inspect(plain: true)}" if debug >= 1
+        puts "MEMBER ADDED #{member.awesome_inspect(plain: true)}" if debug >= 1
       end
     },
     r_to_l: lambda { |r|
-      puts "REMOVED SOCIO ID=#{r.ext_id} CODICE=#{r.code} #{r.first_name} #{r.last_name}" if debug >= 1
+      puts "MEMBER REMOVED SOCIO ID=#{r.ext_id} CODICE=#{r.code} #{r.first_name} #{r.last_name}" if debug >= 1
 #          r.ext_id = r.ext_id
 #          r.code = nil
 #          r.save!
     },
     lr_update: lambda { |l,r|
 
-      puts "UPD CHK #{l.codice_socio_dati_generale} #{l.Nome} #{l.Cognome}" if debug >= 3
+      puts "MEMBER UPD CHK #{l.codice_socio_dati_generale} #{l.Nome} #{l.Cognome}" if debug >= 3
 
-      if l.lastmod != r.lastmod || l.visita.lastmod != r.visita_lastmod
+      if l.lastmod.floor(6) != r.lastmod ||
+         l.visita.lastmod.floor(6) != r.visita_lastmod ||
+         l.licenza.lastmod.floor(6) != r.licenza_lastmod || force
         transaction do
           p = r.person
           r.sync_from_maindb(l, person: p, force: force, debug: debug)
-
-          if r.deep_changed? || p.deep_changed?
-            puts "UPDATING #{l.id_soci_dati_generale} <=> #{r.ext_id} (#{r.person.first_name} #{r.person.last_name})" if debug >= 1
-            puts r.deep_changes.awesome_inspect(plain: true) if debug >= 2
-
-            r.save!
-            p.save!
-          end
         end
       end
     })
@@ -1061,6 +1055,8 @@ class Member < Ygg::PublicModel
 
   def sync_from_maindb(other = socio, person: self.person, with_logbar: true, with_logbollini: true, force: false, debug: 0)
     if other.lastmod.floor(6) != lastmod || force
+      puts "MEMBER #{code} #{person.first_name} #{person.last_name} Checking (lastmod #{(other.lastmod - self.lastmod).to_i} old)" if debug >= 1
+
       person.first_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ').first
       person.middle_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ')[1..-1].join(' ')
       person.last_name = other.Cognome.strip
@@ -1124,22 +1120,34 @@ class Member < Ygg::PublicModel
       sync_tessere(debug: debug)
 
       if deep_changed?
-        self.lastmod = other.lastmod.floor(6)
-
         puts "MEMBER #{code} #{person.first_name} #{person.last_name} CHANGED" if debug >= 1
         puts deep_changes.awesome_inspect(plain: true)
+      end
 
-        begin
-          save!
-        rescue ActiveRecord::RecordInvalid
-          puts "VALIDATION ERROR: #{errors.inspect}"
-          raise
-        end
+      self.lastmod = other.lastmod.floor(6)
+
+      begin
+        save!
+      rescue ActiveRecord::RecordInvalid
+        puts "VALIDATION ERROR: #{errors.inspect}"
+        raise
+      end
+
+      if person.deep_changed?
+        puts "  PERSON #{person.first_name} #{person.last_name} CHANGED" if debug >= 1
+        puts person.deep_changes.awesome_inspect(plain: true) if debug >= 2
+      end
+
+      begin
+        person.save!
+      rescue ActiveRecord::RecordInvalid
+        puts "VALIDATION ERROR: #{person.errors.inspect}"
+        raise
       end
     end
 
-    if self.licenza_lastmod != other.licenza.lastmod.floor(6)
-      puts "MEMBER #{code} Checking licenses"
+    if self.licenza_lastmod != other.licenza.lastmod.floor(6) || force
+      puts "MEMBER #{code} Checking licenses (lastmod #{(other.licenza.lastmod - self.licenza_lastmod).to_i} old)" if debug >= 1
 
       if sync_licenses(other.licenza, debug: debug)
         puts "MEMBER #{code} #{person.first_name} #{person.last_name} LICENSES UPDATED" if debug >= 1
@@ -1149,8 +1157,8 @@ class Member < Ygg::PublicModel
       save!
     end
 
-    if self.visita_lastmod != other.visita.lastmod.floor(6)
-      puts "MEMBER #{code} Checking medicals"
+    if self.visita_lastmod != other.visita.lastmod.floor(6) || force
+      puts "MEMBER #{code} Checking medicals (lastmod #{(other.visita.lastmod - self.visita_lastmod).to_i} old)" if debug >= 1
 
       if sync_medicals(other.visita, debug: debug)
         puts "MEMBER #{code} #{person.first_name} #{person.last_name} MEDICALS UPDATED" if debug >= 1
@@ -1336,15 +1344,15 @@ class Member < Ygg::PublicModel
 
   def sync_tessere(debug: 0)
     Ygg::Toolkit.merge(
-      l: socio.tessere.where('len(tag) = 10').order(tag: :asc).lock,
+      l: socio.tessere.where('len(tag) = 10').order('LOWER(tag)').lock,
       r: key_fobs.order(code: :asc).lock,
-      l_cmp_r: lambda { |l,r| l.tag <=> r.code },
+      l_cmp_r: lambda { |l,r| l.tag.downcase <=> r.code.downcase },
       l_to_r: lambda { |l|
 
-        puts "TESSERA => KEYFOB ADD #{l.tag}" if debug >= 1
+        puts "  TESSERA => KEYFOB ADD #{l.tag.downcase}" if debug >= 1
 
         key_fobs.create(
-          code: l.tag,
+          code: l.tag.downcase,
           descr: "From Aliandre",
           media_type: 'RFID',
           src: 'ALIANDRE',
@@ -1352,34 +1360,34 @@ class Member < Ygg::PublicModel
         )
       },
       r_to_l: lambda { |r|
-        puts "KEYFOB DEL #{r.code}"
+        puts "  KEYFOB DEL #{r.code.downcase}"
         r.destroy
       },
       lr_update: lambda { |l,r|
-        puts "KEYFOB CHECK #{l.tag}" if debug >= 3
+        puts "  KEYFOB CHECK #{l.tag.downcase}" if debug >= 3
 
         ####
       }
     )
 
     Ygg::Toolkit.merge(
-      l: socio.tessere.where('len(tag) < 10').order(tag: :asc).lock,
+      l: socio.tessere.where('len(tag) < 10').order('LOWER(tag)').lock,
       r: person_access_remotes.joins(:remote).merge(Ygg::Acao::AccessRemote.order(symbol: :asc )).lock,
-      l_cmp_r: lambda { |l,r| l.tag <=> r.remote.symbol },
+      l_cmp_r: lambda { |l,r| l.tag.downcase <=> r.remote.symbol },
       l_to_r: lambda { |l|
 
-        puts "TESSERA => ACCESSREMOTE ADD #{l.tag}" if debug >= 1
+        puts "  TESSERA => ACCESSREMOTE ADD #{l.tag.downcase}" if debug >= 1
 
         person_access_remotes.create(
-          remote: Ygg::Acao::AccessRemote.find_by(symbol: l.tag),
+          remote: Ygg::Acao::AccessRemote.find_by(symbol: l.tag.downcase),
         )
       },
       r_to_l: lambda { |r|
-        puts "ACCESS REMOTE DEL #{r.remote.symbol}"
+        puts "  ACCESS REMOTE DEL #{r.remote.symbol}"
         r.destroy
       },
       lr_update: lambda { |l,r|
-        puts "ACCESS REMOTE CHECK #{l.tag}" if debug >= 3
+        puts "  ACCESS REMOTE CHECK #{l.tag.downcase}" if debug >= 3
 
         ####
       }
