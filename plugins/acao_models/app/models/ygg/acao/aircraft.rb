@@ -19,6 +19,9 @@ class Aircraft < Ygg::PublicModel
   has_many :trackers,
            class_name: 'Ygg::Acao::Tracker'
 
+  has_one :trailer,
+           class_name: 'Ygg::Acao::Trailer'
+
   belongs_to :aircraft_type,
              class_name: 'Ygg::Acao::AircraftType',
              optional: true
@@ -120,7 +123,7 @@ class Aircraft < Ygg::PublicModel
     self.race_registration = entry[:race_reg] if !race_registration
   end
 
-  def self.sync_from_maindb!
+  def self.sync_from_maindb!(debug: 0)
     dups = Ygg::Acao::MainDb::Mezzo.select('numero_flarm,count(*)').where("numero_flarm <> 'id'").where("numero_flarm <> ''").
                                     group(:numero_flarm).having('count(*) > 1')
     if dups.to_a.any?
@@ -129,32 +132,52 @@ class Aircraft < Ygg::PublicModel
       fail
     end
 
-    Ygg::Acao::MainDb::Mezzo.where("numero_flarm <> 'id'").all.each do |mezzo|
+    Ygg::Acao::MainDb::Mezzo.where("numero_flarm <> 'id'").where("numero_flarm <> ''").each do |mezzo|
 
       flarm_identifier = mezzo.numero_flarm.strip.upcase
+      registration = mezzo.Marche.strip.upcase
 
       data = {
         mdb_id: mezzo.id_mezzi,
-        registration: mezzo.Marche.strip.upcase,
+        registration: registration,
       }
 
       race_registration = mezzo.sigla_gara.strip.upcase
       data[:race_registration] = race_registration if race_registration != 'S'
 
-      p = Ygg::Acao::Aircraft.find_by(flarm_identifier: flarm_identifier)
+      p = Ygg::Acao::Aircraft.find_by(flarm_identifier: flarm_identifier) ||
+          Ygg::Acao::Aircraft.find_by(registration: registration)
       if !p
         data.merge!({ flarm_identifier: flarm_identifier })
-        puts "CRE #{data}"
+        puts "CRE #{data}" if debug >= 1
         Ygg::Acao::Aircraft.create!(data)
       else
         p.assign_attributes(data)
 
         if p.changes.any?
-          puts "UPD #{p.changes}"
+          puts "UPD #{p.changes}" if debug >= 1
           p.save!
         end
       end
 
+    end
+  end
+
+  def self.clean_duplicates!
+    Ygg::Acao::Aircraft.group(:registration).count.each do |reg, cnt|
+      if cnt > 1
+        dups = Ygg::Acao::Aircraft.where(registration: reg).to_a
+
+        good = dups.find { |x| x.trailer } || dups.find { |x| x.flarm_identifier } || dups.first
+
+        dups.delete(good)
+
+        dups.each do |dup|
+          Ygg::Acao::Flight.where(aircraft: dup).update_all(aircraft_id: good.id)
+          Ygg::Acao::TokenTransaction.where(aircraft: dup).update_all(aircraft_id: good.id)
+          dup.destroy!
+        end
+      end
     end
   end
 end

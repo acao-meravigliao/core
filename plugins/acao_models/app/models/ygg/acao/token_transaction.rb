@@ -32,6 +32,8 @@ class TokenTransaction < Ygg::PublicModel
       start = ff.id_log_bollini
     end
 
+    aircraft_cache = Hash[Ygg::Acao::Aircraft.all.map { |x| [ x.registration, x ] } ]
+
     l_relation = Ygg::Acao::MainDb::LogBollini.all.order(id_log_bollini: :asc)
     l_relation = l_relation.where('id_log_bollini >= ?', start) if start
     l_relation = l_relation.where('id_log_bollini <= ?', stop) if stop
@@ -48,13 +50,24 @@ class TokenTransaction < Ygg::PublicModel
     r: r_relation,
     l_cmp_r: lambda { |l,r| l.id_log_bollini <=> r.old_id },
     l_to_r: lambda { |l|
+      puts "LOGBOL ADD #{l.id_log_bollini}" if debug >= 1
+
+      member = Ygg::Acao::Member.find_by(code: l.codice_pilota)
+      if !member
+        puts "LOGBOL MISSING MEMBER #{l.codice_pilota}!!!! NOT SYNCING ROW"
+        return
+      end
+
       aircraft_reg = l.marche_mezzo.strip.upcase
       aircraft_reg = nil if aircraft_reg == 'NO' || aircraft_reg.blank?
 
-      puts "LOGBOL ADD #{l.id_log_bollini}" if debug >= 1
+      aircraft = aircraft_cache[aircraft_reg]
+      if !aircraft
+        puts "LOGBOL MISSING AIRCRAFT #{aircraft_reg}"
+      end
 
       Ygg::Acao::TokenTransaction.create(
-        member: Ygg::Acao::Member.find_by!(code: l.codice_pilota),
+        member: member,
         recorded_at: troiano_datetime_to_utc(l.log_data),
         old_operator: l.operatore.strip,
         old_marche_mezzo: l.marche_mezzo.strip,
@@ -63,7 +76,7 @@ class TokenTransaction < Ygg::PublicModel
         prev_credit: l.credito_prec,
         credit: l.credito_att,
         old_id: l.id_log_bollini,
-        aircraft: aircraft_reg ? Ygg::Acao::Aircraft.find_by(registration: aircraft_reg) : nil,
+        aircraft: aircraft,
       )
 
     },
@@ -77,10 +90,15 @@ class TokenTransaction < Ygg::PublicModel
       aircraft_reg = l.marche_mezzo.strip.upcase
       aircraft_reg = nil if aircraft_reg == 'NO' || aircraft_reg.blank?
 
+      aircraft = aircraft_cache[aircraft_reg]
+      if !aircraft
+        puts "LOGBOL MISSING AIRCRAFT #{aircraft_reg}"
+      end
+
       r.assign_attributes(
         amount: l.credito_att - l.credito_prec,
         recorded_at: troiano_datetime_to_utc(l.log_data),
-        aircraft: aircraft_reg ? Ygg::Acao::Aircraft.find_by(registration: aircraft_reg) : nil,
+        aircraft: aircraft,
       )
 
       if r.deep_changed?

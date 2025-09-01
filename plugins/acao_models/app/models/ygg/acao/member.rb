@@ -481,6 +481,7 @@ class Member < Ygg::PublicModel
     # MEDIAS
 
     r_records = faac.medias_get_all
+    r_records_hash = Hash[r_records.map { |x| [ x[:identifier], x ] }]
 
     # l_records will be a union of medias from KeyFob and AccessRemote(s)
     l_records = []
@@ -547,6 +548,8 @@ class Member < Ygg::PublicModel
         puts "Media remove (dup identifier): #{r[:uuid]} OCT=#{r[:identifier]}" if debug > 0
 
         faac.media_remove(uuid: r[:uuid])
+      else
+        puts "Media #{r[:identifier]} assigned to external user #{r[:uuid]} #{r[:userLastAndFirstName]}" if debug >= 2
       end
     },
     lr_update: lambda { |l,r| }
@@ -559,28 +562,32 @@ class Member < Ygg::PublicModel
     l_to_r: lambda { |l|
       puts "Media create: #{l.id} num=#{l.number} code=#{l.code} oct=#{l.code_for_faac}" if debug > 0
 
-      ranges = l.member.access_validity_ranges
-      range = ranges.first
+      if r_records_hash[l.code_for_faac]
+        puts "DUPLICATE MEDIA??? #{r_records_hash[l.code_for_faac]}"
+      else
+        ranges = l.member.access_validity_ranges
+        range = ranges.first
 
-      validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
-      validity_end = range && range.end && (range.end.to_i * 1000) || 0
-      always_valid = FAAC_ACTIVE.include?(l.member.code)
+        validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
+        validity_end = range && range.end && (range.end.to_i * 1000) || 0
+        always_valid = FAAC_ACTIVE.include?(l.member.code)
 
-      faac.media_create(data: {
-        uuid: l.id,
-        identifier: l.code_for_faac,
-        mediaTypeCode: 0,
-#        number: l.number,
-        enabled: !!range,
-        validityStart: validity_start,
-        validityEnd: validity_end,
-        validityMode: (validity_end == 0) ? 0 : 1,
-        antipassbackEnabled: false,
-        countingEnabled: true,
-        userUuid: l.member_id,
-        profileUuidOrName: 'eb3df410-0bbd-4eb7-ac86-389c177e065b',
-        lifeCycleMode: 0,
-      })
+        faac.media_create(data: {
+          uuid: l.id,
+          identifier: l.code_for_faac,
+          mediaTypeCode: 0,
+  #        number: l.number,
+          enabled: !!range,
+          validityStart: validity_start,
+          validityEnd: validity_end,
+          validityMode: (validity_end == 0) ? 0 : 1,
+          antipassbackEnabled: false,
+          countingEnabled: true,
+          userUuid: l.member_id,
+          profileUuidOrName: 'eb3df410-0bbd-4eb7-ac86-389c177e065b',
+          lifeCycleMode: 0,
+        })
+      end
     },
     r_to_l: lambda { |r|
       if users[r[:userUuid]]
@@ -1053,9 +1060,9 @@ class Member < Ygg::PublicModel
     })
   end
 
-  def sync_from_maindb(other = socio, person: self.person, with_logbar: true, with_logbollini: true, force: false, debug: 0)
+  def sync_from_maindb(other = socio, person: self.person, force: false, debug: 0)
     if other.lastmod.floor(6) != lastmod || force
-      puts "MEMBER #{code} #{person.first_name} #{person.last_name} Checking (lastmod #{(other.lastmod - self.lastmod).to_i} old)" if debug >= 1
+      puts "MEMBER #{code} #{person.first_name} #{person.last_name} Checking (lastmod #{(other.lastmod - (self.lastmod||0)).to_i} old)" if debug >= 1
 
       person.first_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ').first
       person.middle_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ')[1..-1].join(' ')
@@ -1115,6 +1122,8 @@ class Member < Ygg::PublicModel
       self.bollini = other.Acconto_Voli
       self.bar_credit = other.visita.acconto_bar_euro
 
+      save! if new_record?
+
       sync_contacts(other, person: person, debug: debug)
       sync_credentials(other, debug: debug)
       sync_tessere(debug: debug)
@@ -1147,7 +1156,7 @@ class Member < Ygg::PublicModel
     end
 
     if self.licenza_lastmod != other.licenza.lastmod.floor(6) || force
-      puts "MEMBER #{code} Checking licenses (lastmod #{(other.licenza.lastmod - self.licenza_lastmod).to_i} old)" if debug >= 1
+      puts "MEMBER #{code} Checking licenses (lastmod #{(other.licenza.lastmod - (self.licenza_lastmod||0)).to_i} old)" if debug >= 1
 
       if sync_licenses(other.licenza, debug: debug)
         puts "MEMBER #{code} #{person.first_name} #{person.last_name} LICENSES UPDATED" if debug >= 1
@@ -1158,7 +1167,7 @@ class Member < Ygg::PublicModel
     end
 
     if self.visita_lastmod != other.visita.lastmod.floor(6) || force
-      puts "MEMBER #{code} Checking medicals (lastmod #{(other.visita.lastmod - self.visita_lastmod).to_i} old)" if debug >= 1
+      puts "MEMBER #{code} Checking medicals (lastmod #{(other.visita.lastmod - (self.visita_lastmod||0)).to_i} old)" if debug >= 1
 
       if sync_medicals(other.visita, debug: debug)
         puts "MEMBER #{code} #{person.first_name} #{person.last_name} MEDICALS UPDATED" if debug >= 1

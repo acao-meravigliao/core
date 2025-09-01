@@ -57,8 +57,14 @@ class BarTransaction < Ygg::PublicModel
     l_to_r: lambda { |l|
       puts "LOGBAR ADD #{l.id_logbar}" if debug >= 1
 
+      member = Ygg::Acao::Member.find_by(code: l.codice_socio)
+      if !member
+        puts "LOGBAR MISSING MEMBER #{l.codice_socio}!!!! NOT SYNCING ROW"
+        return
+      end
+
       Ygg::Acao::BarTransaction.create!(
-        member: Ygg::Acao::Member.find_by!(code: l.codice_socio),
+        member: member,
         recorded_at: troiano_datetime_to_utc(l.data_reg),
         cnt: 1,
         unit: '€',
