@@ -30,11 +30,11 @@ class SqlGrafoStore < GrafoStore::Basic
     rescue SelectFailure => e
       puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e}"
       puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e.backtrace}"
-      raise ::GrafoStore::Selection::HookFailure.new
+      raise ::GrafoStore::Selection::SelectError.new
     rescue StandardError => e
       puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e}"
       puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e.backtrace}"
-      raise ::GrafoStore::Selection::HookFailure.new
+      raise ::GrafoStore::Selection::SelectError.new
     end
 
     res = super(query, **params)
