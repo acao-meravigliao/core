@@ -1118,9 +1118,7 @@ class Member < Ygg::PublicModel
         person.residence_location = nil
       end
 
-      self.sleeping = other.visita.socio_non_attivo
       self.bollini = other.Acconto_Voli
-      self.bar_credit = other.visita.acconto_bar_euro
 
       save! if new_record?
 
@@ -1173,7 +1171,16 @@ class Member < Ygg::PublicModel
         puts "MEMBER #{code} #{person.first_name} #{person.last_name} MEDICALS UPDATED" if debug >= 1
       end
 
+      self.sleeping = other.visita.socio_non_attivo
+      self.bar_credit = other.visita.acconto_bar_euro
+
+      if deep_changed?
+        puts "MEMBER #{code} #{person.first_name} #{person.last_name} CHANGED" if debug >= 1
+        puts deep_changes.awesome_inspect(plain: true)
+      end
+
       self.visita_lastmod = other.visita.lastmod.floor(6)
+
       save!
     end
   end
