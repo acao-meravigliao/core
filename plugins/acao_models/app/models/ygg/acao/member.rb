@@ -1124,7 +1124,6 @@ class Member < Ygg::PublicModel
 
       sync_contacts(other, person: person, debug: debug)
       sync_credentials(other, debug: debug)
-      sync_tessere(debug: debug)
 
       if deep_changed?
         puts "MEMBER #{code} #{person.first_name} #{person.last_name} CHANGED" if debug >= 1
@@ -1356,58 +1355,6 @@ class Member < Ygg::PublicModel
     else
       medicals.where(type: type).destroy_all.any?
     end
-  end
-
-  def sync_tessere(debug: 0)
-    Ygg::Toolkit.merge(
-      l: socio.tessere.where('len(tag) = 10').order('LOWER(tag)').lock,
-      r: key_fobs.order(code: :asc).lock,
-      l_cmp_r: lambda { |l,r| l.tag.downcase <=> r.code.downcase },
-      l_to_r: lambda { |l|
-
-        puts "  TESSERA => KEYFOB ADD #{l.tag.downcase}" if debug >= 1
-
-        key_fobs.create(
-          code: l.tag.downcase,
-          descr: "From Aliandre",
-          media_type: 'RFID',
-          src: 'ALIANDRE',
-          src_id: l.id,
-        )
-      },
-      r_to_l: lambda { |r|
-        puts "  KEYFOB DEL #{r.code.downcase}"
-        r.destroy
-      },
-      lr_update: lambda { |l,r|
-        puts "  KEYFOB CHECK #{l.tag.downcase}" if debug >= 3
-
-        ####
-      }
-    )
-
-    Ygg::Toolkit.merge(
-      l: socio.tessere.where('len(tag) < 10').order('LOWER(tag)').lock,
-      r: person_access_remotes.joins(:remote).merge(Ygg::Acao::AccessRemote.order(symbol: :asc )).lock,
-      l_cmp_r: lambda { |l,r| l.tag.downcase <=> r.remote.symbol },
-      l_to_r: lambda { |l|
-
-        puts "  TESSERA => ACCESSREMOTE ADD #{l.tag.downcase}" if debug >= 1
-
-        person_access_remotes.create(
-          remote: Ygg::Acao::AccessRemote.find_by(symbol: l.tag.downcase),
-        )
-      },
-      r_to_l: lambda { |r|
-        puts "  ACCESS REMOTE DEL #{r.remote.symbol}"
-        r.destroy
-      },
-      lr_update: lambda { |l,r|
-        puts "  ACCESS REMOTE CHECK #{l.tag.downcase}" if debug >= 3
-
-        ####
-      }
-    )
   end
 
   def sync_contacts(r, person:, debug: 0)

@@ -40,6 +40,42 @@ class KeyFob < Ygg::PublicModel
     code ? code.to_i(16).to_s(8).rjust(14, '0') : nil
   end
 
+  def self.sync_from_maindb!(debug: 0)
+    Ygg::Toolkit.merge(
+      l: Ygg::Acao::MainDb::Tessera.where('len(tag) = 10').order('LOWER(tag)').lock,
+      r: self.all.order(code: :asc).lock,
+      l_cmp_r: lambda { |l,r| l.tag.downcase <=> r.code.downcase },
+      l_to_r: lambda { |l|
+
+        puts "  TESSERA => KEYFOB ADD #{l.tag.downcase}" if debug >= 1
+
+        member = Ygg::Acao::Member.find_by(code: l.codice_socio)
+        if !member
+          puts "KEYFOB MISSING MEMBER #{l.codice_socio}!!!! NOT SYNCING ROW"
+          return
+        end
+
+        create(
+          member: member,
+          code: l.tag.downcase,
+          descr: "From Aliandre",
+          media_type: 'RFID',
+          src: 'ALIANDRE',
+          src_id: l.id,
+        )
+      },
+      r_to_l: lambda { |r|
+        puts "  KEYFOB DEL #{r.code.downcase}"
+        r.destroy
+      },
+      lr_update: lambda { |l,r|
+        puts "  KEYFOB CHECK #{l.tag.downcase}" if debug >= 3
+
+        ####
+      }
+    )
+  end
+
   ################## Replica ###################
 
   include Ygg::Core::Replicable

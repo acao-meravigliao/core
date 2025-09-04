@@ -23,6 +23,7 @@ loop do
   onda_changed = false
   logbar_changed = false
   logbol_changed = false
+  tessera_changed = false
 
   puts "loop" if debug >= 4
 
@@ -46,11 +47,6 @@ loop do
     soci_changed = true
   end
 
-  if Ygg::Acao::MainDb::Tessera.has_been_updated?
-    puts "Tessera has been changed" if debug >= 1
-    soci_changed = true
-  end
-
   if Ygg::Acao::MainDb::Mezzo.has_been_updated?
     puts "Mezzo has been changed" if debug >= 1
     soci_changed = true
@@ -60,6 +56,11 @@ loop do
   if Ygg::Acao::Onda::DocTesta.has_been_updated?
     puts "DocTesta has been changed" if debug >= 1
     onda_changed = true
+  end
+
+  if Ygg::Acao::MainDb::Tessera.has_been_updated?
+    puts "Tessera has been changed" if debug >= 1
+    tessera_changed = true
   end
 
   if soci_changed
@@ -78,7 +79,6 @@ loop do
     Ygg::Acao::MainDb::SociDatiLicenza.update_last_update!
     Ygg::Acao::MainDb::SociDatiVisita.update_last_update!
     Ygg::Acao::MainDb::SocioIscritto.update_last_update!
-    Ygg::Acao::MainDb::Tessera.update_last_update!
   end
 
   if mezzo_changed
@@ -140,6 +140,17 @@ loop do
 
     Ygg::Acao::Onda::DocTesta.update_last_update!
   end
+
+  if tessera_changed
+    puts "Tessera has been changed" if debug >= 1
+    logbol_changed = true
+
+    Ygg::Acao::KeyFob.sync_from_maindb!(debug: debug)
+    Ygg::Acao::MemberAccessRemote.sync_from_maindb!(debug: debug)
+
+    Ygg::Acao::MainDb::Tessera.update_last_update!
+  end
+
 
   if soci_changed || mezzo_changed || volo_changed || onda_changed || logbar_changed || logbol_changed
     puts "------------------------------- DONE ---------------------------------" if debug >= 1

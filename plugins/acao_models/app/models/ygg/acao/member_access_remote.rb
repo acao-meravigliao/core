@@ -18,10 +18,49 @@ class MemberAccessRemote < Ygg::PublicModel
   define_default_log_controller(self)
 
   belongs_to :member,
-             class_name: 'Ygg::Core::Member'
+             class_name: 'Ygg::Acao::Member'
 
   belongs_to :remote,
              class_name: 'Ygg::Acao::AccessRemote'
+
+  def self.sync_from_maindb!(debug: 0)
+    Ygg::Toolkit.merge(
+      l: Ygg::Acao::MainDb::Tessera.where('len(tag) < 10').order('LOWER(tag)').lock,
+      r: self.joins(:remote).merge(Ygg::Acao::AccessRemote.order(symbol: :asc )).lock,
+      l_cmp_r: lambda { |l,r| l.tag.downcase <=> r.remote.symbol },
+      l_to_r: lambda { |l|
+
+        puts "  TESSERA => ACCESSREMOTE ADD #{l.tag.downcase}" if debug >= 1
+
+        member = Ygg::Acao::Member.find_by(code: l.codice_socio)
+        if !member
+          puts "ACCESSREMOTE MISSING MEMBER #{l.codice_socio}!!!! NOT SYNCING ROW"
+          return
+        end
+
+        remote = Ygg::Acao::AccessRemote.find_by(symbol: l.tag.downcase)
+        if !member
+          puts "ACCESSREMOTE MISSING REMOTE #{l.tag.downcase}!!!! NOT SYNCING ROW"
+          return
+        end
+
+        create(
+          member: member,
+          remote: remote,
+        )
+      },
+      r_to_l: lambda { |r|
+        puts "  ACCESS REMOTE DEL #{r.remote.symbol}"
+        r.destroy
+      },
+      lr_update: lambda { |l,r|
+        puts "  ACCESS REMOTE CHECK #{l.tag.downcase}" if debug >= 3
+
+        ####
+      }
+    )
+  end
+
 end
 
 end
