@@ -146,7 +146,7 @@ class Flight < Ygg::PublicModel
     r: r_relation,
     l_cmp_r: lambda { |l,r| l.id_voli <=> r.source_id },
     l_to_r: lambda { |l|
-      puts "GL CHK ADD #{l.id_voli}" if debug >= 2
+      puts "GL CHK ADD #{l.id_voli}" if debug >= 3
 
       begin
         if !l.marche_aliante.blank? &&
@@ -180,7 +180,7 @@ class Flight < Ygg::PublicModel
       r.destroy!
     },
     lr_update: lambda { |l,r|
-      puts "GL CMP #{l.id_voli}" if debug >= 2
+      puts "GL CMP #{l.id_voli}" if debug >= 3
 
       transaction do
         r.sync_from_maindb_as_gl(l)
