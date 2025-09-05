@@ -47,7 +47,7 @@ class Invoice < Ygg::PublicModel
     6 => 'receipt',
   }
 
-  def self.sync_from_maindb!(from_time: nil, start: nil, stop: nil, debug: 0)
+  def self.sync_from_maindb!(from_time: nil, start: nil, stop: nil, force: false, debug: 0)
     if from_time
       ff = Ygg::Acao::Onda::DocTesta.order(DataDocumento: :asc).where('DataDocumento > ?', from_time).first
       return if !ff
@@ -98,12 +98,19 @@ class Invoice < Ygg::PublicModel
         codice_fiscale: anagrafica.CodiceFiscale,
         partita_iva: anagrafica.PartitaIva,
         email: anagrafica.E_mail,
+        amount: l.TotDocumento,
       )
 
       l.righe.each do |riga|
         invoice.details.build(
+          row_type: riga.TipoRiga,
+          row_number: riga.NrRiga,
+          code: riga.CodArt,
           count: riga.Qta,
-          price: riga.ValoreUnitario,
+          single_amount: riga.ValoreUnitario,
+          untaxed_amount: riga.Imponibile,
+          vat_amount: riga.Imposta,
+          total_amount: riga.Totale,
           descr: riga.Descrizione,
         )
 
@@ -140,14 +147,21 @@ class Invoice < Ygg::PublicModel
         codice_fiscale: anagrafica.CodiceFiscale,
         partita_iva: anagrafica.PartitaIva,
         email: anagrafica.E_mail,
+        amount: l.TotDocumento,
       )
 
-      if r.deep_changed?
+      if r.deep_changed? || force
         r.details.destroy_all
         l.righe.each do |riga|
           r.details.create(
+            row_type: riga.TipoRiga,
+            row_number: riga.NrRiga,
+            code: riga.CodArt,
             count: riga.Qta,
-            price: riga.ValoreUnitario,
+            single_amount: riga.ValoreUnitario,
+            untaxed_amount: riga.Imponibile,
+            vat_amount: riga.Imposta,
+            total_amount: riga.Totale,
             descr: riga.Descrizione,
           )
         end
