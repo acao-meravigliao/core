@@ -29,6 +29,10 @@ class Invoice < Ygg::PublicModel
            dependent: :destroy,
            autosave: true
 
+  gs_rel_map << { from: :invoice, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
+  gs_rel_map << { from: :invoice, to: :person, to_cls: 'Ygg::Core::Person', from_key: 'person_id', }
+  gs_rel_map << { from: :invoice, to: :detail, to_cls: 'Ygg::Acao::Invoice::Detail', to_key: 'detail_id', }
+
 #  has_many :payments,
 #           class_name: 'Ygg::Acao::Payment'
 
@@ -39,6 +43,7 @@ class Invoice < Ygg::PublicModel
 
   DOC_TYPES = {
     4 => 'invoice',
+    5 => 'nota_credito',
     6 => 'receipt',
   }
 
@@ -49,7 +54,11 @@ class Invoice < Ygg::PublicModel
       start = ff.IdDoc
     end
 
-    l_relation = Ygg::Acao::Onda::DocTesta.all.where(TipoDocumento: [5,6]).order(IdDoc: :asc)
+    if start && debug >= 1
+      puts "Start = #{start}"
+    end
+
+    l_relation = Ygg::Acao::Onda::DocTesta.all.where(TipoDocumento: [4,6]).order(IdDoc: :asc)
     l_relation = l_relation.where('IdDoc >= ?', start) if start
     l_relation = l_relation.where('IdDoc <= ?', stop) if stop
 
