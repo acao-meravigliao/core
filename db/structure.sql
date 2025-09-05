@@ -369,9 +369,15 @@ CREATE TABLE acao.invoice_details (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     invoice_id uuid NOT NULL,
     count integer,
-    price numeric(14,6),
+    untaxed_amount numeric(14,6),
     descr character varying(255) DEFAULT NULL::character varying,
-    data text
+    data text,
+    row_type integer,
+    row_number integer,
+    code character varying(32),
+    single_amount numeric(14,6),
+    vat_amount numeric(14,6),
+    total_amount numeric(14,6)
 );
 
 
@@ -8504,9 +8510,10 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO public;
+SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250905222507'),
 ('20250506102139'),
 ('20241222132719'),
 ('20241027134506'),
