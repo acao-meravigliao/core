@@ -31,7 +31,7 @@ class Invoice < Ygg::PublicModel
 
   gs_rel_map << { from: :invoice, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
   gs_rel_map << { from: :invoice, to: :person, to_cls: 'Ygg::Core::Person', from_key: 'person_id', }
-  gs_rel_map << { from: :invoice, to: :detail, to_cls: 'Ygg::Acao::Invoice::Detail', to_key: 'detail_id', }
+  gs_rel_map << { from: :invoice, to: :detail, to_cls: 'Ygg::Acao::Invoice::Detail', to_key: 'invoice_id', }
 
 #  has_many :payments,
 #           class_name: 'Ygg::Acao::Payment'
