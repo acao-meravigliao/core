@@ -14,7 +14,7 @@ class MemberService < Ygg::PublicModel
   self.table_name = 'acao.member_services'
 
   belongs_to :member,
-             class_name: 'Ygg::Core::Member'
+             class_name: 'Ygg::Acao::Member'
 
   belongs_to :invoice_detail,
              class_name: 'Ygg::Acao::Invoice::Detail',
