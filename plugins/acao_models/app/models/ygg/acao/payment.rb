@@ -43,12 +43,15 @@ class Payment < Ygg::PublicModel
     [ :must_have_fk, {to_table: "core_people", column: "person_id", primary_key: "id", on_delete: nil, on_update: nil}],
   ]
 
-  belongs_to :invoice,
-             class_name: 'Ygg::Acao::Invoice',
-             optional: true # TEMPORARY FIXME
+  belongs_to :debt,
+             class_name: 'Ygg::Acao::Debt'
 
-  belongs_to :member,
-             class_name: 'Ygg::Acao::Member'
+#  belongs_to :invoice,
+#             class_name: 'Ygg::Acao::Invoice',
+#             optional: true # TEMPORARY FIXME
+
+#  belongs_to :member,
+#             class_name: 'Ygg::Acao::Member'
 
   has_many :satispay_charges,
            class_name: 'Ygg::Acao::Payment::SatispayCharge',
@@ -56,8 +59,8 @@ class Payment < Ygg::PublicModel
            autosave: true,
            dependent: :destroy
 
-  has_one :membership,
-          class_name: 'Ygg::Acao::Membership'
+#  has_one :membership,
+#          class_name: 'Ygg::Acao::Membership'
 
   include Ygg::Core::Loggable
   define_default_log_controller(self)

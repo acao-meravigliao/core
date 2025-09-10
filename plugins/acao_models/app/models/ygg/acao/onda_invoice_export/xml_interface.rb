@@ -12,7 +12,7 @@ require 'roxml'
 module Ygg
 module Acao
 
-class Invoice::XmlInterface
+class OndaInvoiceExport::XmlInterface
   class Base
     include ROXML
 

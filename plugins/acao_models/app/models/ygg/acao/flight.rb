@@ -59,14 +59,20 @@ class Flight < Ygg::PublicModel
     :towed_by_id,
   ]
 
+  gs_rel_map << { from: :flight, to: :pilot1, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
+  gs_rel_map << { from: :flight, to: :pilot2, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
+
   class InvalidRecord < StandardError ; end
 
   def self.sync_from_maindb!(from_time: nil, start: nil, stop: nil, debug: 0)
 
     if from_time
       ff = Ygg::Acao::Flight.order(takeoff_time: :asc).where('takeoff_time > ?', from_time).first
+      ff = Ygg::Acao::Flight.last if !ff
       return if !ff
       start = ff.source_id
+
+      puts "Starting from flight #{start}" if debug >= 1
     end
 
     l_relation = Ygg::Acao::MainDb::Volo.all.order(id_voli: :asc)
