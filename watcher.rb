@@ -69,16 +69,6 @@ loop do
     time0 = Time.new
     Ygg::Acao::Member.sync_from_maindb!(debug: debug)
     puts "Member update done, took #{Time.new - time0} seconds" if debug >= 1
-
-    time0 = Time.new
-    puts "  FAAC update started" if debug >= 1
-    Ygg::Acao::Member.sync_with_faac!(debug: 1)
-    puts "  FAAC update done, took #{Time.new - time0} seconds" if debug >= 1
-
-    Ygg::Acao::MainDb::Socio.update_last_update!
-    Ygg::Acao::MainDb::SociDatiLicenza.update_last_update!
-    Ygg::Acao::MainDb::SociDatiVisita.update_last_update!
-    Ygg::Acao::MainDb::SocioIscritto.update_last_update!
   end
 
   if mezzo_changed
@@ -151,6 +141,17 @@ loop do
     Ygg::Acao::MainDb::Tessera.update_last_update!
   end
 
+  if soci_changed
+    time0 = Time.new
+    puts "  FAAC update started" if debug >= 1
+    Ygg::Acao::Member.sync_with_faac!(debug: 1)
+    puts "  FAAC update done, took #{Time.new - time0} seconds" if debug >= 1
+
+    Ygg::Acao::MainDb::Socio.update_last_update!
+    Ygg::Acao::MainDb::SociDatiLicenza.update_last_update!
+    Ygg::Acao::MainDb::SociDatiVisita.update_last_update!
+    Ygg::Acao::MainDb::SocioIscritto.update_last_update!
+  end
 
   if soci_changed || mezzo_changed || volo_changed || onda_changed || logbar_changed || logbol_changed
     puts "------------------------------- DONE ---------------------------------" if debug >= 1
