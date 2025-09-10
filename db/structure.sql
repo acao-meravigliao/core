@@ -1,3 +1,8 @@
+\restrict aGMJL4YtxlTokKbePUnNYoLIUv6zQngxyqgUVtaNdRUm0BYQsiHodNQboq2bKbF
+
+-- Dumped from database version 16.10 (Ubuntu 16.10-0ubuntu0.24.04.1)
+-- Dumped by pg_dump version 16.10 (Ubuntu 16.10-0ubuntu0.24.04.1)
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -288,6 +293,45 @@ CREATE TABLE acao.clubs (
     name character varying NOT NULL,
     symbol character varying(32) DEFAULT NULL::character varying,
     airfield_id uuid
+);
+
+
+--
+-- Name: debt_details; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.debt_details (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    debt_id uuid NOT NULL,
+    count integer NOT NULL,
+    code character varying,
+    descr character varying NOT NULL,
+    amount numeric(14,6) NOT NULL,
+    vat numeric(14,6) NOT NULL,
+    data character varying,
+    service_type_id uuid,
+    obj_type character varying,
+    obj_id uuid
+);
+
+
+--
+-- Name: debts; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.debts (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    member_id uuid NOT NULL,
+    identifier character varying(32) NOT NULL,
+    state character varying(32) NOT NULL,
+    descr character varying NOT NULL,
+    completed_at timestamp without time zone,
+    expires_at timestamp without time zone,
+    notes character varying,
+    last_chore timestamp without time zone,
+    synced_at timestamp(6) without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -626,6 +670,41 @@ CREATE TABLE acao.meters (
 
 
 --
+-- Name: onda_invoice_export_details; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.onda_invoice_export_details (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    onda_invoice_export_id uuid NOT NULL,
+    count integer NOT NULL,
+    code character varying(32) NOT NULL,
+    item_type integer NOT NULL,
+    descr character varying NOT NULL,
+    amount numeric(14,6) NOT NULL,
+    vat numeric(14,6) NOT NULL
+);
+
+
+--
+-- Name: onda_invoice_exports; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.onda_invoice_exports (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    member_id uuid NOT NULL,
+    identifier character varying(32) NOT NULL,
+    state character varying DEFAULT 'PENDING'::character varying,
+    descr character varying NOT NULL,
+    notes character varying,
+    payment_method character varying(32),
+    last_chore timestamp without time zone,
+    synced_at timestamp(6) without time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: payment_satispay_charges; Type: TABLE; Schema: acao; Owner: -
 --
 
@@ -673,13 +752,10 @@ CREATE TABLE acao.payments (
     expires_at timestamp with time zone,
     notes text,
     last_chore timestamp with time zone,
-    onda_export_status character varying(32),
-    invoice_id uuid,
     amount numeric(14,6) DEFAULT NULL::numeric,
     wire_value_date timestamp without time zone,
     receipt_code character varying(255) DEFAULT NULL::character varying,
-    person_id uuid,
-    member_id uuid NOT NULL
+    debt_id uuid
 );
 
 
@@ -4133,6 +4209,22 @@ ALTER TABLE ONLY acao.clubs
 
 
 --
+-- Name: debt_details debt_details_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.debt_details
+    ADD CONSTRAINT debt_details_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: debts debts_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.debts
+    ADD CONSTRAINT debts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: fai_cards fai_cards_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -4258,6 +4350,22 @@ ALTER TABLE ONLY acao.meter_measures
 
 ALTER TABLE ONLY acao.meters
     ADD CONSTRAINT meters_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: onda_invoice_export_details onda_invoice_export_details_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.onda_invoice_export_details
+    ADD CONSTRAINT onda_invoice_export_details_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: onda_invoice_exports onda_invoice_exports_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.onda_invoice_exports
+    ADD CONSTRAINT onda_invoice_exports_pkey PRIMARY KEY (id);
 
 
 --
@@ -5472,6 +5580,48 @@ CREATE UNIQUE INDEX index_clubs_on_name ON acao.clubs USING btree (name);
 
 
 --
+-- Name: index_debt_details_on_debt_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_debt_details_on_debt_id ON acao.debt_details USING btree (debt_id);
+
+
+--
+-- Name: index_debt_details_on_obj_type_and_obj_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_debt_details_on_obj_type_and_obj_id ON acao.debt_details USING btree (obj_type, obj_id);
+
+
+--
+-- Name: index_debt_details_on_service_type_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_debt_details_on_service_type_id ON acao.debt_details USING btree (service_type_id);
+
+
+--
+-- Name: index_debts_on_identifier; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_debts_on_identifier ON acao.debts USING btree (identifier);
+
+
+--
+-- Name: index_debts_on_member_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_debts_on_member_id ON acao.debts USING btree (member_id);
+
+
+--
+-- Name: index_debts_on_state; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_debts_on_state ON acao.debts USING btree (state);
+
+
+--
 -- Name: index_fai_cards_on_identifier; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -5773,6 +5923,34 @@ CREATE UNIQUE INDEX index_meters_on_uuid ON acao.meters USING btree (id);
 
 
 --
+-- Name: index_onda_invoice_export_details_on_onda_invoice_export_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_onda_invoice_export_details_on_onda_invoice_export_id ON acao.onda_invoice_export_details USING btree (onda_invoice_export_id);
+
+
+--
+-- Name: index_onda_invoice_exports_on_identifier; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_onda_invoice_exports_on_identifier ON acao.onda_invoice_exports USING btree (identifier);
+
+
+--
+-- Name: index_onda_invoice_exports_on_member_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_onda_invoice_exports_on_member_id ON acao.onda_invoice_exports USING btree (member_id);
+
+
+--
+-- Name: index_onda_invoice_exports_on_state; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_onda_invoice_exports_on_state ON acao.onda_invoice_exports USING btree (state);
+
+
+--
 -- Name: index_payment_satispay_charges_on_payment_id; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -5815,24 +5993,17 @@ CREATE INDEX index_payment_services_on_service_type_id ON acao.payment_services 
 
 
 --
+-- Name: index_payments_on_debt_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_payments_on_debt_id ON acao.payments USING btree (debt_id);
+
+
+--
 -- Name: index_payments_on_identifier; Type: INDEX; Schema: acao; Owner: -
 --
 
 CREATE UNIQUE INDEX index_payments_on_identifier ON acao.payments USING btree (identifier);
-
-
---
--- Name: index_payments_on_invoice_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_payments_on_invoice_id ON acao.payments USING btree (invoice_id);
-
-
---
--- Name: index_payments_on_member_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_payments_on_member_id ON acao.payments USING btree (member_id);
 
 
 --
@@ -7739,22 +7910,6 @@ ALTER TABLE ONLY acao.invoices
 
 
 --
--- Name: payments fk_rails_62ad657a97; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.payments
-    ADD CONSTRAINT fk_rails_62ad657a97 FOREIGN KEY (member_id) REFERENCES acao.members(id);
-
-
---
--- Name: payments fk_rails_62d18ea517; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.payments
-    ADD CONSTRAINT fk_rails_62d18ea517 FOREIGN KEY (invoice_id) REFERENCES acao.invoices(id) ON DELETE CASCADE;
-
-
---
 -- Name: flights fk_rails_7827e04cc2; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8510,13 +8665,18 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO "$user", public;
+\unrestrict aGMJL4YtxlTokKbePUnNYoLIUv6zQngxyqgUVtaNdRUm0BYQsiHodNQboq2bKbF
+
+SET search_path TO public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250910224218'),
+('20250910180325'),
 ('20250905222507'),
 ('20250506102139'),
 ('20241222132719'),
 ('20241027134506'),
+('20241026094125'),
 ('20240925182027'),
 ('20240925182020'),
 ('20240219133727'),
