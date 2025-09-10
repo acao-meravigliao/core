@@ -325,6 +325,10 @@ class Membership < Ygg::PublicModel
           data_scadenza: (Time.local(reference_year.year).end_of_year + 31.days).end_of_day,
           #euro_pagati: debt_detail.debt.total,
           #note: "Fattura #{debt_detail.debt.identifier}",
+          linea1: Time.now,
+          linea2: Time.now,
+          firma_regolamento: true,
+          riceve_email: member.email_allowed,
           temporanea: false,
           data_iscrizione: Time.now,
         )
@@ -366,8 +370,8 @@ class Membership < Ygg::PublicModel
 
       save!
 
-      Ygg::Ml::Msg.notify(destinations: person, template: 'MEMBERSHIP_COMPLETE', template_context: {
-        first_name: person.first_name,
+      Ygg::Ml::Msg.notify(destinations: member.person, template: 'MEMBERSHIP_COMPLETE', template_context: {
+        first_name: member.person.first_name,
         year: reference_year.year,
       }, objects: self)
     end
