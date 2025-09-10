@@ -48,7 +48,7 @@ class Payment < Ygg::PublicModel
              optional: true # TEMPORARY FIXME
 
   belongs_to :member,
-             class_name: 'Ygg::Core::Member'
+             class_name: 'Ygg::Acao::Member'
 
   has_many :satispay_charges,
            class_name: 'Ygg::Acao::Payment::SatispayCharge',

@@ -14,7 +14,7 @@ class Meter < Ygg::PublicModel
   self.table_name = 'acao.meters'
 
   belongs_to :member,
-             class_name: 'Ygg::Core::Member',
+             class_name: 'Ygg::Acao::Member',
              optional: true
 
   belongs_to :bus,

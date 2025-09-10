@@ -14,7 +14,7 @@ class TowRosterEntry < Ygg::PublicModel
   self.table_name = 'acao.tow_roster_entries'
 
   belongs_to :member,
-             class_name: 'Ygg::Core::Member'
+             class_name: 'Ygg::Acao::Member'
 
   belongs_to :day,
              class_name: 'Ygg::Acao::TowRosterDay'

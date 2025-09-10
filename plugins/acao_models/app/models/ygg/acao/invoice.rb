@@ -121,7 +121,10 @@ class Invoice < Ygg::PublicModel
     },
     r_to_l: lambda { |r|
       puts "INVOICE DESTROY #{r.source_id} #{r.identifier}" #if debug >= 1
-      r.destroy!
+
+      # Remove only non-pending invoices
+
+      #r.destroy!
     },
     lr_update: lambda { |l,r|
       puts "INVOICE CMP #{l.IdDoc} #{l.NumeroDocumento}" if debug >= 3

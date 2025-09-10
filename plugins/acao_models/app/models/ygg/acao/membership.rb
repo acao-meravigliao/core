@@ -142,7 +142,7 @@ class Membership < Ygg::PublicModel
 #      enabled: false,
 #    }
 
-    pilot.acao_aircrafts.each do |x|
+    member.aircrafts.each do |x|
       srvt = if x.hangar
         if x.aircraft_type.is_vintage
           'HANGAR_VNT'
@@ -180,7 +180,7 @@ class Membership < Ygg::PublicModel
       end
     end
 
-    pilot.acao_trailers.each do |x|
+    member.trailers.each do |x|
       srvt = if x.zone == 'A'
         'TRAILER_A'
       else
@@ -199,7 +199,7 @@ class Membership < Ygg::PublicModel
     services
   end
 
-  def self.renew(member:, payment_method:, services:, enable_email:, selected_roster_days:)
+  def self.renew(member:, payment_method:, services:, enable_email:, selected_roster_days:, force: false)
     payment = nil
 
     person = member.person
@@ -209,113 +209,121 @@ class Membership < Ygg::PublicModel
 
     # Check that every non-removable service is still present, non toggable service has the previous state
 
-    base_services.each do |bs|
-      svc = services.find { |x| x[:service_type_id] == bs[:service_type_id] }
-      if !bs[:removable] && !svc
-        raise "Non removable service has been removed"
-      end
-
-      if !bs[:toggable] && svc && svc[:enabled] != bs[:enabled]
-        raise "Non toggable service enable state has been changed"
-      end
-    end
-
-    # Objects creation
-
-    # Invoice -----------------
-    invoice = Ygg::Acao::Invoice.create!(
-      member: member,
-      payment_method: payment_method,
-    )
-
-    member.email_allowed = enable_email
-
-    if member.acao_memberships.find_by(reference_year: renewal_year)
-      raise "Membership already present"
-    end
-
-    # Services
-
-    ass_invoice_detail = nil
-
-    services.each do |service|
-      service_type = Ygg::Acao::ServiceType.find(service[:service_type_id])
-
-      if service[:enabled]
-        invoice_detail = Ygg::Acao::Invoice::Detail.new(
-          count: 1,
-          service_type: service_type,
-          price: service_type.price,
-          descr: service_type.name,
-          data: service[:extra_info],
-        )
-        invoice.details << invoice_detail
-
-        if service_type.is_association
-          if ass_invoice_detail
-            raise "More than one association item in services"
-          end
-
-          ass_invoice_detail = invoice_detail
+    if !force
+      base_services.each do |bs|
+        svc = services.find { |x| x[:service_type_id] == bs[:service_type_id] }
+        if !bs[:removable] && !svc
+          raise "Non removable service has been removed"
         end
 
-        Ygg::Acao::MemberService.create!(
-          member: member,
-          service_type: service_type,
-          invoice_detail: invoice_detail,
-          valid_from: Time.local(renewal_year.year).beginning_of_year,
-          valid_to: (Time.local(renewal_year.year).end_of_year + 31.days).end_of_day,
-          service_data: service[:extra_info],
-        )
+        if !bs[:toggable] && svc && svc[:enabled] != bs[:enabled]
+          raise "Non toggable service enable state has been changed"
+        end
       end
     end
 
-    if !ass_invoice_detail
-      raise "Missing association item in services"
+    membership = nil
+
+    transaction do
+      # Objects creation
+
+      # Invoice -----------------
+      invoice = Ygg::Acao::Invoice.create!(
+        member: member,
+        recipient: "#{person.first_name} #{person.last_name}",
+        payment_method: payment_method,
+      )
+
+      member.email_allowed = enable_email
+
+      if member.memberships.find_by(reference_year: renewal_year)
+        raise "Membership already present"
+      end
+
+      # Services
+
+      ass_invoice_detail = nil
+
+      services.each do |service|
+        service_type = Ygg::Acao::ServiceType.find(service[:service_type_id])
+
+        if service[:enabled]
+          invoice_detail = Ygg::Acao::Invoice::Detail.new(
+            count: 1,
+            single_amount: service_type.price,
+            vat_amount: 0,
+            untaxed_amount: service_type.price,
+            total_amount: service_type.price,
+            descr: service_type.name,
+            data: service[:extra_info],
+          )
+          invoice.details << invoice_detail
+
+          if service_type.is_association
+            if ass_invoice_detail
+              raise "More than one association item in services"
+            end
+
+            ass_invoice_detail = invoice_detail
+          end
+
+          Ygg::Acao::MemberService.create!(
+            member: member,
+            service_type: service_type,
+            invoice_detail: invoice_detail,
+            valid_from: Time.local(renewal_year.year).beginning_of_year,
+            valid_to: (Time.local(renewal_year.year).end_of_year + 31.days).end_of_day,
+            service_data: service[:extra_info],
+          )
+        end
+      end
+
+      if !ass_invoice_detail
+        raise "Missing association item in services"
+      end
+
+      # Membership
+      membership = Ygg::Acao::Membership.create!(
+        member: member,
+        reference_year: renewal_year,
+        status: 'WAITING_PAYMENT',
+        invoice_detail: ass_invoice_detail,
+        valid_from: Time.now,
+        valid_to: (Time.local(renewal_year.year).end_of_year + 31.days).end_of_day,
+        possible_roster_chief: member.roster_chief,
+        student: member.is_student,
+        tug_pilot: member.is_tug_pilot,
+        board_member: member.is_board_member,
+        instructor: member.is_instructor,
+        fireman: member.is_fireman,
+      )
+
+      # Roster entries
+
+      raise "Unexpected duplicate day" if selected_roster_days.uniq != selected_roster_days
+
+      selected_roster_days.each do |day_id|
+        day = Ygg::Acao::RosterDay.find(day_id)
+
+        raise "Unexpected duplicate roster selection" if member.roster_entries.any? { |x| x.roster_day == day }
+
+        member.roster_entries.create(roster_day: day)
+      end
+
+      # Done! -------------
+
+      #payment = invoice.generate_payment!(
+      #  reason: "rinnovo associazione #{renewal_year.year}, codice pilota #{member.code}",
+      #  timeout: 10.days,
+      #)
+      #payment.save!
+
+      #Ygg::Ml::Msg.notify(destinations: person, template: 'MEMBERSHIP_RENEWED', template_context: {
+      #  first_name: person.first_name,
+      #  year: renewal_year.year,
+      #  payment_expiration: payment.expires_at.strftime('%d-%m-%Y'),
+      #}, objects: [ invoice, payment, membership ])
     end
-
-    # Membership
-    membership = Ygg::Acao::Membership.create!(
-      member: member,
-      reference_year: renewal_year,
-      status: 'WAITING_PAYMENT',
-      invoice_detail: ass_invoice_detail,
-      valid_from: Time.now,
-      valid_to: (Time.local(renewal_year.year).end_of_year + 31.days).end_of_day,
-      possible_roster_chief: member.roster_chief,
-      student: member.is_student,
-      tug_pilot: member.is_tug_pilot,
-      board_member: member.is_board_member,
-      instructor: member.is_instructor,
-      fireman: member.is_fireman,
-    )
-
-    # Roster entries
-
-    raise "Unexpected duplicate day" if selected_roster_days.uniq != selected_roster_days
-
-    selected_roster_days.each do |day_id|
-      day = Ygg::Acao::RosterDay.find(day_id)
-
-      raise "Unexpected duplicate roster selection" if member.roster_entries.any? { |x| x.roster_day == day }
-
-      member.roster_entries.create(roster_day: day)
-    end
-
-    # Done! -------------
-
-    invoice.close!
-    payment = invoice.generate_payment!(
-      reason: "rinnovo associazione #{renewal_year.year}, codice pilota #{member.code}",
-      timeout: 10.days,
-    )
-    payment.save!
-
-    Ygg::Ml::Msg.notify(destinations: person, template: 'MEMBERSHIP_RENEWED', template_context: {
-      first_name: person.first_name,
-      year: renewal_year.year,
-      payment_expiration: payment.expires_at.strftime('%d-%m-%Y'),
-    }, objects: [ invoice, payment, membership ])
 
     membership
   end
