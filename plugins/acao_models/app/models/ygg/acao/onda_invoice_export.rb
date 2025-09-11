@@ -389,11 +389,16 @@ class OndaInvoiceExport < Ygg::PublicModel
   end
 
   def check_reject!
-    if File.exist?(filename_okay)
-      if File.exist?(filename_reject)
-        self.state = 'REJECTED'
+    if File.exist?(filename)
+    else
+      if File.exist?(filename_okay)
+        if File.exist?(filename_reject)
+          self.state = 'REJECTED'
+        else
+          self.state = 'ACCEPTED'
+        end
       else
-        self.state = 'ACCEPTED'
+        self.state = 'VANISHED'
       end
 
       save!
