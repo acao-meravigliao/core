@@ -52,10 +52,10 @@ namespace :acao do
     end
   end
 
-  namespace :payments do
+  namespace :debts do
     task(:chores => :environment) do
       TimeoutActor.new(tout: 100).do do
-        Ygg::Acao::Payment.run_chores!
+        Ygg::Acao::Debt.run_chores!
       end
     end
   end
