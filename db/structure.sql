@@ -1,4 +1,4 @@
-\restrict aGMJL4YtxlTokKbePUnNYoLIUv6zQngxyqgUVtaNdRUm0BYQsiHodNQboq2bKbF
+\restrict MpVliEU0dOExn3xs8oXcDxGvRuFSuLtgi0BApfTCDPxkIIZbWCTN8fR2MSLAjbr
 
 -- Dumped from database version 16.10 (Ubuntu 16.10-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.10 (Ubuntu 16.10-0ubuntu0.24.04.1)
@@ -700,7 +700,8 @@ CREATE TABLE acao.onda_invoice_exports (
     notes character varying,
     payment_method character varying(32),
     last_chore timestamp without time zone,
-    synced_at timestamp(6) without time zone DEFAULT now() NOT NULL
+    synced_at timestamp(6) without time zone DEFAULT now() NOT NULL,
+    data character varying
 );
 
 
@@ -8665,11 +8666,12 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-\unrestrict aGMJL4YtxlTokKbePUnNYoLIUv6zQngxyqgUVtaNdRUm0BYQsiHodNQboq2bKbF
+\unrestrict MpVliEU0dOExn3xs8oXcDxGvRuFSuLtgi0BApfTCDPxkIIZbWCTN8fR2MSLAjbr
 
-SET search_path TO public;
+SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250910233732'),
 ('20250910224218'),
 ('20250910180325'),
 ('20250905222507'),

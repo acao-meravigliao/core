@@ -46,7 +46,7 @@ namespace :acao do
     end
 
     task(:sync_wp => :environment) do
-      TimeoutActor.new(tout: 250).do do
+      TimeoutActor.new(tout: 400).do do
         Ygg::Acao::Member.sync_wordpress!
       end
     end
@@ -78,6 +78,22 @@ namespace :acao do
 
     TimeoutActor.new(tout: 100).do do
       Ygg::Acao::Aircraft.sync_from_maindb!
+    end
+  end
+
+  task(:'bar_transactions' => :environment) do
+    desc 'Sync bar transactions'
+
+    TimeoutActor.new(tout: 100).do do
+      Ygg::Acao::BarTransaction.sync_from_maindb!(from_time: Time.now - 1.month)
+    end
+  end
+
+  task(:'token_transactions' => :environment) do
+    desc 'Sync token transactions'
+
+    TimeoutActor.new(tout: 100).do do
+      Ygg::Acao::TokenTransaction.sync_from_maindb!(from_time: Time.now - 1.month)
     end
   end
 
