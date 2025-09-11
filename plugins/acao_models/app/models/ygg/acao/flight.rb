@@ -52,6 +52,10 @@ class Flight < Ygg::PublicModel
            class_name: 'Ygg::Acao::Flight',
            foreign_key: :towed_by_id
 
+  belongs_to :volo,
+             class_name: 'Ygg::Acao::MainDb::Volo',
+             foreign_key: :source_id
+
   idxc_cached
   self.idxc_sensitive_attributes = [
     :pilot1_id,
@@ -59,8 +63,15 @@ class Flight < Ygg::PublicModel
     :towed_by_id,
   ]
 
-  gs_rel_map << { from: :flight, to: :pilot1, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
-  gs_rel_map << { from: :flight, to: :pilot2, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
+  gs_rel_map << { from: :flight, to: :pilot1, to_cls: 'Ygg::Acao::Member', from_key: 'pilot1_id', }
+  gs_rel_map << { from: :flight, to: :pilot2, to_cls: 'Ygg::Acao::Member', from_key: 'pilot2_id', }
+  gs_rel_map << { from: :flight, to: :aircraft, to_cls: 'Ygg::Acao::Aircraft', from_key: 'aircraft_id', }
+  gs_rel_map << { from: :flight, to: :takeoff_airfield, to_cls: 'Ygg::Acao::Airfield', from_key: 'takeoff_airfield_id', }
+  gs_rel_map << { from: :flight, to: :landing_airfield, to_cls: 'Ygg::Acao::Airfield', from_key: 'landing_airfield_id', }
+  gs_rel_map << { from: :flight, to: :takeoff_location, to_cls: 'Ygg::Core::Location', from_key: 'takeoff_location_id', }
+  gs_rel_map << { from: :flight, to: :landing_location, to_cls: 'Ygg::Core::Location', from_key: 'landing_location_id', }
+  gs_rel_map << { from: :towing, to: :towed_by, to_cls: 'Ygg::Acao::Flight', from_key: 'towed_by_id', }
+  gs_rel_map << { from: :towed_by, to: :towing, to_cls: 'Ygg::Acao::Flight', to_key: 'towed_by_id', }
 
   class InvalidRecord < StandardError ; end
 
@@ -201,7 +212,7 @@ class Flight < Ygg::PublicModel
 
   end
 
-  def sync_from_maindb_as_gl(other)
+  def sync_from_maindb_as_gl(other = volo)
     self.aircraft_reg = other.marche_aliante.strip.upcase
     self.aircraft = Ygg::Acao::Aircraft.find_or_create_by!(registration: other.marche_aliante.strip.upcase)
 
@@ -236,7 +247,9 @@ class Flight < Ygg::PublicModel
       self.pilot1 = nil
     end
 
-    if !other.codice_secondo_pilota_aliante.blank? &&
+    if other.codice_secondo_pilota_aliante == 1
+      self.pilot2_role = 'PAX'
+    elsif !other.codice_secondo_pilota_aliante.blank? &&
         other.codice_secondo_pilota_aliante != 0 &&
         other.codice_secondo_pilota_aliante != 1 &&
         other.codice_secondo_pilota_aliante != 9999 &&
@@ -322,7 +335,7 @@ class Flight < Ygg::PublicModel
     self.acao_data_att = other.data_att
   end
 
-  def sync_from_maindb_as_tow(other)
+  def sync_from_maindb_as_tow(other = volo)
     self.aircraft_reg = other.marche_aereo.strip.upcase
     self.aircraft = Ygg::Acao::Aircraft.find_or_create_by!(registration: other.marche_aereo.strip.upcase)
 
@@ -349,7 +362,9 @@ class Flight < Ygg::PublicModel
       raise InvalidRecord, "Missing referenced pilot1 code=#{other.codice_pilota_aereo}"
     end
 
-    if !other.codice_secondo_pilota_aereo.blank? &&
+    if other.codice_secondo_pilota_aereo == 1
+      self.pilot2_role = 'PAX'
+    elsif !other.codice_secondo_pilota_aereo.blank? &&
         other.codice_secondo_pilota_aereo != 0
       self.pilot2 = Ygg::Acao::Member.find_by!(code: other.codice_secondo_pilota_aereo)
 
