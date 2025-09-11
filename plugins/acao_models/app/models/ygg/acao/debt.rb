@@ -114,7 +114,7 @@ class Debt < Ygg::PublicModel
       )
 
       details.each do |detail|
-        if detail.service_type.onda_1_type && detail.service_type.onda_2_type
+        if detail.service_type.onda_1_type && detail.service_type.onda_1_code
           onda_export.details.create(
             count: detail.count * detail.service_type.onda_1_cnt,
             code: detail.service_type.onda_1_code,
