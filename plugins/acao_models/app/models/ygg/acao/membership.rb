@@ -308,7 +308,7 @@ class Membership < Ygg::PublicModel
     membership
   end
 
-  def payment_completed!
+  def payment_completed!(debt:)
     transaction do
       self.status = 'MEMBER'
 
@@ -323,8 +323,8 @@ class Membership < Ygg::PublicModel
           anno_iscrizione: reference_year.year,
           tipo_iscr: si_prev ? si_prev.tipo_iscr : 1,
           data_scadenza: (Time.local(reference_year.year).end_of_year + 31.days).end_of_day,
-          #euro_pagati: debt_detail.debt.total,
-          #note: "Fattura #{debt_detail.debt.identifier}",
+          euro_pagati: debt.total,
+          note: "Pagamento #{debt.identifier}",
           linea1: Time.now,
           linea2: Time.now,
           firma_regolamento: true,

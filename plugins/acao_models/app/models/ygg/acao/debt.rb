@@ -60,14 +60,14 @@ class Debt < Ygg::PublicModel
   end
 
   def total
-    details.reduce(0) { |a,x| a + x.price }
+    details.reduce(0) { |a,x| a + x.total }
   end
 
   def one_payment_has_been_completed!(payment)
     if payments.all? { |x| x.state == 'COMPLETED' }
       paid_in_full!
     else
-      self.payment_state = 'PARTIALLY_PAID'
+      self.state = 'PARTIALLY_PAID'
       save!
     end
   end
@@ -75,13 +75,13 @@ class Debt < Ygg::PublicModel
   def paid_in_full!
     raise "No payment registered" if payments.empty?
 
-    self.payment_state = 'PAID_IN_FULL'
+    self.state = 'PAID_IN_FULL'
     self.completed_at = Time.now
     save!
 
     details.all.each do |detail|
       if detail.obj && detail.obj.respond_to?(:payment_completed!)
-        detail.obj.payment_completed!
+        detail.obj.payment_completed!(debt: self)
       end
 
       # TODO: use detail.obj?
@@ -90,13 +90,7 @@ class Debt < Ygg::PublicModel
       end
     end
 
-    create_pending_payment!
-    if onda_export_status == nil
-      self.onda_export_status = 'PENDING'
-      save!
-
-      export_to_onda!
-    end
+    export_to_onda!
   end
 
   def export_to_onda!
@@ -107,7 +101,7 @@ class Debt < Ygg::PublicModel
     transaction do
       onda_export = Ygg::Acao::OndaInvoiceExport.create!(
         member: member,
-        identifier: "#{Time.now.strftime('%Y%m%d_%H%M%S')}_#{identifier}",
+        identifier: identifier,
         descr: descr,
         notes: notes,
         payment_method: payments.first.payment_method,

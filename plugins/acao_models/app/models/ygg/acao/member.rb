@@ -72,8 +72,8 @@ class Member < Ygg::PublicModel
   has_many :memberships,
            class_name: '::Ygg::Acao::Membership'
 
-  has_many :payments,
-           class_name: '::Ygg::Acao::Payment'
+  has_many :debts,
+           class_name: '::Ygg::Acao::Debt'
 
   has_many :roster_entries,
            class_name: '::Ygg::Acao::RosterEntry'
