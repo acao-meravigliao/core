@@ -130,152 +130,7 @@ class OndaInvoiceExport < Ygg::PublicModel
             riga.cod_art = ''
             riga.cod_iva = ''
             riga.cod_un_mis = ''
-            riga.descrizione = "Acquisto online, codice interno ricevuta #{identifier}"
-            riga.imponibile = ''
-            riga.importo_sconto = 0
-            riga.imposta = ''
-            riga.perc_sconto1 = 0
-            riga.perc_sconto2 = 0
-            riga.perc_sconto3 = 0
-            riga.perc_sconto4 = 0
-            riga.qta = 0
-            riga.tipo_riga = 3
-            riga.totale = ''
-            riga.valore_unitario = ''
-
-            riga.dati_art_serv = XmlInterface::RicFisc::Docu::Righe::Riga::DatiArtServ.new do |dati_art_serv|
-              dati_art_serv.cod_art = '00000'
-              dati_art_serv.cod_un_mis_base = 'NR.'
-              dati_art_serv.descrizione = ''
-              dati_art_serv.tipo_articolo = 2
-            end
-          end
-        end
-
-        docu.coda = XmlInterface::RicFisc::Docu::Coda.new do |coda|
-          coda.aliquota1 = 0
-          coda.aliquota2 = 0
-          coda.aliquota3 = 0
-          coda.aliquota4 = 0
-          coda.aliquota5 = 0
-          coda.castelletto_manuale = false
-          coda.causale_trasporto = ''
-          coda.cod_iva1 = 0
-          coda.cod_iva2 = 0
-          coda.cod_iva3 = 0
-          coda.cod_iva4 = 0
-          coda.cod_iva5 = 0
-          coda.cod_trasporto = 0
-          coda.id_indirizzo_fattura = 0
-          coda.id_indirizzo_merce = 0
-          coda.id_vettore1 = 0
-          coda.imponibile1 = 0
-          coda.imponibile2 = 0
-          coda.imponibile3 = 0
-          coda.imponibile4 = 0
-          coda.imponibile5 = 0
-          coda.imponibile_vb1 = 0
-          coda.imponibile_vb2 = 0
-          coda.imponibile_vb3 = 0
-          coda.imponibile_vb4 = 0
-          coda.imponibile_vb5 = 0
-          coda.importo_sconto = 0
-          coda.imposta1 = 0
-          coda.imposta2 = 0
-          coda.imposta3 = 0
-          coda.imposta4 = 0
-          coda.imposta5 = 0
-          coda.imposta_vb1 = 0
-          coda.imposta_vb2 = 0
-          coda.imposta_vb3 = 0
-          coda.imposta_vb4 = 0
-          coda.imposta_vb5 = 0
-          coda.totale1 = 0
-          coda.totale2 = 0
-          coda.totale3 = 0
-          coda.totale4 = 0
-          coda.totale5 = 0
-          coda.totale_vb1 = 0
-          coda.totale_vb2 = 0
-          coda.totale_vb3 = 0
-          coda.totale_vb4 = 0
-          coda.totale_vb5 = 0
-        end
-      end
-    end
-
-    noko = Nokogiri::XML::Document.new
-    noko.encoding = 'UTF-8'
-    noko.root = ric_fisc.to_xml
-
-    noko
-  end
-
-  def build_xml_for_onda_ricevuta(no_reg: false)
-    cod_pagamento = PAYMENT_METHOD_MAP[payment_method.upcase]
-
-    person = member.person
-
-    ric_fisc = XmlInterface::RicFisc.new do |ric_fisc|
-      ric_fisc.cod_schema = 'RICFISC1'
-      ric_fisc.data_ora_creazione = Time.now
-      ric_fisc.docus[0] = XmlInterface::RicFisc::Docu.new do |docu|
-        docu.testa = XmlInterface::RicFisc::Docu::Testa.new do |testa|
-          testa.abbuono = 0
-          testa.acconto = 0
-          testa.acconto_in_cassa = true
-          testa.calcoli_su_imponibile = false
-          testa.cod_divisa = 'EUR'
-          testa.cod_pagamento = cod_pagamento
-          testa.commento = no_reg ? 'NO-REG' : ''
-          testa.contrassegno = 0
-          testa.nostro_rif = identifier
-          testa.tot_documento = 0
-          testa.tot_imponibile = 0
-          testa.tot_imposta = 0
-          testa.vostro_rif = identifier
-          testa.dati_controparte = XmlInterface::RicFisc::Docu::Testa::DatiControparte.new
-          testa.dati_controparte.citta = person.residence_location.city
-          testa.dati_controparte.codice_fiscale = person.italian_fiscal_code || person.vat_number
-          testa.dati_controparte.e_mail = person.contacts.where(type: 'email').first.value
-          testa.dati_controparte.indirizzo = person.residence_location.full_address
-          testa.dati_controparte.partita_iva = person.vat_number || ''
-          testa.dati_controparte.ragione_sociale = person.name
-        end
-
-        docu.righe = XmlInterface::RicFisc::Docu::Righe.new do |righe|
-          details.each do |det|
-            righe.righe << XmlInterface::RicFisc::Docu::Righe::Riga.new do |riga|
-              riga.cod_art = det.code
-              riga.cod_iva = ''
-              riga.cod_un_mis = 'NR.'
-              riga.descrizione = det.data ? "#{det.descr} #{det.data}" : ''
-              riga.imponibile = ''
-              riga.importo_sconto = 0
-              riga.imposta = ''
-              riga.perc_sconto1 = 0
-              riga.perc_sconto2 = 0
-              riga.perc_sconto3 = 0
-              riga.perc_sconto4 = 0
-              riga.qta = det.count
-              riga.tipo_riga = det.item_type
-              riga.totale = ''
-              riga.valore_unitario = ''
-
-              riga.dati_art_serv = XmlInterface::RicFisc::Docu::Righe::Riga::DatiArtServ.new do |dati_art_serv|
-                dati_art_serv.cod_art = det.code
-                dati_art_serv.cod_un_mis_base = 'NR.'
-                dati_art_serv.descrizione = det.data ? "#{det.descr} #{det.data}" : ''
-                dati_art_serv.tipo_articolo = det.item_type
-              end
-            end
-          end
-
-          righe.righe << XmlInterface::RicFisc::Docu::Righe::Riga.new do |riga|
-            riga.cod_art = ''
-            riga.cod_iva = ''
-            riga.cod_un_mis = ''
-            riga.descrizione = "Acquisto online, codice interno ricevuta #{identifier}"
+            riga.descrizione = "Acquisto online, codice #{identifier}"
             riga.imponibile = ''
             riga.importo_sconto = 0
             riga.imposta = ''
@@ -393,6 +248,10 @@ class OndaInvoiceExport < Ygg::PublicModel
     else
       if File.exist?(filename_okay)
         if File.exist?(filename_reject)
+
+          doc = Nokogiri::XML(File.read(filename_reject))
+
+          self.reject_cause = doc.at_xpath('//Docu')['Errore']
           self.state = 'REJECTED'
         else
           self.state = 'ACCEPTED'
