@@ -148,7 +148,7 @@ class Debt < Ygg::PublicModel
   end
 
   def self.run_chores!
-    all.each do |debtt|
+    all.each do |debt|
       debt.run_chores!
     end
   end
