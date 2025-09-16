@@ -64,93 +64,111 @@ loop do
   end
 
   if soci_changed
-    puts "Updating Member(s)" if debug >= 1
+    Ygg::Acao::Member.transaction do
+      puts "Updating Member(s)" if debug >= 1
 
-    time0 = Time.new
-    Ygg::Acao::Member.sync_from_maindb!(debug: debug)
-    puts "Member update done, took #{Time.new - time0} seconds" if debug >= 1
+      time0 = Time.new
+      Ygg::Acao::Member.sync_from_maindb!(debug: debug)
+      puts "Member update done, took #{Time.new - time0} seconds" if debug >= 1
+    end
   end
 
   if mezzo_changed
-     time0 = Time.new
-     puts "Updating Ygg::Acao::Aircraft" if debug >= 1
-     Ygg::Acao::Aircraft.sync_from_maindb!
-     Ygg::Acao::MainDb::Mezzo.update_last_update!
-     puts "Aircraft done, took #{Time.new - time0} seconds" if debug >= 1
+    Ygg::Acao::Member.transaction do
+      time0 = Time.new
+      puts "Updating Ygg::Acao::Aircraft" if debug >= 1
+      Ygg::Acao::Aircraft.sync_from_maindb!
+      Ygg::Acao::MainDb::Mezzo.update_last_update!
+      puts "Aircraft done, took #{Time.new - time0} seconds" if debug >= 1
+    end
   end
 
   if Ygg::Acao::MainDb::Volo.has_been_updated?
-    volo_changed = true
-    time0 = Time.new
+    Ygg::Acao::Member.transaction do
+      volo_changed = true
+      time0 = Time.new
 
-    puts "Updating Ygg::Acao::Flight" if debug >= 1
+      puts "Updating Ygg::Acao::Flight" if debug >= 1
 
-    Ygg::Acao::Flight.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
+      Ygg::Acao::Flight.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
 
-    Ygg::Acao::MainDb::Volo.update_last_update!
+      Ygg::Acao::MainDb::Volo.update_last_update!
 
-    puts "Ygg::Acao::Flight done, took #{Time.new - time0} seconds" if debug >= 1
+      puts "Ygg::Acao::Flight done, took #{Time.new - time0} seconds" if debug >= 1
+    end
   end
 
   if Ygg::Acao::MainDb::LogBar2.has_been_updated?
-    puts "LogBar2 has been changed" if debug >= 1
-    logbar_changed = true
+    Ygg::Acao::Member.transaction do
+      puts "LogBar2 has been changed" if debug >= 1
+      logbar_changed = true
 
-    Ygg::Acao::BarTransaction.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
+      Ygg::Acao::BarTransaction.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
 
-    Ygg::Acao::MainDb::LogBar2.update_last_update!
+      Ygg::Acao::MainDb::LogBar2.update_last_update!
+    end
   end
 
   if Ygg::Acao::MainDb::CassettaBarLocale.has_been_updated?
-    puts "CassettaBarLocale has been changed" if debug >= 1
-    logbar_changed = true
+    Ygg::Acao::Member.transaction do
+      puts "CassettaBarLocale has been changed" if debug >= 1
+      logbar_changed = true
 
-    Ygg::Acao::BarTransaction.sync_from_maindb2!(from_time: Time.now - 30.days, debug: debug)
+      Ygg::Acao::BarTransaction.sync_from_maindb2!(from_time: Time.now - 30.days, debug: debug)
 
-    Ygg::Acao::MainDb::CassettaBarLocale.update_last_update!
+      Ygg::Acao::MainDb::CassettaBarLocale.update_last_update!
+    end
   end
 
   if Ygg::Acao::MainDb::LogBollini.has_been_updated?
-    puts "LogBollini has been changed" if debug >= 1
-    logbol_changed = true
+    Ygg::Acao::Member.transaction do
+      puts "LogBollini has been changed" if debug >= 1
+      logbol_changed = true
 
-    Ygg::Acao::TokenTransaction.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
+      Ygg::Acao::TokenTransaction.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
 
-    Ygg::Acao::MainDb::LogBollini.update_last_update!
+      Ygg::Acao::MainDb::LogBollini.update_last_update!
+    end
   end
 
 
   if onda_changed
-    puts "Running trigger replacement" if debug >= 1
-    time0 = Time.new
-    Ygg::Acao::Onda::DocTesta.trigger_replacement(debug: debug)
-    puts "trigger replacement done, took #{Time.new - time0} seconds" if debug >= 1
+    Ygg::Acao::Member.transaction do
+      puts "Running trigger replacement" if debug >= 1
+      time0 = Time.new
+      Ygg::Acao::Onda::DocTesta.trigger_replacement(debug: debug)
+      puts "trigger replacement done, took #{Time.new - time0} seconds" if debug >= 1
 
-    Ygg::Acao::Invoice.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
+      Ygg::Acao::Invoice.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
 
-    Ygg::Acao::Onda::DocTesta.update_last_update!
+      Ygg::Acao::Onda::DocTesta.update_last_update!
+    end
   end
 
   if tessera_changed
-    puts "Tessera has been changed" if debug >= 1
-    logbol_changed = true
+    Ygg::Acao::Member.transaction do
+      puts "Tessera has been changed" if debug >= 1
+      logbol_changed = true
 
-    Ygg::Acao::KeyFob.sync_from_maindb!(debug: debug)
-    Ygg::Acao::MemberAccessRemote.sync_from_maindb!(debug: debug)
+      Ygg::Acao::KeyFob.sync_from_maindb!(debug: debug)
+      Ygg::Acao::MemberAccessRemote.sync_from_maindb!(debug: debug)
 
-    Ygg::Acao::MainDb::Tessera.update_last_update!
+      Ygg::Acao::MainDb::Tessera.update_last_update!
+    end
   end
 
   if soci_changed
-    time0 = Time.new
-    puts "  FAAC update started" if debug >= 1
-    Ygg::Acao::Member.sync_with_faac!(debug: 1)
-    puts "  FAAC update done, took #{Time.new - time0} seconds" if debug >= 1
+    Ygg::Acao::Member.transaction do
+      time0 = Time.new
+      puts "  FAAC update started" if debug >= 1
+      Ygg::Acao::Member.sync_with_faac!(debug: 1)
+      puts "  FAAC update done, took #{Time.new - time0} seconds" if debug >= 1
 
-    Ygg::Acao::MainDb::Socio.update_last_update!
-    Ygg::Acao::MainDb::SociDatiLicenza.update_last_update!
-    Ygg::Acao::MainDb::SociDatiVisita.update_last_update!
-    Ygg::Acao::MainDb::SocioIscritto.update_last_update!
+      Ygg::Acao::MainDb::Socio.update_last_update!
+      Ygg::Acao::MainDb::SociDatiLicenza.update_last_update!
+      Ygg::Acao::MainDb::SociDatiVisita.update_last_update!
+      Ygg::Acao::MainDb::SocioIscritto.update_last_update!
+    end
   end
 
   if soci_changed || mezzo_changed || volo_changed || onda_changed || logbar_changed || logbol_changed
