@@ -1,4 +1,4 @@
-\restrict MpVliEU0dOExn3xs8oXcDxGvRuFSuLtgi0BApfTCDPxkIIZbWCTN8fR2MSLAjbr
+\restrict clsBNm9z77rjWp65rq0LfzZ62XOsqv1LbKxL1XTT3dfqNsKWrHoOwSVTcFlSARd
 
 -- Dumped from database version 16.10 (Ubuntu 16.10-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.10 (Ubuntu 16.10-0ubuntu0.24.04.1)
@@ -681,7 +681,8 @@ CREATE TABLE acao.onda_invoice_export_details (
     item_type integer NOT NULL,
     descr character varying NOT NULL,
     amount numeric(14,6) NOT NULL,
-    vat numeric(14,6) NOT NULL
+    vat numeric(14,6) NOT NULL,
+    data character varying
 );
 
 
@@ -701,7 +702,7 @@ CREATE TABLE acao.onda_invoice_exports (
     payment_method character varying(32),
     last_chore timestamp without time zone,
     synced_at timestamp(6) without time zone DEFAULT now() NOT NULL,
-    data character varying
+    reject_cause character varying
 );
 
 
@@ -8666,11 +8667,12 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-\unrestrict MpVliEU0dOExn3xs8oXcDxGvRuFSuLtgi0BApfTCDPxkIIZbWCTN8fR2MSLAjbr
+\unrestrict clsBNm9z77rjWp65rq0LfzZ62XOsqv1LbKxL1XTT3dfqNsKWrHoOwSVTcFlSARd
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250913135029'),
 ('20250910233732'),
 ('20250910224218'),
 ('20250910180325'),
