@@ -42,6 +42,11 @@ class GateController < Ygg::Hel::BaseController
   def event
     puts json_request
 
+    begin
+      RailsAmqp.interface.publish(exchange: 'ygg.acao.gate.event', payload: json_request)
+    rescue AM::AMQP::Client::MsgPublishFailure
+    end
+
     respond_to do |format|
       format.json { render json: { success: true } }
     end

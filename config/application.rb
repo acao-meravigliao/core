@@ -106,6 +106,13 @@ module AcaoCore
           durable: true,
           auto_delete: false,
         },
+
+        'ygg.acao.gate.events': {
+          type: :topic,
+          anonymous_access: true,
+          durable: true,
+          auto_delete: false,
+        },
       }
     end
 
