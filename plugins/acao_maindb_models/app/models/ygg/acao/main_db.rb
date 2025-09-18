@@ -25,7 +25,7 @@ module LastUpdateTracker
                                   "FROM sys.dm_db_index_usage_stats WHERE database_id = DB_ID('acao_pro') " +
                                   "AND OBJECT_ID=OBJECT_ID('#{table_name}')")
 
-    res[0] ? res[0]['last_user_update'] : nil
+    res[0] ? ActiveSupport::TimeZone.new('Europe/Rome').local_to_utc(res[0]['last_user_update']) : nil
   end
 
   def get_lu
