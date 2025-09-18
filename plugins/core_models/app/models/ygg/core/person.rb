@@ -151,6 +151,8 @@ class Person < OrgaPerson
 
   gs_rel_map << { from: :person, to: :contact, to_cls: '::Ygg::Core::Person::Contact', to_key: 'person_id' }
   gs_rel_map << { from: :person, to: :credential, to_cls: '::Ygg::Core::Person::Credential', to_key: 'person_id' }
+  gs_rel_map << { from: :person, to: :birth_location, to_cls: '::Ygg::Core::Location', from_key: 'birth_location_id' }
+  gs_rel_map << { from: :person, to: :residence_location, to_cls: '::Ygg::Core::Location', from_key: 'residence_location_id' }
 
   has_meta_class
   has_acl
