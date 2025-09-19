@@ -22,14 +22,6 @@ PATH
       roxml
 
 PATH
-  remote: plugins/amqp_ws_gw
-  specs:
-    amqp_ws_gw (1.0.0)
-      am-amqp (~> 2.0)
-      am-ws
-      ygg-diffable
-
-PATH
   remote: plugins/ca_hel
   specs:
     ca_hel (1.0.0)
@@ -150,7 +142,7 @@ GEM
       sqlite3
       vihai-password
       ygg-exception
-    am-grafo-store (2.5.3)
+    am-grafo-store (2.6.0)
       actor_model
       grafo-store (~> 2)
       iarray
@@ -185,7 +177,7 @@ GEM
       amazing_print
       rubynary
       ygg-exception
-    am-vos (2.4.0)
+    am-vos (2.5.1)
       activesupport
       am-auth-manager
       am-grafo-store
@@ -203,7 +195,7 @@ GEM
       am-io-buffer
       am-sockets (>= 0.18)
     deep_open_struct (2.0.2)
-    grafo-store (2.6.3)
+    grafo-store (2.7.1)
       activesupport
       iarray
       ygg-exception
@@ -355,7 +347,7 @@ GEM
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    json (2.13.2)
+    json (2.14.1)
     json-jwt (1.17.0)
       activesupport (>= 4.2)
       aes_key_wrap
@@ -393,24 +385,24 @@ GEM
     net-smtp (0.5.1)
       net-protocol
     nio4r (2.7.4)
-    nokogiri (1.18.9)
+    nokogiri (1.18.10)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
-    nokogiri (1.18.9-aarch64-linux-gnu)
+    nokogiri (1.18.10-aarch64-linux-gnu)
       racc (~> 1.4)
-    nokogiri (1.18.9-aarch64-linux-musl)
+    nokogiri (1.18.10-aarch64-linux-musl)
       racc (~> 1.4)
-    nokogiri (1.18.9-arm-linux-gnu)
+    nokogiri (1.18.10-arm-linux-gnu)
       racc (~> 1.4)
-    nokogiri (1.18.9-arm-linux-musl)
+    nokogiri (1.18.10-arm-linux-musl)
       racc (~> 1.4)
-    nokogiri (1.18.9-arm64-darwin)
+    nokogiri (1.18.10-arm64-darwin)
       racc (~> 1.4)
-    nokogiri (1.18.9-x86_64-darwin)
+    nokogiri (1.18.10-x86_64-darwin)
       racc (~> 1.4)
-    nokogiri (1.18.9-x86_64-linux-gnu)
+    nokogiri (1.18.10-x86_64-linux-gnu)
       racc (~> 1.4)
-    nokogiri (1.18.9-x86_64-linux-musl)
+    nokogiri (1.18.10-x86_64-linux-musl)
       racc (~> 1.4)
     optimist (3.2.1)
     ostruct (0.6.3)
@@ -444,7 +436,7 @@ GEM
       date
       stringio
     public_suffix (6.0.2)
-    puma (7.0.0)
+    puma (7.0.3)
       nio4r (~> 2.0)
     racc (1.8.1)
     rack (3.2.1)
@@ -498,15 +490,15 @@ GEM
     structured_warnings (0.5.0)
     thor (1.4.0)
     timeout (0.4.3)
-    tiny_tds (3.2.1)
+    tiny_tds (3.3.0)
       bigdecimal (~> 3)
-    tiny_tds (3.2.1-aarch64-linux-gnu)
+    tiny_tds (3.3.0-aarch64-linux-gnu)
       bigdecimal (~> 3)
-    tiny_tds (3.2.1-aarch64-linux-musl)
+    tiny_tds (3.3.0-aarch64-linux-musl)
       bigdecimal (~> 3)
-    tiny_tds (3.2.1-x86_64-linux-gnu)
+    tiny_tds (3.3.0-x86_64-linux-gnu)
       bigdecimal (~> 3)
-    tiny_tds (3.2.1-x86_64-linux-musl)
+    tiny_tds (3.3.0-x86_64-linux-musl)
       bigdecimal (~> 3)
     ttfunk (1.8.0)
       bigdecimal (~> 3.1)
@@ -555,7 +547,6 @@ DEPENDENCIES
   am-vos!
   am-ws!
   amazing_print
-  amqp_ws_gw!
   byebug
   ca_hel!
   ca_models!

@@ -76,9 +76,7 @@ group :controllers do
   gem 'ml_hel', path: 'plugins/ml_hel'
   gem 'ca_hel', path: 'plugins/ca_hel'
   gem 'acao_hel', path: 'plugins/acao_hel'
-  #gem 'trk_hel', path: '../acao-plugins/trk_hel'
   gem 'streaming_hel', path: 'plugins/streaming_hel'
-  gem 'amqp_ws_gw', path: 'plugins/amqp_ws_gw'
   gem 'rails_vos', path: 'plugins/rails_vos'
 end
 
