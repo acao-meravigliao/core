@@ -1059,7 +1059,7 @@ class Member < Ygg::PublicModel
 
   def sync_from_maindb(other = socio, person: self.person, force: false, debug: 0)
     if other.lastmod.floor(6) != lastmod || force
-      puts "MEMBER #{code} #{person.first_name} #{person.last_name} Checking (other #{Time.now - other.lastmod} old)" if debug >= 1
+      puts "MEMBER #{code} #{person.first_name} #{person.last_name} Checking (other #{(Time.now - other.lastmod).to_i} old)" if debug >= 1
 
       person.first_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ').first
       person.middle_name = (other.Nome.blank? ? '?' : other.Nome).strip.split(' ')[1..-1].join(' ')
@@ -1150,7 +1150,7 @@ class Member < Ygg::PublicModel
     end
 
     if self.licenza_lastmod != other.licenza.lastmod.floor(6) || force
-      puts "MEMBER #{code} Checking licenses (other #{Time.now - other.licenza.lastmod} old)" if debug >= 1
+      puts "MEMBER #{code} Checking licenses (other #{(Time.now - other.licenza.lastmod).to_i} old)" if debug >= 1
 
       if sync_licenses(other.licenza, debug: debug)
         puts "MEMBER #{code} #{person.first_name} #{person.last_name} LICENSES UPDATED" if debug >= 1
@@ -1161,7 +1161,7 @@ class Member < Ygg::PublicModel
     end
 
     if self.visita_lastmod != other.visita.lastmod.floor(6) || force
-      puts "MEMBER #{code} Checking medicals (other #{Time.now - other.visita.lastmod} old)" if debug >= 1
+      puts "MEMBER #{code} Checking medicals (other #{(Time.now - other.visita.lastmod).to_i} old)" if debug >= 1
 
       if sync_medicals(other.visita, debug: debug)
         puts "MEMBER #{code} #{person.first_name} #{person.last_name} MEDICALS UPDATED" if debug >= 1
