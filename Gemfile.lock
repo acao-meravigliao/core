@@ -142,7 +142,7 @@ GEM
       sqlite3
       vihai-password
       ygg-exception
-    am-grafo-store (2.6.0)
+    am-grafo-store (2.6.2)
       actor_model
       grafo-store (~> 2)
       iarray
@@ -177,7 +177,7 @@ GEM
       amazing_print
       rubynary
       ygg-exception
-    am-vos (2.5.1)
+    am-vos (2.5.2)
       activesupport
       am-auth-manager
       am-grafo-store
