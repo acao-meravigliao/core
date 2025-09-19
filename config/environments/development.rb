@@ -25,6 +25,9 @@ Rails.application.configure do
     config.action_controller.perform_caching = false
   end
 
+  config.log_tags = [ :request_id ]
+  config.logger   = ActiveSupport::TaggedLogging.logger(STDOUT)
+
   # Change to :null_store to avoid any caching.
   config.cache_store = :memory_store
 
