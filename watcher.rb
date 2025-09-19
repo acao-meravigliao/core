@@ -28,22 +28,22 @@ loop do
   puts "loop" if debug >= 4
 
   if Ygg::Acao::MainDb::Socio.has_been_updated?
-    puts "Socio has been changed" if debug >= 1
+    puts "Socio has been changed (other #{(Time.now - Ygg::Acao::MainDb::Socio.last_update).to_i} old)" if debug >= 1
     soci_changed = true
   end
 
   if Ygg::Acao::MainDb::SociDatiLicenza.has_been_updated?
-    puts "SociDatiLicenza has been changed" if debug >= 1
+    puts "SociDatiLicenza has been changed (other #{(Time.now - Ygg::Acao::MainDb::SociDatiLicenza.last_update).to_i} old)" if debug >= 1
     soci_changed = true
   end
 
   if Ygg::Acao::MainDb::SociDatiVisita.has_been_updated?
-    puts "SociDatiVisita has been changed" if debug >= 1
+    puts "SociDatiVisita has been changed (other #{(Time.now - Ygg::Acao::MainDb::SociDatiVisita.last_update).to_i} old)" if debug >= 1
     soci_changed = true
   end
 
   if Ygg::Acao::MainDb::SocioIscritto.has_been_updated?
-    puts "SocioIscritto has been changed" if debug >= 1
+    puts "SocioIscritto has been changed (other #{(Time.now - Ygg::Acao::MainDb::SocioIscritto.last_update).to_i} old)" if debug >= 1
     soci_changed = true
   end
 
@@ -54,12 +54,12 @@ loop do
   end
 
   if Ygg::Acao::Onda::DocTesta.has_been_updated?
-    puts "DocTesta has been changed" if debug >= 1
+    puts "DocTesta has been changed (other #{(Time.now - Ygg::Acao::Onda::DocTesta.last_update).to_i} old)" if debug >= 1
     onda_changed = true
   end
 
   if Ygg::Acao::MainDb::Tessera.has_been_updated?
-    puts "Tessera has been changed" if debug >= 1
+    puts "Tessera has been changed (other #{(Time.now - Ygg::Acao::MainDb::Tessera.last_update).to_i} old)" if debug >= 1
     tessera_changed = true
   end
 
@@ -148,7 +148,6 @@ loop do
   if tessera_changed
     Ygg::Acao::Member.transaction do
       puts "Tessera has been changed" if debug >= 1
-      logbol_changed = true
 
       Ygg::Acao::KeyFob.sync_from_maindb!(debug: debug)
       Ygg::Acao::MemberAccessRemote.sync_from_maindb!(debug: debug)
@@ -159,16 +158,18 @@ loop do
 
   if soci_changed
     Ygg::Acao::Member.transaction do
-      time0 = Time.new
-      puts "  FAAC update started" if debug >= 1
-      Ygg::Acao::Member.sync_with_faac!(debug: 1)
-      puts "  FAAC update done, took #{Time.new - time0} seconds" if debug >= 1
-
       Ygg::Acao::MainDb::Socio.update_last_update!
       Ygg::Acao::MainDb::SociDatiLicenza.update_last_update!
       Ygg::Acao::MainDb::SociDatiVisita.update_last_update!
       Ygg::Acao::MainDb::SocioIscritto.update_last_update!
     end
+  end
+
+  if tessera_changed || soci_changed
+    time0 = Time.new
+    puts "  FAAC update started" if debug >= 1
+    Ygg::Acao::Member.sync_with_faac!(debug: 1)
+    puts "  FAAC update done, took #{Time.new - time0} seconds" if debug >= 1
   end
 
   if soci_changed || mezzo_changed || volo_changed || onda_changed || logbar_changed || logbol_changed
