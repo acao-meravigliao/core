@@ -20,6 +20,14 @@ class TokenTransaction < Ygg::PublicModel
              class_name: '::Ygg::Acao::Aircraft',
              optional: true
 
+  belongs_to :flight,
+             class_name: '::Ygg::Acao::Flight',
+             optional: true
+
+  gs_rel_map << { from: :token_transaction, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
+  gs_rel_map << { from: :token_transaction, to: :aircraft, to_cls: 'Ygg::Acao::Aircraft', from_key: 'aircraft_id', }
+  gs_rel_map << { from: :token_transaction, to: :flight, to_cls: 'Ygg::Acao::Flight', from_key: 'flight_id', }
+
   idxc_cached
   self.idxc_sensitive_attributes = [
     :person_id,
@@ -99,6 +107,7 @@ class TokenTransaction < Ygg::PublicModel
         amount: l.credito_att - l.credito_prec,
         recorded_at: troiano_datetime_to_utc(l.log_data),
         aircraft: aircraft,
+        flight: Ygg::Acao::Flight.find_by(source_id: l.id_volo, source_expansion: 'GL'),
       )
 
       if r.deep_changed?

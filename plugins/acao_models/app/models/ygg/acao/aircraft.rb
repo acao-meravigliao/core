@@ -41,6 +41,10 @@ class Aircraft < Ygg::PublicModel
   has_many :flights,
            class_name: 'Ygg::Acao::Flight'
 
+  gs_rel_map << { from: :aircraft, to: :owner, to_cls: 'Ygg::Acao::Member', from_key: 'owner_id', }
+  gs_rel_map << { from: :aircraft, to: :flight, to_cls: 'Ygg::Acao::Flight', to_key: 'aircraft_id', }
+  gs_rel_map << { from: :aircraft, to: :aircraft_type, to_cls: 'Ygg::Acao::AircraftType', from_key: 'aircraft_type_id', }
+
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 

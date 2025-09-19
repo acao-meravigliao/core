@@ -52,6 +52,9 @@ class Flight < Ygg::PublicModel
            class_name: 'Ygg::Acao::Flight',
            foreign_key: :towed_by_id
 
+  has_many :token_transactions,
+           class_name: 'Ygg::Acao::TokenTransaction'
+
   belongs_to :volo,
              class_name: 'Ygg::Acao::MainDb::Volo',
              foreign_key: :source_id
@@ -72,6 +75,7 @@ class Flight < Ygg::PublicModel
   gs_rel_map << { from: :flight, to: :landing_location, to_cls: 'Ygg::Core::Location', from_key: 'landing_location_id', }
   gs_rel_map << { from: :towing, to: :towed_by, to_cls: 'Ygg::Acao::Flight', from_key: 'towed_by_id', }
   gs_rel_map << { from: :towed_by, to: :towing, to_cls: 'Ygg::Acao::Flight', to_key: 'towed_by_id', }
+  gs_rel_map << { from: :flight, to: :token_transaction, to_cls: 'Ygg::Acao::TokenTransaction', to_key: 'flight_id', }
 
   class InvalidRecord < StandardError ; end
 
@@ -255,6 +259,7 @@ class Flight < Ygg::PublicModel
         other.codice_secondo_pilota_aliante != 9999 &&
         other.codice_secondo_pilota_aliante != 8888
       self.pilot2 = Ygg::Acao::Member.find_by(code: other.codice_secondo_pilota_aliante)
+      self.pilot2_name = pilot2.person.name
       if pilot2
         self.pilot2_role = 'PAX'
       else
@@ -358,6 +363,7 @@ class Flight < Ygg::PublicModel
 
     begin
       self.pilot1 = Ygg::Acao::Member.find_by!(code: other.codice_pilota_aereo)
+      self.pilot1_name = pilot1.person.name
     rescue ActiveRecord::RecordNotFound
       raise InvalidRecord, "Missing referenced pilot1 code=#{other.codice_pilota_aereo}"
     end
