@@ -1,4 +1,4 @@
-\restrict 33UulErP1wXURQ1y3tTjPDS6jaAEnoC4xB4ESjbbuoJ9LS6MAFOs1phbOpNyTvH
+\restrict 4unjzof1YzN2rjjtYdqlPQadOmWBPCfAjJAwjUIeQSDqZDbQqas4E7Ew2RWAgaw
 
 -- Dumped from database version 16.10 (Ubuntu 16.10-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.10 (Ubuntu 16.10-0ubuntu0.24.04.1)
@@ -391,7 +391,11 @@ CREATE TABLE acao.flights (
     pilot2_id uuid,
     aircraft_owner_id uuid,
     pilot1_name character varying,
-    pilot2_name character varying
+    pilot2_name character varying,
+    proficiency_check boolean DEFAULT false NOT NULL,
+    skill_test boolean DEFAULT false NOT NULL,
+    maintenance_flight boolean DEFAULT false NOT NULL,
+    purpose character varying(32)
 );
 
 
@@ -8670,11 +8674,12 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 33UulErP1wXURQ1y3tTjPDS6jaAEnoC4xB4ESjbbuoJ9LS6MAFOs1phbOpNyTvH
+\unrestrict 4unjzof1YzN2rjjtYdqlPQadOmWBPCfAjJAwjUIeQSDqZDbQqas4E7Ew2RWAgaw
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250919162236'),
 ('20250918231753'),
 ('20250918205536'),
 ('20250913135029'),

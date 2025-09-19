@@ -247,20 +247,23 @@ class Flight < Ygg::PublicModel
       rescue ActiveRecord::RecordNotFound
         raise InvalidRecord, "Missing referenced pilot1 code=#{other.codice_pilota_aliante}"
       end
+
+      self.pilot1_name = pilot1.person.name
     else
       self.pilot1 = nil
     end
 
     if other.codice_secondo_pilota_aliante == 1
       self.pilot2_role = 'PAX'
+      self.pilot2_name = 'PAX'
     elsif !other.codice_secondo_pilota_aliante.blank? &&
         other.codice_secondo_pilota_aliante != 0 &&
         other.codice_secondo_pilota_aliante != 1 &&
         other.codice_secondo_pilota_aliante != 9999 &&
         other.codice_secondo_pilota_aliante != 8888
       self.pilot2 = Ygg::Acao::Member.find_by(code: other.codice_secondo_pilota_aliante)
-      self.pilot2_name = pilot2.person.name
       if pilot2
+        self.pilot2_name = pilot2.person.name
         self.pilot2_role = 'PAX'
       else
         self.pilot2_role = nil
@@ -273,9 +276,11 @@ class Flight < Ygg::PublicModel
     self.aircraft_owner = ((aircraft.owner && aircraft.owner.person.name) || aircraft.fn_owner_name).presence
 
     if other.marche_aereo.strip == 'AUTO'
-      self.launch_type = 'SELF'
+      self.launch_type = 'SL'
+    elsif other.tipo_volo_club == 11
+      self.launch_type = 'WINCH'
     else
-      self.launch_type = ''
+      self.launch_type = 'TOW'
     end
 
     case other.tipo_volo_club
@@ -329,6 +334,55 @@ class Flight < Ygg::PublicModel
     when 14  # VOLO PROMO             : volo propaganda (a pagamento)
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
+    when 15  # ALIANTE SLMG CLUB
+      self.instruction_flight = false
+      self.pilot1_role = 'PIC'
+    when 16  # VDS  ALLIEVO D.C.
+      self.instruction_flight = true
+      self.pilot1_role = 'DUAL'
+      self.pilot2_role = 'FI'
+    when 17  # VDS ALLIEVO M.C.
+      self.instruction_flight = true
+      self.pilot1_role = 'PIC'
+    when 18  # VDS PRIVATO
+      self.instruction_flight = false
+      self.pilot1_role = 'PIC'
+    when 19  # ELICOTTERO PRIVATO
+      self.instruction_flight = false
+      self.pilot1_role = 'PIC'
+    when 20  # VOLO PROVA (officina)
+      self.instruction_flight = false
+      self.maintenance_flight = true
+      self.pilot1_role = 'PIC'
+      # Aggiungere Volo Officina (MCF Maintenance Check Flight)
+    when 21  # ADDESTRAMENTO ALIANTE (DC) (training flight, addestramento aliante)
+      self.instruction_flight = false
+      self.pilot1_role = 'PIC'
+      self.pilot2_role = 'FI'
+    when 22  # ADDESTRAMENTO TMG (DC) (training flight, addestramento TMG)
+      self.instruction_flight = false
+      self.pilot1_role = 'PIC'
+      self.pilot2_role = 'FI'
+    when 23  # ADDESTRAMENTO SEP (DC) (training flight)
+      self.instruction_flight = false
+      self.pilot1_role = 'PIC'
+      self.pilot2_role = 'FI'
+    when 24  # ESAME ALIANTE
+      self.instruction_flight = false
+      self.pilot1_role = 'PIC'
+      self.pilot2_role = 'FE'
+      self.proficiency_check = false
+      self.skill_test = true
+    when 25  # ESAME TMG
+      self.instruction_flight = false
+      self.pilot1_role = 'PIC'
+      self.pilot2_role = 'FE'
+      self.proficiency_check = false
+      self.skill_test = true
+    when 26  # ABILITAZIONE PAX
+      self.instruction_flight = false
+      self.pilot1_role = 'PIC'
+      self.pilot1_role = 'FI'
     end
 
     self.acao_tipo_volo_club = other.tipo_volo_club
@@ -363,10 +417,11 @@ class Flight < Ygg::PublicModel
 
     begin
       self.pilot1 = Ygg::Acao::Member.find_by!(code: other.codice_pilota_aereo)
-      self.pilot1_name = pilot1.person.name
     rescue ActiveRecord::RecordNotFound
       raise InvalidRecord, "Missing referenced pilot1 code=#{other.codice_pilota_aereo}"
     end
+
+    self.pilot1_name = pilot1.person.name
 
     if other.codice_secondo_pilota_aereo == 1
       self.pilot2_role = 'PAX'
@@ -377,13 +432,15 @@ class Flight < Ygg::PublicModel
       if !pilot2
         raise InvalidRecord, "Missing referenced pilot2 code=#{other.codice_secondo_pilota_aereo}"
       end
+
+      self.pilot2_name = pilot2.person.name
     end
 
     self.aircraft_class = aircraft.aircraft_type ? aircraft.aircraft_type.aircraft_class : nil
     self.aircraft_owner_id = aircraft.owner_id
     self.aircraft_owner = ((aircraft.owner && aircraft.owner.name) || aircraft.fn_owner_name).presence
 
-    self.launch_type = 'SELF'
+    self.launch_type = 'SL'
 
     self.acao_tipo_volo_club = other.tipo_volo_club
     self.acao_tipo_aereo_aliante = other.tipo_aereo_aliante
