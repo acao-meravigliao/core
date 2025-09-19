@@ -35,10 +35,6 @@ class BasicModel < ActiveRecord::Base
     attributes.symbolize_keys!
   end
 
-#  def attrs
-#    attrs_hash.keys
-#  end
-
   class_attribute :gs_rel_map
   self.gs_rel_map = []
 
