@@ -1,4 +1,4 @@
-\restrict clsBNm9z77rjWp65rq0LfzZ62XOsqv1LbKxL1XTT3dfqNsKWrHoOwSVTcFlSARd
+\restrict 33UulErP1wXURQ1y3tTjPDS6jaAEnoC4xB4ESjbbuoJ9LS6MAFOs1phbOpNyTvH
 
 -- Dumped from database version 16.10 (Ubuntu 16.10-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.10 (Ubuntu 16.10-0ubuntu0.24.04.1)
@@ -389,7 +389,9 @@ CREATE TABLE acao.flights (
     aircraft_owner_id_old uuid,
     pilot1_id uuid,
     pilot2_id uuid,
-    aircraft_owner_id uuid
+    aircraft_owner_id uuid,
+    pilot1_name character varying,
+    pilot2_name character varying
 );
 
 
@@ -975,7 +977,8 @@ CREATE TABLE acao.token_transactions (
     aircraft_id uuid,
     person_id uuid,
     session_id uuid,
-    member_id uuid NOT NULL
+    member_id uuid NOT NULL,
+    flight_id uuid
 );
 
 
@@ -8667,11 +8670,13 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-\unrestrict clsBNm9z77rjWp65rq0LfzZ62XOsqv1LbKxL1XTT3dfqNsKWrHoOwSVTcFlSARd
+\unrestrict 33UulErP1wXURQ1y3tTjPDS6jaAEnoC4xB4ESjbbuoJ9LS6MAFOs1phbOpNyTvH
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250918231753'),
+('20250918205536'),
 ('20250913135029'),
 ('20250910233732'),
 ('20250910224218'),
