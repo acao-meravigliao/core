@@ -6,7 +6,6 @@ set :shared_dirs, fetch(:shared_dirs, []) + [ ]
 set :shared_files, fetch(:shared_files, []) + [ 'config/database.yml', 'config/credentials.yml.enc', 'config/master.key' ]
 set :repository, 'foobar'
 set :keep_releases, 20
-set :rails_env, 'staging'
 set :rsync_excludes, [
   '.git*',
   '/config/database.yml',
@@ -40,12 +39,15 @@ task :local_cleanup do
 end
 
 task :staging do
+  set :rails_env, 'staging'
   set :domain, 'linobis.acao.it'
   set :deploy_to, '/opt/acao-core'
   set :environment, 'staging'
 end
 
 task :production do
+  set :rails_env, 'production'
+
   if `git branch --show-current`.chomp != 'production'
     abort 'Production deployment is supposed to be done from production branch'
   end
@@ -70,7 +72,7 @@ task :deploy do
 
     invoke :'deploy:link_shared_paths'
     invoke :'bundle:install'
-#    invoke :'db:porn:migrate'
+    invoke :'rails:db_migrate'
     invoke :'deploy:cleanup'
     invoke :local_cleanup
 
