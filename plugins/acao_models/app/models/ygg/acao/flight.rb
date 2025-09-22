@@ -237,8 +237,8 @@ class Flight < Ygg::PublicModel
     self.takeoff_location = takeoff_airfield.location if takeoff_airfield
     self.landing_location = landing_airfield.location if landing_airfield
 
-    self.takeoff_location_raw = takeoff_airfield ? takeoff_airfield.name : other.dep.strip.upcase
-    self.landing_location_raw = landing_airfield ? landing_airfield.name : other.arr.strip.upcase
+    self.takeoff_location_raw = takeoff_airfield ? takeoff_airfield.icao_code || takeoff_airfield.name : other.dep.strip.upcase
+    self.landing_location_raw = landing_airfield ? landing_airfield.icao_code || landing_airfield.name : other.arr.strip.upcase
 
     if !other.codice_pilota_aliante.blank? &&
         other.codice_pilota_aliante != 0
@@ -271,7 +271,6 @@ class Flight < Ygg::PublicModel
       end
     end
 
-    self.aircraft_class = aircraft.aircraft_type ? aircraft.aircraft_type.aircraft_class : nil
     self.aircraft_owner_id = aircraft.owner_id
     self.aircraft_owner = ((aircraft.owner && aircraft.owner.person.name) || aircraft.fn_owner_name).presence
 
@@ -292,104 +291,132 @@ class Flight < Ygg::PublicModel
       self.instruction_flight = true
       self.pilot1_role = 'DUAL'
       self.pilot2_role = 'FI'
+      self.aircraft_class = 'GLD'
     when 2   # ALLIEVO D.C. TMG       : volo scuola su TMG (non trainato quindi) a doppio commando
       self.instruction_flight = true
       self.pilot1_role = 'DUAL'
       self.pilot2_role = 'FI'
+      self.aircraft_class = 'TMG'
     when 3   # ALLIEVO M.C.           : volo scuola trainato solista
       self.instruction_flight = true
       self.pilot1_role = 'PIC'
       self.pilot2_role = nil
+      self.aircraft_class = 'GLD'
     when 4   # ALIANTE CLUB S.S.      : volo non scuola trainato su monoposto del ACAO
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.pilot2_role = nil
+      self.aircraft_class = 'GLD'
     when 5   # ALIANTE CLUB D.S.      : volo non scuola trainato su biposto del ACAO
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'GLD'
     when 6   # VOLO TMG CLUB          : volo non scuola su TMG del ACAO
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'TMG'
     when 7   # ALIANTE PRIVATO S.S    : volo non scuola trainato su monoposto privato
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'GLD'
     when 8   # ALIANTE PRIVATO D.S.   : volo non scuola trainato su biposto privato
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'GLD'
     when 9   # TMG PRIVATO            : volo non scuola su TMG privato
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'TMG'
     when 10  # ALIANTE DEC. AUT. PRIV.: volo non scuola non trainato su SLMG privato
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'GLD'
     when 11  # LANCIO VERRICELLO      : forse per i voli eseguiti fuori sede ?
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'GLD'
     when 12  # VOLO SEP CLUB          : volo non scuola di un monomotore (traino) del ACAO senza aliante
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'SEP'
     when 13  # VOLO SEP PRIVATO       : volo non scuola di un monomotore privato senza aliante
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'SEP'
     when 14  # VOLO PROMO             : volo propaganda (a pagamento)
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'GLD'
     when 15  # ALIANTE SLMG CLUB
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'GLD'
     when 16  # VDS  ALLIEVO D.C.
       self.instruction_flight = true
       self.pilot1_role = 'DUAL'
       self.pilot2_role = 'FI'
+      self.aircraft_class = 'ULM'
     when 17  # VDS ALLIEVO M.C.
       self.instruction_flight = true
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'ULM'
     when 18  # VDS PRIVATO
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'ULM'
     when 19  # ELICOTTERO PRIVATO
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'HELI'
     when 20  # VOLO PROVA (officina)
       self.instruction_flight = false
       self.maintenance_flight = true
       self.pilot1_role = 'PIC'
+      self.aircraft_class = 'HELI'
       # Aggiungere Volo Officina (MCF Maintenance Check Flight)
     when 21  # ADDESTRAMENTO ALIANTE (DC) (training flight, addestramento aliante)
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.pilot2_role = 'FI'
+      self.aircraft_class = 'GLD'
     when 22  # ADDESTRAMENTO TMG (DC) (training flight, addestramento TMG)
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.pilot2_role = 'FI'
+      self.aircraft_class = 'TMG'
     when 23  # ADDESTRAMENTO SEP (DC) (training flight)
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.pilot2_role = 'FI'
+      self.aircraft_class = 'SEP'
     when 24  # ESAME ALIANTE
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.pilot2_role = 'FE'
       self.proficiency_check = false
       self.skill_test = true
+      self.aircraft_class = 'GLD'
     when 25  # ESAME TMG
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.pilot2_role = 'FE'
       self.proficiency_check = false
       self.skill_test = true
+      self.aircraft_class = 'TMG'
     when 26  # ABILITAZIONE PAX
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.pilot1_role = 'FI'
+      self.aircraft_class = 'GLD'
     end
+
+    self.aircraft_class = aircraft.aircraft_type && aircraft.aircraft_type.aircraft_class if !self.aircraft_class
 
     self.acao_tipo_volo_club = other.tipo_volo_club
     self.acao_tipo_aereo_aliante = other.tipo_aereo_aliante
     self.acao_durata_volo_aereo_minuti = other.durata_volo_aereo_minuti
     self.acao_durata_volo_aliante_minuti = other.durata_volo_aliante_minuti
-    self.acao_quota = other.quota
+    self.acao_quota = other.quota != 0 ? other.quota : nil
     self.acao_bollini_volo = other.bollini_volo
     self.acao_data_att = other.data_att
   end
@@ -415,6 +442,11 @@ class Flight < Ygg::PublicModel
     self.takeoff_location = takeoff_airfield.location if takeoff_airfield
     self.landing_location = landing_airfield.location if landing_airfield
 
+    self.takeoff_location_raw = takeoff_airfield ? takeoff_airfield.icao_code || takeoff_airfield.name : other.dep.strip.upcase
+    self.landing_location_raw = landing_airfield ? landing_airfield.icao_code || landing_airfield.name : other.arr.strip.upcase
+
+    self.aircraft_class = 'SEP'
+
     begin
       self.pilot1 = Ygg::Acao::Member.find_by!(code: other.codice_pilota_aereo)
     rescue ActiveRecord::RecordNotFound
@@ -422,6 +454,7 @@ class Flight < Ygg::PublicModel
     end
 
     self.pilot1_name = pilot1.person.name
+    self.pilot1_role = 'PIC'
 
     if other.codice_secondo_pilota_aereo == 1
       self.pilot2_role = 'PAX'
@@ -434,9 +467,9 @@ class Flight < Ygg::PublicModel
       end
 
       self.pilot2_name = pilot2.person.name
+      self.pilot2_role = 'PAX'
     end
 
-    self.aircraft_class = aircraft.aircraft_type ? aircraft.aircraft_type.aircraft_class : nil
     self.aircraft_owner_id = aircraft.owner_id
     self.aircraft_owner = ((aircraft.owner && aircraft.owner.name) || aircraft.fn_owner_name).presence
 
@@ -446,7 +479,7 @@ class Flight < Ygg::PublicModel
     self.acao_tipo_aereo_aliante = other.tipo_aereo_aliante
     self.acao_durata_volo_aereo_minuti = other.durata_volo_aereo_minuti
     self.acao_durata_volo_aliante_minuti = other.durata_volo_aliante_minuti
-    self.acao_quota = other.quota
+    self.acao_quota = other.quota != 0 ? other.quota : nil
     self.acao_bollini_volo = other.bollini_volo
     self.acao_data_att = other.data_att
   end

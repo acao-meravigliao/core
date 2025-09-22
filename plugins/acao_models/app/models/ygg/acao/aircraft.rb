@@ -42,6 +42,8 @@ class Aircraft < Ygg::PublicModel
            class_name: 'Ygg::Acao::Flight'
 
   gs_rel_map << { from: :aircraft, to: :owner, to_cls: 'Ygg::Acao::Member', from_key: 'owner_id', }
+  gs_rel_map << { from: :aircraft, to: :club, to_cls: 'Ygg::Acao::Club', from_key: 'club_id', }
+  gs_rel_map << { from: :aircraft, to: :club_owner, to_cls: 'Ygg::Acao::Club', from_key: 'club_owner_id', }
   gs_rel_map << { from: :aircraft, to: :flight, to_cls: 'Ygg::Acao::Flight', to_key: 'aircraft_id', }
   gs_rel_map << { from: :aircraft, to: :aircraft_type, to_cls: 'Ygg::Acao::AircraftType', from_key: 'aircraft_type_id', }
 
@@ -54,7 +56,7 @@ class Aircraft < Ygg::PublicModel
   ]
 
   def self.import_flarmnet_db!
-    flarmnet_db = Hash[open('http://www.flarmnet.org/files/data.fln', 'r').read.lines[1..-1].map { |x|
+    flarmnet_db = Hash[open('https://www.flarmnet.org/files/data.fln', 'r').read.lines[1..-1].map { |x|
       s = [ x.strip ].pack('H*').force_encoding('iso-8859-15').encode('utf-8')
       [
         s[0..5].strip.upcase,
