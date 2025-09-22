@@ -531,13 +531,13 @@ DEPENDENCIES
   acao_heltog!
   acao_maindb_models!
   acao_models!
-  actionpack (~> 8.0.0)
-  actionview (~> 8.0.0)
+  actionpack (~> 8.0)
+  actionview (~> 8.0)
   active_rest (~> 10.0)!
-  activemodel (~> 8.0.0)
-  activerecord (~> 8.0.0)
+  activemodel (~> 8.0)
+  activerecord (~> 8.0)
   activerecord-sqlserver-adapter (~> 8.0)
-  activesupport (~> 8.0.0)
+  activesupport (~> 8.0)
   airbrake
   am-auth-manager!
   am-http!
@@ -579,7 +579,7 @@ DEPENDENCIES
   rails_actor_model!
   rails_amqp!
   rails_vos!
-  railties (~> 8.0.0)
+  railties (~> 8.0)
   rb-readline
   rbtrace
   spring
