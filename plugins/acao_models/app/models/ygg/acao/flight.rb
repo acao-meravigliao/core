@@ -237,8 +237,8 @@ class Flight < Ygg::PublicModel
     self.takeoff_location = takeoff_airfield.location if takeoff_airfield
     self.landing_location = landing_airfield.location if landing_airfield
 
-    self.takeoff_location_raw = takeoff_airfield ? takeoff_airfield.name : other.dep.strip.upcase
-    self.landing_location_raw = landing_airfield ? landing_airfield.name : other.arr.strip.upcase
+    self.takeoff_location_raw = takeoff_airfield ? takeoff_airfield.icao_code || takeoff_airfield.name : other.dep.strip.upcase
+    self.landing_location_raw = landing_airfield ? landing_airfield.icao_code || landing_airfield.name : other.arr.strip.upcase
 
     if !other.codice_pilota_aliante.blank? &&
         other.codice_pilota_aliante != 0
@@ -442,8 +442,8 @@ class Flight < Ygg::PublicModel
     self.takeoff_location = takeoff_airfield.location if takeoff_airfield
     self.landing_location = landing_airfield.location if landing_airfield
 
-    self.takeoff_location_raw = takeoff_airfield ? takeoff_airfield.name : other.dep.strip.upcase
-    self.landing_location_raw = landing_airfield ? landing_airfield.name : other.arr.strip.upcase
+    self.takeoff_location_raw = takeoff_airfield ? takeoff_airfield.icao_code || takeoff_airfield.name : other.dep.strip.upcase
+    self.landing_location_raw = landing_airfield ? landing_airfield.icao_code || landing_airfield.name : other.arr.strip.upcase
 
     self.aircraft_class = 'SEP'
 
