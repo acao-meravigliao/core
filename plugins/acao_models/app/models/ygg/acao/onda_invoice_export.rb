@@ -18,6 +18,10 @@ class OndaInvoiceExport < Ygg::PublicModel
   belongs_to :member,
              class_name: 'Ygg::Acao::Member'
 
+  belongs_to :debt,
+             class_name: 'Ygg::Acao::Debt',
+             optional: true
+
   has_many :details,
            class_name: 'Ygg::Acao::OndaInvoiceExport::Detail',
            embedded: true,
@@ -72,7 +76,7 @@ class OndaInvoiceExport < Ygg::PublicModel
 
     ric_fisc = XmlInterface::RicFisc.new do |ric_fisc|
       ric_fisc.cod_schema = 'ACAOFATT'
-      ric_fisc.data_ora_creazione = Time.now
+      ric_fisc.data_ora_creazione = created_at
       ric_fisc.docus[0] = XmlInterface::RicFisc::Docu.new do |docu|
         docu.testa = XmlInterface::RicFisc::Docu::Testa.new do |testa|
           testa.abbuono = 0
@@ -212,30 +216,34 @@ class OndaInvoiceExport < Ygg::PublicModel
   end
 
   def filename
-    File.join(Rails.application.config.acao.onda_import_dir, "#{identifier}.xml")
+    "#{created_at.strftime('%Y%m%d_%H%M%S')}_#{identifier}"
   end
 
-  def filename_reject
-    File.join(Rails.application.config.acao.onda_import_dir, '_importati', "#{identifier}_scarti.xml0")
+  def full_filename
+    File.join(Rails.application.config.acao.onda_import_dir, "#{filename}.xml")
   end
 
-  def filename_okay
-    File.join(Rails.application.config.acao.onda_import_dir, '_importati', "#{identifier}.xml0")
+  def full_filename_reject
+    File.join(Rails.application.config.acao.onda_import_dir, '_importati', "#{filename}_scarti.xml0")
   end
 
-  def write_file!(force: false)
+  def full_filename_okay
+    File.join(Rails.application.config.acao.onda_import_dir, '_importati', "#{filename}.xml0")
+  end
+
+  def send!(force: false)
     raise "Cannot export in state #{state}" if state != 'PENDING' && !force
 
-    filename_new = filename + '.new'
+    full_filename_new = full_filename + '.new'
 
     begin
-      File.open(filename_new , 'w') do |file|
+      File.open(full_filename_new , 'w') do |file|
         file.write(build_xml_for_onda_fattura)
       end
 
-      File.rename(filename_new, filename)
+      File.rename(full_filename_new, full_filename)
     ensure
-      File.unlink(filename_new) rescue nil
+      File.unlink(full_filename_new) rescue nil
     end
 
     self.state = 'WAIT_CONFIRM'
@@ -244,12 +252,12 @@ class OndaInvoiceExport < Ygg::PublicModel
   end
 
   def check_reject!
-    if File.exist?(filename)
+    if File.exist?(full_filename)
     else
-      if File.exist?(filename_okay)
-        if File.exist?(filename_reject)
+      if File.exist?(full_filename_okay)
+        if File.exist?(full_filename_reject)
 
-          doc = Nokogiri::XML(File.read(filename_reject))
+          doc = Nokogiri::XML(File.read(full_filename_reject))
 
           self.reject_cause = doc.at_xpath('//Docu')['Errore']
           self.state = 'REJECTED'

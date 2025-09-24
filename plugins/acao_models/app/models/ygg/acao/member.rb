@@ -75,6 +75,9 @@ class Member < Ygg::PublicModel
   has_many :debts,
            class_name: '::Ygg::Acao::Debt'
 
+  has_many :onda_invoice_exports,
+           class_name: 'Ygg::Acao::OndaInvoiceExport'
+
   has_many :roster_entries,
            class_name: '::Ygg::Acao::RosterEntry'
 

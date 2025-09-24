@@ -199,13 +199,12 @@ class Membership < Ygg::PublicModel
     services
   end
 
-  def self.renew(member:, services:, enable_email:, selected_roster_days:, force: false)
+  def self.renew(member:, year: Ygg::Acao::Year.renewal_year, services:, enable_email:, selected_roster_days:, force: false)
     payment = nil
 
     person = member.person
 
-    renewal_year = Ygg::Acao::Year.renewal_year
-    base_services = determine_base_services(member: member, year: renewal_year)
+    base_services = determine_base_services(member: member, year: year)
 
     # Check that every non-removable service is still present, non toggable service has the previous state
 
@@ -230,24 +229,24 @@ class Membership < Ygg::PublicModel
       # Debt -----------------
       debt = Ygg::Acao::Debt.create!(
         member: member,
-        descr: "Rinnovo associazione #{renewal_year.year}",
+        descr: "Rinnovo associazione #{year.year}",
         expires_at: Time.now + 10.days,
         state: 'PENDING',
       )
 
       member.email_allowed = enable_email
 
-      if member.memberships.find_by(reference_year: renewal_year)
+      if member.memberships.find_by(reference_year: year)
         raise "Membership already present"
       end
 
       # Membership
       membership = Ygg::Acao::Membership.create!(
         member: member,
-        reference_year: renewal_year,
+        reference_year: year,
         status: 'WAITING_PAYMENT',
         valid_from: Time.now,
-        valid_to: (Time.local(renewal_year.year).end_of_year + 31.days).end_of_day,
+        valid_to: (Time.local(year.year).end_of_year + 31.days).end_of_day,
         possible_roster_chief: member.roster_chief,
         student: member.is_student,
         tug_pilot: member.is_tug_pilot,
@@ -277,8 +276,8 @@ class Membership < Ygg::PublicModel
           Ygg::Acao::MemberService.create!(
             member: member,
             service_type: service_type,
-            valid_from: Time.local(renewal_year.year).beginning_of_year,
-            valid_to: (Time.local(renewal_year.year).end_of_year + 31.days).end_of_day,
+            valid_from: Time.local(year.year).beginning_of_year,
+            valid_to: (Time.local(year.year).end_of_year + 31.days).end_of_day,
             service_data: service[:extra_info],
           )
         end
@@ -300,7 +299,7 @@ class Membership < Ygg::PublicModel
 
       Ygg::Ml::Msg.notify(destinations: person, template: 'MEMBERSHIP_RENEWED', template_context: {
         first_name: person.first_name,
-        year: renewal_year.year,
+        year: year.year,
         payment_expiration: debt.expires_at.strftime('%d-%m-%Y'),
       }, objects: [ debt, membership ])
     end
@@ -308,7 +307,7 @@ class Membership < Ygg::PublicModel
     membership
   end
 
-  def payment_completed!(debt:)
+  def payment_completed!(debt:, time: Time.now)
     transaction do
       self.status = 'MEMBER'
 
@@ -325,12 +324,12 @@ class Membership < Ygg::PublicModel
           data_scadenza: (Time.local(reference_year.year).end_of_year + 31.days).end_of_day,
           euro_pagati: debt.total,
           note: "Pagamento #{debt.identifier}",
-          linea1: Time.now,
-          linea2: Time.now,
+          linea1: time,
+          linea2: time,
           firma_regolamento: true,
           riceve_email: member.email_allowed,
           temporanea: false,
-          data_iscrizione: Time.now,
+          data_iscrizione: time,
         )
 
         mdb_socio.servizi.where(anno: reference_year.year - 1).each do |servizio|
@@ -339,6 +338,9 @@ class Membership < Ygg::PublicModel
               codice_servizio: servizio.codice_servizio,
               anno: reference_year.year,
               dati_aggiuntivi: servizio.dati_aggiuntivi,
+              data_pagamento: time,
+              importo_pagato: 0,
+              numero_ricevuta: '00000',
               pagato: false,
             )
           end

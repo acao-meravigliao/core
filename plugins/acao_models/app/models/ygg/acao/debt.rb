@@ -24,6 +24,9 @@ class Debt < Ygg::PublicModel
            dependent: :destroy,
            autosave: true
 
+  has_many :onda_invoice_exports,
+           class_name: 'Ygg::Acao::OndaInvoiceExport'
+
   has_many :payments,
            class_name: 'Ygg::Acao::Payment'
 
@@ -73,24 +76,27 @@ class Debt < Ygg::PublicModel
   end
 
   def paid_in_full!
+    raise "Paid already!" if self.state == 'COMPLETED'
     raise "No payment registered" if payments.empty?
 
-    self.state = 'PAID_IN_FULL'
-    self.completed_at = Time.now
-    save!
+    transaction do
+      self.state = 'PAID_IN_FULL'
+      self.completed_at = Time.now
+      save!
 
-    details.all.each do |detail|
-      if detail.obj && detail.obj.respond_to?(:payment_completed!)
-        detail.obj.payment_completed!(debt: self)
+      details.all.each do |detail|
+        if detail.obj && detail.obj.respond_to?(:payment_completed!)
+          detail.obj.payment_completed!(debt: self)
+        end
+
+        # TODO: use detail.obj?
+        if detail.service_type.symbol == 'SKYSIGHT'
+          Ygg::Acao::SkysightCode.assign_and_send!(person: person)
+        end
       end
 
-      # TODO: use detail.obj?
-      if detail.service_type.symbol == 'SKYSIGHT'
-        Ygg::Acao::SkysightCode.assign_and_send!(person: person)
-      end
+      export_to_onda!
     end
-
-    export_to_onda!
   end
 
   def export_to_onda!
@@ -101,6 +107,7 @@ class Debt < Ygg::PublicModel
     transaction do
       onda_export = Ygg::Acao::OndaInvoiceExport.create!(
         member: member,
+        debt: self,
         identifier: identifier,
         descr: descr,
         notes: notes,
@@ -132,7 +139,7 @@ class Debt < Ygg::PublicModel
       end
     end
 
-    onda_export.write_file!
+    onda_export.send!
   end
 
   def generate_payment!(reason: "Pagamento fattura", timeout: 10.days)
