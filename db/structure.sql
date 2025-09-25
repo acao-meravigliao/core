@@ -1,4 +1,4 @@
-\restrict 9BjokaCLIXhFfrsXHQE6P7rrzaSg11Fc3QIwmjOZFfttqFmgG0dLHunWAelsaQj
+\restrict AbemCLfGvL1W1LCsfIaF17PQalHII1VeWyO42sypFpUC6FkR5hW8ddQQqm5Ud86
 
 -- Dumped from database version 16.10 (Ubuntu 16.10-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.10 (Ubuntu 16.10-0ubuntu0.24.04.1)
@@ -148,6 +148,20 @@ CREATE TABLE acao.access_remotes (
     ch3_code character varying(32),
     ch4_code character varying(32),
     descr character varying
+);
+
+
+--
+-- Name: aircraft_sync_statuses; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.aircraft_sync_statuses (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    symbol character varying(16),
+    last_update timestamp without time zone,
+    status character varying
 );
 
 
@@ -347,6 +361,26 @@ CREATE TABLE acao.fai_cards (
     country character varying(255) NOT NULL,
     person_id uuid,
     member_id uuid NOT NULL
+);
+
+
+--
+-- Name: flarmnet_entries; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.flarmnet_entries (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    aircraft_id uuid,
+    last_update timestamp without time zone,
+    device_type character varying(2) NOT NULL,
+    device_id character varying(32) NOT NULL,
+    registration character varying,
+    aircraft_model character varying,
+    cn character varying,
+    tracked boolean,
+    identified boolean
 );
 
 
@@ -672,6 +706,28 @@ CREATE TABLE acao.meters (
     person_id uuid,
     bus_id uuid,
     member_id uuid
+);
+
+
+--
+-- Name: ogn_ddb_entries; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.ogn_ddb_entries (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    aircraft_id uuid,
+    last_update timestamp without time zone,
+    device_type character varying(2) NOT NULL,
+    device_id character varying(32) NOT NULL,
+    aircraft_model_id character varying,
+    aircraft_registration character varying,
+    aircraft_model character varying,
+    aircraft_competition_id character varying,
+    tracked boolean,
+    identified boolean,
+    synced_at timestamp(6) without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -4155,6 +4211,14 @@ ALTER TABLE ONLY acao.access_remotes
 
 
 --
+-- Name: aircraft_sync_statuses aircraft_sync_statuses_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.aircraft_sync_statuses
+    ADD CONSTRAINT aircraft_sync_statuses_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: aircraft_types aircraft_types_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -4240,6 +4304,14 @@ ALTER TABLE ONLY acao.debts
 
 ALTER TABLE ONLY acao.fai_cards
     ADD CONSTRAINT fai_cards_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: flarmnet_entries flarmnet_entries_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.flarmnet_entries
+    ADD CONSTRAINT flarmnet_entries_pkey PRIMARY KEY (id);
 
 
 --
@@ -4360,6 +4432,14 @@ ALTER TABLE ONLY acao.meter_measures
 
 ALTER TABLE ONLY acao.meters
     ADD CONSTRAINT meters_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ogn_ddb_entries ogn_ddb_entries_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.ogn_ddb_entries
+    ADD CONSTRAINT ogn_ddb_entries_pkey PRIMARY KEY (id);
 
 
 --
@@ -5544,7 +5624,7 @@ CREATE INDEX index_aircrafts_on_owner_id ON acao.aircrafts USING btree (owner_id
 -- Name: index_aircrafts_on_registration; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE INDEX index_aircrafts_on_registration ON acao.aircrafts USING btree (registration);
+CREATE UNIQUE INDEX index_aircrafts_on_registration ON acao.aircrafts USING btree (registration);
 
 
 --
@@ -5643,6 +5723,20 @@ CREATE UNIQUE INDEX index_fai_cards_on_identifier ON acao.fai_cards USING btree 
 --
 
 CREATE INDEX index_fai_cards_on_member_id ON acao.fai_cards USING btree (member_id);
+
+
+--
+-- Name: index_flarmnet_entries_on_device_type_and_device_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_flarmnet_entries_on_device_type_and_device_id ON acao.flarmnet_entries USING btree (device_type, device_id);
+
+
+--
+-- Name: index_flarmnet_entries_on_registration; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_flarmnet_entries_on_registration ON acao.flarmnet_entries USING btree (registration);
 
 
 --
@@ -5930,6 +6024,20 @@ CREATE INDEX index_meters_on_member_id ON acao.meters USING btree (member_id);
 --
 
 CREATE UNIQUE INDEX index_meters_on_uuid ON acao.meters USING btree (id);
+
+
+--
+-- Name: index_ogn_ddb_entries_on_aircraft_registration; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_ogn_ddb_entries_on_aircraft_registration ON acao.ogn_ddb_entries USING btree (aircraft_registration);
+
+
+--
+-- Name: index_ogn_ddb_entries_on_device_type_and_device_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_ogn_ddb_entries_on_device_type_and_device_id ON acao.ogn_ddb_entries USING btree (device_type, device_id);
 
 
 --
@@ -7832,6 +7940,14 @@ ALTER TABLE ONLY acao.memberships
 
 
 --
+-- Name: flarmnet_entries fk_rails_296041249c; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.flarmnet_entries
+    ADD CONSTRAINT fk_rails_296041249c FOREIGN KEY (aircraft_id) REFERENCES acao.aircrafts(id) ON DELETE SET NULL;
+
+
+--
 -- Name: gates fk_rails_30dd971076; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8021,6 +8137,14 @@ ALTER TABLE ONLY acao.payment_satispay_charges
 
 ALTER TABLE ONLY acao.timetable_entries
     ADD CONSTRAINT fk_rails_ac4afa262e FOREIGN KEY (landing_airfield_id) REFERENCES acao.airfields(id);
+
+
+--
+-- Name: ogn_ddb_entries fk_rails_ad5f5aefcf; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.ogn_ddb_entries
+    ADD CONSTRAINT fk_rails_ad5f5aefcf FOREIGN KEY (aircraft_id) REFERENCES acao.aircrafts(id) ON DELETE SET NULL;
 
 
 --
@@ -8675,11 +8799,15 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 9BjokaCLIXhFfrsXHQE6P7rrzaSg11Fc3QIwmjOZFfttqFmgG0dLHunWAelsaQj
+\unrestrict AbemCLfGvL1W1LCsfIaF17PQalHII1VeWyO42sypFpUC6FkR5hW8ddQQqm5Ud86
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250925100306'),
+('20250925084811'),
+('20250924131802'),
+('20250924130350'),
 ('20250923232423'),
 ('20250919162236'),
 ('20250918231753'),

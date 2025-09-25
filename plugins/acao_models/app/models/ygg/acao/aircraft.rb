@@ -7,17 +7,11 @@
 # License:: You can redistribute it and/or modify it under the terms of the LICENSE file.
 #
 
-require 'open-uri'
-require 'yaml'
-
 module Ygg
 module Acao
 
 class Aircraft < Ygg::PublicModel
   self.table_name = 'acao.aircrafts'
-
-  has_many :trackers,
-           class_name: 'Ygg::Acao::Tracker'
 
   has_one :trailer,
            class_name: 'Ygg::Acao::Trailer'
@@ -41,11 +35,26 @@ class Aircraft < Ygg::PublicModel
   has_many :flights,
            class_name: 'Ygg::Acao::Flight'
 
+  has_many :token_transactions,
+           class_name: 'Ygg::Acao::TokenTransaction'
+
+  has_many :flights,
+           class_name: 'Ygg::Acao::Flight'
+
+  has_many :flarmnet_entries,
+           class_name: 'Ygg::Acao::FlarmnetEntry'
+
+  has_many :ogn_ddb_entries,
+           class_name: 'Ygg::Acao::OgnDdbEntry'
+
   gs_rel_map << { from: :aircraft, to: :owner, to_cls: 'Ygg::Acao::Member', from_key: 'owner_id', }
   gs_rel_map << { from: :aircraft, to: :club, to_cls: 'Ygg::Acao::Club', from_key: 'club_id', }
   gs_rel_map << { from: :aircraft, to: :club_owner, to_cls: 'Ygg::Acao::Club', from_key: 'club_owner_id', }
   gs_rel_map << { from: :aircraft, to: :flight, to_cls: 'Ygg::Acao::Flight', to_key: 'aircraft_id', }
   gs_rel_map << { from: :aircraft, to: :aircraft_type, to_cls: 'Ygg::Acao::AircraftType', from_key: 'aircraft_type_id', }
+  gs_rel_map << { from: :aircraft, to: :token_transaction, to_cls: 'Ygg::Acao::TokenTransaction', to_key: 'aircraft_id', }
+  gs_rel_map << { from: :aircraft, to: :flarmnet_entry, to_cls: 'Ygg::Acao::FlarmnetEntry', to_key: 'aircraft_id', }
+  gs_rel_map << { from: :aircraft, to: :ogn_ddb_entry, to_cls: 'Ygg::Acao::OgnDdbEntry', to_key: 'aircraft_id', }
 
   include Ygg::Core::Loggable
   define_default_log_controller(self)
@@ -55,78 +64,107 @@ class Aircraft < Ygg::PublicModel
     :owner_id,
   ]
 
-  def self.import_flarmnet_db!
-    flarmnet_db = Hash[open('https://www.flarmnet.org/files/data.fln', 'r').read.lines[1..-1].map { |x|
-      s = [ x.strip ].pack('H*').force_encoding('iso-8859-15').encode('utf-8')
-      [
-        s[0..5].strip.upcase,
-        {
-         id: s[0..5].strip.upcase,
-         name: s[6..26].strip,
-         home: s[26..46].strip,
-         type: s[46..66].strip,
-         reg: s[66..75].strip,
-         race_reg: s[76..78].strip.upcase,
-         freq: s[79..85].strip
-        }
-      ]
-    }]
+  class IncompatibleRecord < Ygg::Exception
+    attr_reader :diffs
 
-    fenum = flarmnet_db.keys.sort!.each
-    denum = self.all.where('flarm_identifier IS NOT NULL').order(flarm_identifier: :asc).each
+    def initialize(diffs:, **args)
+      super(**args)
 
-    fcur = fenum.next rescue nil
-    dcur = denum.next rescue nil
+      @diffs = diffs
+    end
+  end
 
-    while fcur || dcur
+  def self.merge(a, b, override_attrs: [], ignore_attrs: [ :flarm_identifier ])
+    attrs = [
+      :race_registration,
+      :registration,
+      :flarm_identifier,
+      :icao_identifier,
+      :hangar,
+      :notes,
+      :serial_number,
+      :arc_valid_to,
+      :insurance_valid_to,
+      :owner_id,
+      :club_owner_id,
+      :club_id,
+      :available,
+      :is_towplane,
+      :aircraft_type_id,
+    ]
 
-      if !dcur || (fcur && fcur < dcur.flarm_identifier)
-        flarmnet_entry = flarmnet_db[fcur]
+    transaction do
+      good = a
+      bad = b
 
-        puts "NEW flarmnet entry #{fcur} #{flarmnet_entry[:reg]}"
+      if a.flarm_identifier != b.flarm_identifier
+        puts "FLARM IDs differ a=#{a.flarm_identifier} b=#{b.flarm_identifier}"
 
-        aircraft = Ygg::Acao::Aircraft.where(flarm_identifier: nil).find_by_registration(flarmnet_entry[:reg])
-        if !aircraft
-          aircraft = Ygg::Acao::Aircraft.new
-          aircraft.update_from_flarmnet(flarmnet_entry)
+        fea = a.flarmnet_entries.find { |x| x.registration == a.registration }
+        feb = b.flarmnet_entries.find { |x| x.registration == b.registration }
 
-          puts "CRE #{aircraft.attributes}"
+        puts "fea=#{fea.inspect} feb=#{feb.inspect}"
 
-          aircraft.save!
+        if fea && !feb
+        elsif feb && !fea
+          good = b
+          bad = a
+        elsif fea && feb
         else
-          aircraft.update_from_flarmnet(flarmnet_entry)
+        end
+      else
+        good = a
+        bad = b
+      end
 
-          if aircraft.changes.any?
-            puts "UPD #{aircraft.changes}"
-            aircraft.save!
+      puts "good=#{good.flarm_identifier} bad=#{bad.flarm_identifier}"
+
+      diffs = {}
+
+      attrs.each do |attr_name|
+        our = good.send(attr_name)
+        oth = bad.send(attr_name)
+
+        if our.nil? ||
+           (our.is_a?(String) && our.empty?)
+
+          good.send("#{attr_name}=", oth)
+        elsif !oth.nil? && our != oth && !ignore_attrs.include?(attr_name)
+          if override_attrs.include?(attr_name)
+            good.send("#{attr_name}=", oth)
+          else
+            diffs[attr_name] = [ our, oth ]
           end
         end
+      end
 
-        fcur = fenum.next rescue nil
-      elsif !fcur || (dcur && fcur > dcur.flarm_identifier)
-        dcur = denum.next rescue nil
-      else
-        dcur.update_from_flarmnet(flarmnet_db[fcur])
+      if diffs.any?
+        raise IncompatibleRecord.new(diffs: diffs)
+      end
 
-        if dcur.changes.any?
-          puts "UPD #{dcur.changes}"
-          dcur.save!
-        end
+      #good.flights = bad.flights
+      #good.token_transactions = bd.token_transactions
+      Ygg::Acao::Flight.where(aircraft: bad).update_all(aircraft_id: good.id)
+      Ygg::Acao::TokenTransaction.where(aircraft: bad).update_all(aircraft_id: good.id)
 
-        fcur = fenum.next rescue nil
-        dcur = denum.next rescue nil
+      bad.destroy!
+      good.save!
+    end
+  end
+
+  def self.destroy_unreferenced
+    self.where(club_id: nil, owner_id: nil, club_owner_id: nil).each do |x|
+      if x.flights.empty? && x.token_transactions.empty?
+        x.destroy
       end
     end
   end
 
-  def update_from_flarmnet(entry)
-    self.flarm_identifier = entry[:id]
-    self.fn_owner_name = entry[:name]
-    self.fn_home_airport = entry[:home]
-    self.fn_type_name = entry[:type]
-    self.fn_common_radio_frequency = entry[:freq]
-    self.registration = entry[:reg] if !registration
-    self.race_registration = entry[:race_reg] if !race_registration
+  def self.inconsistences
+    {
+     reg_duplicated: Ygg::Acao::Aircraft.group(:registration).having('count(*) > 1').count,
+     
+    }
   end
 
   def self.sync_from_maindb!(debug: 0)

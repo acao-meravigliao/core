@@ -77,6 +77,14 @@ namespace :acao do
     desc 'Sync aircrafts'
 
     TimeoutActor.new(tout: 100).do do
+      Ygg::Acao::FlarmnetEntry.sync!
+    end
+
+    TimeoutActor.new(tout: 100).do do
+      Ygg::Acao::OgnDdbEntry.sync!
+    end
+
+    TimeoutActor.new(tout: 100).do do
       Ygg::Acao::Aircraft.sync_from_maindb!
     end
   end
