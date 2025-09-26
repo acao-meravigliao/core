@@ -90,13 +90,19 @@ class Flight < Ygg::PublicModel
       puts "Starting from flight #{start}" if debug >= 1
     end
 
-    l_relation = Ygg::Acao::MainDb::Volo.all.order(id_voli: :asc)
-    l_relation = l_relation.where('id_voli >= ?', start) if start
-    l_relation = l_relation.where('id_voli <= ?', stop) if stop
-
     # Do towplane flight (first, so that we can look it up for towed_by later)
 
     # ============================== TOW ==================================
+    l_relation = Ygg::Acao::MainDb::Volo.all.
+                   where('upper(trim(marche_aereo)) <> \'\'').
+                   where('upper(trim(marche_aereo)) <> \'NO\'').
+                   where('upper(trim(marche_aereo)) <> \'AUTO\'').
+                   where('upper(trim(marche_aereo)) <> \'I-ALTRI\'').
+                   where('upper(trim(marche_aereo)) <> \'X-WINCH\'').
+                   order(id_voli: :asc)
+    l_relation = l_relation.where('id_voli >= ?', start) if start
+    l_relation = l_relation.where('id_voli <= ?', stop) if stop
+
     r_relation = Ygg::Acao::Flight.
                    where(source: 'OLDDB').
                    where('source_id IS NOT NULL').
@@ -113,23 +119,17 @@ class Flight < Ygg::PublicModel
       puts "TOW CHK ADD #{l.id_voli}" if debug >= 3
 
       begin
-        if !l.marche_aereo.blank? &&
-           l.marche_aereo.strip != 'NO' &&
-           l.marche_aereo.strip != 'AUTO' &&
-           l.marche_aereo.strip != 'I-ALTRI'
+        puts "ADDING TOW FLIGHT ID=#{l.id_voli}" if debug >= 1
 
-          puts "ADDING TOW FLIGHT ID=#{l.id_voli}" if debug >= 1
+        transaction do
+          tow_flight = Ygg::Acao::Flight.new(
+            source: 'OLDDB',
+            source_id: l.id_voli,
+            source_expansion: 'TOW',
+          )
 
-          transaction do
-            tow_flight = Ygg::Acao::Flight.new(
-              source: 'OLDDB',
-              source_id: l.id_voli,
-              source_expansion: 'TOW',
-            )
-
-            tow_flight.sync_from_maindb_as_tow(l)
-            tow_flight.save!
-          end
+          tow_flight.sync_from_maindb_as_tow(l)
+          tow_flight.save!
         end
       rescue InvalidRecord => e
         puts "OOOOOOOOOOOOOOOOHHHHHHHHH In record #{l.id_voli} (TOW): #{e.to_s}"
@@ -154,6 +154,19 @@ class Flight < Ygg::PublicModel
     })
 
     # ============================== GL ==================================
+
+    l_relation = Ygg::Acao::MainDb::Volo.all.
+                   where('upper(trim(marche_aliante)) <> \'\'').
+                   where('upper(trim(marche_aliante)) <> \'NO\'').
+                   where('upper(trim(marche_aliante)) <> \'NOALI\'').
+                   where('upper(trim(marche_aliante)) <> \'ACAO\'').
+                   where('upper(trim(marche_aliante)) <> \'I-ALTRI\'').
+                   where('upper(trim(marche_aliante)) <> \'I-ALTRO\'').
+                   where('upper(trim(marche_aliante)) <> \'DG1000\'').
+                   order(id_voli: :asc)
+    l_relation = l_relation.where('id_voli >= ?', start) if start
+    l_relation = l_relation.where('id_voli <= ?', stop) if stop
+
     r_relation = Ygg::Acao::Flight.
                    where(source: 'OLDDB').
                    where('source_id IS NOT NULL').
@@ -170,27 +183,17 @@ class Flight < Ygg::PublicModel
       puts "GL CHK ADD #{l.id_voli}" if debug >= 3
 
       begin
-        if !l.marche_aliante.blank? &&
-            l.marche_aliante.strip != 'NO' &&
-            l.marche_aliante.strip != 'NOALI' &&
-            l.marche_aliante.strip != 'I-ALTRO' &&
-            l.marche_aliante.strip != 'ACAO' &&
-            l.marche_aliante.strip != 'DG1000' &&
-            l.marche_aliante.strip != 'I-ALTRI'
+        puts "GL ADD FLIGHT ID=#{l.id_voli}" if debug >= 1
 
-          puts "GL ADD FLIGHT ID=#{l.id_voli}" if debug >= 1
+        transaction do
+          gl_flight = Ygg::Acao::Flight.new(
+            source: 'OLDDB',
+            source_id: l.id_voli,
+            source_expansion: 'GL',
+          )
 
-
-          transaction do
-            gl_flight = Ygg::Acao::Flight.new(
-              source: 'OLDDB',
-              source_id: l.id_voli,
-              source_expansion: 'GL',
-            )
-
-            gl_flight.sync_from_maindb_as_gl(l)
-            gl_flight.save!
-          end
+          gl_flight.sync_from_maindb_as_gl(l)
+          gl_flight.save!
         end
       rescue InvalidRecord => e
         puts "OOOOOOOOOOOOOOOOHHHHHHHHH In record #{l.id_voli} (GL): #{e.to_s}"
@@ -276,6 +279,8 @@ class Flight < Ygg::PublicModel
 
     if other.marche_aereo.strip == 'AUTO'
       self.launch_type = 'SL'
+    elsif other.marche_aereo.strip == 'X-WINCH'
+      self.launch_type = 'WINCH'
     elsif other.tipo_volo_club == 11
       self.launch_type = 'WINCH'
     else
