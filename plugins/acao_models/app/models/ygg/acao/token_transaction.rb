@@ -16,6 +16,10 @@ class TokenTransaction < Ygg::PublicModel
   belongs_to :member,
              class_name: 'Ygg::Acao::Member'
 
+  belongs_to :operator,
+             class_name: 'Ygg::Acao::Member',
+             optional: true
+
   belongs_to :aircraft,
              class_name: '::Ygg::Acao::Aircraft',
              optional: true
@@ -75,7 +79,7 @@ class TokenTransaction < Ygg::PublicModel
         member: member,
         recorded_at: troiano_datetime_to_utc(l.log_data),
         old_operator: l.operatore.strip,
-        old_marche_mezzo: l.marche_mezzo.strip,
+        old_marche_mezzo: l.marche_mezzo.strip.upcase,
         descr: l.note.strip,
         amount: l.credito_att - l.credito_prec,
         prev_credit: l.credito_prec,
@@ -84,6 +88,7 @@ class TokenTransaction < Ygg::PublicModel
         aircraft: aircraft,
       )
 
+      tt.associate_with_operator
       tt.associate_with_aircraft(aircraft_cache: aircraft_cache)
       tt.associate_with_flight
       tt.associate_with_invoice
@@ -100,9 +105,11 @@ class TokenTransaction < Ygg::PublicModel
       r.assign_attributes(
         amount: l.credito_att - l.credito_prec,
         recorded_at: troiano_datetime_to_utc(l.log_data),
+        old_marche_mezzo: l.marche_mezzo.strip.upcase
       )
 
-      tt.associate_with_aircraft(aircraft_cache: aircraft_cache)
+      r.associate_with_operator
+      r.associate_with_aircraft(aircraft_cache: aircraft_cache)
       r.associate_with_flight
       r.associate_with_invoice
 
@@ -119,16 +126,45 @@ class TokenTransaction < Ygg::PublicModel
     ActiveSupport::TimeZone.new('Europe/Rome').local_to_utc(dt)
   end
 
-  def associate_with_aircraft(aircraft_cache:)
-    aircraft_reg = l.marche_mezzo.strip.upcase
-    aircraft_reg = nil if aircraft_reg == 'NO' || aircraft_reg.blank?
+  OPS = {
+    "Albertazzi" => 839,
+    "Massimo Zot." => 223,
+    "Daniela" => 7002,
+    "TROIANO" => 556,
+#    "SYSTEM" => ,
+    "Francois" => 1088,
+    "Balducci" => 521,
+    "Zottola" => 223,
+#    "Direttore" => ,
+    "Barbara" => 891,
+    "Troiano" => 556,
+#    "Altro" => ,
+    "Barbara C." => 891,
+    "Frobert" => 1088,
+    "Marzia" => 7019,
+    "Chicca" => 7024,
+    "Francois2" => 1088,
+    "Alberto Albertazzi" => 839,
+    "Alessandra" => 7016,
+#    "TERMINALE" => 71633
+  }
 
-    aircraft = aircraft_cache[aircraft_reg]
-    if !aircraft
-      puts "LOGBOL MISSING AIRCRAFT #{aircraft_reg}"
+  def associate_with_operator
+    op = OPS[old_operator]
+    if op
+      self.operator = Ygg::Acao::Member.find_by!(code: op)
     end
+  end
 
-    self.aircraft = aircraft
+  def associate_with_aircraft(aircraft_cache:)
+    if !old_marche_mezzo.blank? && old_marche_mezzo != 'NO'
+      aircraft = aircraft_cache[old_marche_mezzo]
+      if !aircraft
+        puts "LOGBOL MISSING AIRCRAFT #{old_marche_mezzo}"
+      else
+        self.aircraft = aircraft
+      end
+    end
   end
 
   def associate_with_flight

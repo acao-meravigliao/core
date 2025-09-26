@@ -16,6 +16,10 @@ class BarTransaction < Ygg::PublicModel
   belongs_to :member,
              class_name: '::Ygg::Acao::Member'
 
+  belongs_to :operator,
+             class_name: 'Ygg::Acao::Member',
+             optional: true
+
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 

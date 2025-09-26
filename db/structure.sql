@@ -271,7 +271,8 @@ CREATE TABLE acao.bar_transactions (
     old_cassetta_id integer,
     person_id uuid,
     session_id uuid,
-    member_id uuid NOT NULL
+    member_id uuid NOT NULL,
+    operator_id uuid
 );
 
 
@@ -1035,7 +1036,8 @@ CREATE TABLE acao.token_transactions (
     session_id uuid,
     member_id uuid NOT NULL,
     flight_id uuid,
-    invoice_id uuid
+    invoice_id uuid,
+    operator_id uuid
 );
 
 
@@ -5638,6 +5640,13 @@ CREATE INDEX index_bar_transactions_on_member_id ON acao.bar_transactions USING 
 
 
 --
+-- Name: index_bar_transactions_on_operator_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_bar_transactions_on_operator_id ON acao.bar_transactions USING btree (operator_id);
+
+
+--
 -- Name: index_bar_transactions_on_session_id; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -6258,6 +6267,13 @@ CREATE INDEX index_token_transactions_on_invoice_id ON acao.token_transactions U
 --
 
 CREATE INDEX index_token_transactions_on_member_id ON acao.token_transactions USING btree (member_id);
+
+
+--
+-- Name: index_token_transactions_on_operator_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_token_transactions_on_operator_id ON acao.token_transactions USING btree (operator_id);
 
 
 --
@@ -8805,6 +8821,7 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250926105900'),
 ('20250926093614'),
 ('20250925100306'),
 ('20250925084811'),
