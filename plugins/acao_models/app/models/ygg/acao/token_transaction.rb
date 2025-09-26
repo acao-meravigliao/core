@@ -24,9 +24,14 @@ class TokenTransaction < Ygg::PublicModel
              class_name: '::Ygg::Acao::Flight',
              optional: true
 
+  belongs_to :invoice,
+             class_name: '::Ygg::Acao::Invoice',
+             optional: true
+
   gs_rel_map << { from: :token_transaction, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
   gs_rel_map << { from: :token_transaction, to: :aircraft, to_cls: 'Ygg::Acao::Aircraft', from_key: 'aircraft_id', }
   gs_rel_map << { from: :token_transaction, to: :flight, to_cls: 'Ygg::Acao::Flight', from_key: 'flight_id', }
+  gs_rel_map << { from: :token_transaction, to: :invoice, to_cls: 'Ygg::Acao::Invoice', from_key: 'invoice_id', }
 
   idxc_cached
   self.idxc_sensitive_attributes = [
@@ -66,17 +71,7 @@ class TokenTransaction < Ygg::PublicModel
         return
       end
 
-      aircraft_reg = l.marche_mezzo.strip.upcase
-      aircraft = nil
-
-      if !aircraft_reg.blank? && aircraft_reg != 'NO'
-        aircraft = aircraft_cache[aircraft_reg]
-        if !aircraft
-          puts "LOGBOL MISSING AIRCRAFT #{aircraft_reg}"
-        end
-      end
-
-      Ygg::Acao::TokenTransaction.create(
+      tt = Ygg::Acao::TokenTransaction.new(
         member: member,
         recorded_at: troiano_datetime_to_utc(l.log_data),
         old_operator: l.operatore.strip,
@@ -89,6 +84,11 @@ class TokenTransaction < Ygg::PublicModel
         aircraft: aircraft,
       )
 
+      tt.associate_with_aircraft(aircraft_cache: aircraft_cache)
+      tt.associate_with_flight
+      tt.associate_with_invoice
+      tt.save!
+
     },
     r_to_l: lambda { |r|
       puts "LOGBOL DESTROY #{r.old_id}" #if debug >= 1
@@ -97,22 +97,14 @@ class TokenTransaction < Ygg::PublicModel
     lr_update: lambda { |l,r|
       puts "LOGBOL CMP #{l.id_log_bollini}" if debug >= 3
 
-      aircraft_reg = l.marche_mezzo.strip.upcase
-      aircraft = nil
-
-      if !aircraft_reg.blank? && aircraft_reg != 'NO'
-        aircraft = aircraft_cache[aircraft_reg]
-        if !aircraft
-          puts "LOGBOL MISSING AIRCRAFT #{aircraft_reg}"
-        end
-      end
-
       r.assign_attributes(
         amount: l.credito_att - l.credito_prec,
         recorded_at: troiano_datetime_to_utc(l.log_data),
-        aircraft: aircraft,
-        flight: Ygg::Acao::Flight.find_by(source_id: l.id_volo, source_expansion: 'GL'),
       )
+
+      tt.associate_with_aircraft(aircraft_cache: aircraft_cache)
+      r.associate_with_flight
+      r.associate_with_invoice
 
       if r.deep_changed?
         puts "UPDATING LOG BOLLINI old_cassetta_id=#{l.id_log_bollini}" if debug >= 1
@@ -125,6 +117,29 @@ class TokenTransaction < Ygg::PublicModel
 
   def self.troiano_datetime_to_utc(dt)
     ActiveSupport::TimeZone.new('Europe/Rome').local_to_utc(dt)
+  end
+
+  def associate_with_aircraft(aircraft_cache:)
+    aircraft_reg = l.marche_mezzo.strip.upcase
+    aircraft_reg = nil if aircraft_reg == 'NO' || aircraft_reg.blank?
+
+    aircraft = aircraft_cache[aircraft_reg]
+    if !aircraft
+      puts "LOGBOL MISSING AIRCRAFT #{aircraft_reg}"
+    end
+
+    self.aircraft = aircraft
+  end
+
+  def associate_with_flight
+    self.flight = Ygg::Acao::Flight.find_by(source_id: l.id_volo, source_expansion: 'GL')
+  end
+
+  def associate_with_invoice
+    match = /([0-9]{7})/.match(descr)
+    if match
+      self.invoice = Ygg::Acao::Invoice.find_by(year: recorded_at.year, identifier: match[1])
+    end
   end
 end
 
