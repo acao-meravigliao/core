@@ -5,7 +5,7 @@ set :user, 'yggdra'
 set :shared_dirs, fetch(:shared_dirs, []) + [ ]
 set :shared_files, fetch(:shared_files, []) + [ 'config/database.yml', 'config/credentials.yml.enc', 'config/master.key' ]
 set :repository, 'foobar'
-set :keep_releases, 20
+set :keep_releases, 100
 set :rsync_excludes, [
   '.git*',
   '/config/database.yml',
