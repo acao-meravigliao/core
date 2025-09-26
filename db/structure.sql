@@ -1,8 +1,3 @@
-\restrict AbemCLfGvL1W1LCsfIaF17PQalHII1VeWyO42sypFpUC6FkR5hW8ddQQqm5Ud86
-
--- Dumped from database version 16.10 (Ubuntu 16.10-0ubuntu0.24.04.1)
--- Dumped by pg_dump version 16.10 (Ubuntu 16.10-0ubuntu0.24.04.1)
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -1039,7 +1034,8 @@ CREATE TABLE acao.token_transactions (
     person_id uuid,
     session_id uuid,
     member_id uuid NOT NULL,
-    flight_id uuid
+    flight_id uuid,
+    invoice_id uuid
 );
 
 
@@ -6251,6 +6247,13 @@ CREATE UNIQUE INDEX index_timetable_entries_on_uuid ON acao.timetable_entries US
 
 
 --
+-- Name: index_token_transactions_on_invoice_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_token_transactions_on_invoice_id ON acao.token_transactions USING btree (invoice_id);
+
+
+--
 -- Name: index_token_transactions_on_member_id; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -8799,11 +8802,10 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-\unrestrict AbemCLfGvL1W1LCsfIaF17PQalHII1VeWyO42sypFpUC6FkR5hW8ddQQqm5Ud86
-
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250926093614'),
 ('20250925100306'),
 ('20250925084811'),
 ('20250924131802'),
