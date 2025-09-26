@@ -85,12 +85,11 @@ class TokenTransaction < Ygg::PublicModel
         prev_credit: l.credito_prec,
         credit: l.credito_att,
         old_id: l.id_log_bollini,
-        aircraft: aircraft,
       )
 
       tt.associate_with_operator
       tt.associate_with_aircraft(aircraft_cache: aircraft_cache)
-      tt.associate_with_flight
+      tt.associate_with_flight(id_volo: l.id_volo)
       tt.associate_with_invoice
       tt.save!
 
@@ -110,7 +109,7 @@ class TokenTransaction < Ygg::PublicModel
 
       r.associate_with_operator
       r.associate_with_aircraft(aircraft_cache: aircraft_cache)
-      r.associate_with_flight
+      r.associate_with_flight(id_volo: l.id_volo)
       r.associate_with_invoice
 
       if r.deep_changed?
@@ -167,8 +166,8 @@ class TokenTransaction < Ygg::PublicModel
     end
   end
 
-  def associate_with_flight
-    self.flight = Ygg::Acao::Flight.find_by(source_id: l.id_volo, source_expansion: 'GL')
+  def associate_with_flight(id_volo:)
+    self.flight = Ygg::Acao::Flight.find_by(source_id: id_volo, source_expansion: 'GL')
   end
 
   def associate_with_invoice
