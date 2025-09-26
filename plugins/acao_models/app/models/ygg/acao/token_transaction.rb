@@ -67,11 +67,13 @@ class TokenTransaction < Ygg::PublicModel
       end
 
       aircraft_reg = l.marche_mezzo.strip.upcase
-      aircraft_reg = nil if aircraft_reg == 'NO' || aircraft_reg.blank?
+      aircraft = nil
 
-      aircraft = aircraft_cache[aircraft_reg]
-      if !aircraft
-        puts "LOGBOL MISSING AIRCRAFT #{aircraft_reg}"
+      if !aircraft_reg.blank? && aircraft_reg != 'NO'
+        aircraft = aircraft_cache[aircraft_reg]
+        if !aircraft
+          puts "LOGBOL MISSING AIRCRAFT #{aircraft_reg}"
+        end
       end
 
       Ygg::Acao::TokenTransaction.create(
@@ -96,11 +98,13 @@ class TokenTransaction < Ygg::PublicModel
       puts "LOGBOL CMP #{l.id_log_bollini}" if debug >= 3
 
       aircraft_reg = l.marche_mezzo.strip.upcase
-      aircraft_reg = nil if aircraft_reg == 'NO' || aircraft_reg.blank?
+      aircraft = nil
 
-      aircraft = aircraft_cache[aircraft_reg]
-      if !aircraft
-        puts "LOGBOL MISSING AIRCRAFT #{aircraft_reg}"
+      if !aircraft_reg.blank? && aircraft_reg != 'NO'
+        aircraft = aircraft_cache[aircraft_reg]
+        if !aircraft
+          puts "LOGBOL MISSING AIRCRAFT #{aircraft_reg}"
+        end
       end
 
       r.assign_attributes(
