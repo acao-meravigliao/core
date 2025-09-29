@@ -87,7 +87,7 @@ class FlarmnetEntry < Ygg::PublicModel
           identified: l[:identified] == 'Y',
         )
 
-        associate_with_aircraft
+        r.associate_with_aircraft
 
         if r.changes.any? || !r.last_update
           puts "UPD #{r.changes}"
