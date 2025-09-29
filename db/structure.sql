@@ -210,7 +210,8 @@ CREATE TABLE acao.aircrafts (
     is_towplane boolean DEFAULT false NOT NULL,
     owner_id_old uuid,
     aircraft_type_id uuid,
-    owner_id uuid
+    owner_id uuid,
+    source_id integer
 );
 
 
@@ -404,7 +405,7 @@ CREATE TABLE acao.flights (
     instruction_flight boolean DEFAULT false NOT NULL,
     launch_type character varying(16),
     landing_time timestamp with time zone,
-    aircraft_reg character varying(16) NOT NULL,
+    aircraft_reg character varying(16),
     takeoff_location_raw character varying(255),
     landing_location_raw character varying(255),
     aircraft_id uuid,
@@ -5731,6 +5732,13 @@ CREATE INDEX index_fai_cards_on_member_id ON acao.fai_cards USING btree (member_
 
 
 --
+-- Name: index_flarmnet_entries_on_aircraft_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_flarmnet_entries_on_aircraft_id ON acao.flarmnet_entries USING btree (aircraft_id);
+
+
+--
 -- Name: index_flarmnet_entries_on_device_type_and_device_id; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -6032,6 +6040,13 @@ CREATE UNIQUE INDEX index_meters_on_uuid ON acao.meters USING btree (id);
 
 
 --
+-- Name: index_ogn_ddb_entries_on_aircraft_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_ogn_ddb_entries_on_aircraft_id ON acao.ogn_ddb_entries USING btree (aircraft_id);
+
+
+--
 -- Name: index_ogn_ddb_entries_on_aircraft_registration; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -6253,6 +6268,13 @@ CREATE INDEX index_timetable_entries_on_towed_by_id ON acao.timetable_entries US
 --
 
 CREATE UNIQUE INDEX index_timetable_entries_on_uuid ON acao.timetable_entries USING btree (id);
+
+
+--
+-- Name: index_token_transactions_on_flight_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_token_transactions_on_flight_id ON acao.token_transactions USING btree (flight_id);
 
 
 --
@@ -8821,6 +8843,10 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250929131033'),
+('20250929123504'),
+('20250928000213'),
+('20250927214108'),
 ('20250926105900'),
 ('20250926093614'),
 ('20250925100306'),
