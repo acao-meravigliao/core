@@ -309,8 +309,11 @@ class Flight < Ygg::PublicModel
     end
 
     if self.aircraft
-      self.aircraft_owner_id = aircraft.owner_id
-      self.aircraft_owner = (aircraft.owner && aircraft.owner.person.name).presence
+      owner = aircraft.owners.find_by(is_referent: true)
+      if owner
+        self.aircraft_owner_id = owner.id
+        self.aircraft_owner = owner.person.name
+      end
     end
 
     if other.marche_aereo.strip == 'AUTO'
@@ -557,8 +560,11 @@ class Flight < Ygg::PublicModel
     end
 
     if self.aircraft
-      self.aircraft_owner_id = aircraft.owner_id
-      self.aircraft_owner = (aircraft.owner && aircraft.owner.name).presence
+      owner = aircraft.owners.find_by(is_referent: true)
+      if owner
+        self.aircraft_owner_id = owner.id
+        self.aircraft_owner = owner.person.name
+      end
     end
 
     self.launch_type = nil

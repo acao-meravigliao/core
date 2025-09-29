@@ -75,6 +75,9 @@ class Member < Ygg::PublicModel
   has_many :debts,
            class_name: '::Ygg::Acao::Debt'
 
+  has_many :aircraft_owners,
+           class_name: '::Ygg::Acao::Aircraft::Owner'
+
   has_many :onda_invoice_exports,
            class_name: 'Ygg::Acao::OndaInvoiceExport'
 
@@ -110,10 +113,6 @@ class Member < Ygg::PublicModel
   has_many :token_transactions,
            class_name: '::Ygg::Acao::TokenTransaction',
            foreign_key: 'member_id'
-
-  has_many :aircrafts,
-           class_name: '::Ygg::Acao::Aircraft',
-           foreign_key: 'owner_id'
 
   has_many :flights,
            class_name: '::Ygg::Acao::Flight',

@@ -147,6 +147,18 @@ CREATE TABLE acao.access_remotes (
 
 
 --
+-- Name: aircraft_owners; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.aircraft_owners (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    aircraft_id uuid,
+    member_id uuid,
+    is_referent boolean DEFAULT false NOT NULL
+);
+
+
+--
 -- Name: aircraft_sync_statuses; Type: TABLE; Schema: acao; Owner: -
 --
 
@@ -4210,6 +4222,14 @@ ALTER TABLE ONLY acao.access_remotes
 
 
 --
+-- Name: aircraft_owners aircraft_owners_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.aircraft_owners
+    ADD CONSTRAINT aircraft_owners_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: aircraft_sync_statuses aircraft_sync_statuses_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -5575,6 +5595,27 @@ CREATE UNIQUE INDEX index_acao_person_services_on_uuid ON acao.member_services U
 --
 
 CREATE UNIQUE INDEX index_access_remotes_on_symbol ON acao.access_remotes USING btree (symbol);
+
+
+--
+-- Name: index_aircraft_owners_on_aircraft_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_aircraft_owners_on_aircraft_id ON acao.aircraft_owners USING btree (aircraft_id);
+
+
+--
+-- Name: index_aircraft_owners_on_aircraft_id_and_member_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_aircraft_owners_on_aircraft_id_and_member_id ON acao.aircraft_owners USING btree (aircraft_id, member_id);
+
+
+--
+-- Name: index_aircraft_owners_on_member_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_aircraft_owners_on_member_id ON acao.aircraft_owners USING btree (member_id);
 
 
 --
@@ -7957,6 +7998,14 @@ ALTER TABLE ONLY acao.tow_roster_entries
 
 
 --
+-- Name: aircraft_owners fk_rails_2542121a5d; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.aircraft_owners
+    ADD CONSTRAINT fk_rails_2542121a5d FOREIGN KEY (member_id) REFERENCES acao.members(id);
+
+
+--
 -- Name: flights fk_rails_27046fa821; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8210,6 +8259,14 @@ ALTER TABLE ONLY acao.bar_transactions
 
 ALTER TABLE ONLY acao.airfields
     ADD CONSTRAINT fk_rails_b744cff7d3 FOREIGN KEY (location_id) REFERENCES core.locations(id);
+
+
+--
+-- Name: aircraft_owners fk_rails_baf92d8dce; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.aircraft_owners
+    ADD CONSTRAINT fk_rails_baf92d8dce FOREIGN KEY (aircraft_id) REFERENCES acao.aircrafts(id);
 
 
 --
@@ -8840,9 +8897,10 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO "$user", public;
+SET search_path TO public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250929161248'),
 ('20250929131033'),
 ('20250929123504'),
 ('20250928000213'),

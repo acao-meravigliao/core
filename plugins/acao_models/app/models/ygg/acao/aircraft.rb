@@ -28,9 +28,8 @@ class Aircraft < Ygg::PublicModel
              class_name: 'Ygg::Acao::Club',
              optional: true
 
-  belongs_to :owner,
-             class_name: 'Ygg::Acao::Member',
-             optional: true
+  has_many :owners,
+           class_name: 'Ygg::Acao::Aircraft::Owner'
 
   has_many :flights,
            class_name: 'Ygg::Acao::Flight'
@@ -47,7 +46,7 @@ class Aircraft < Ygg::PublicModel
   has_many :ogn_ddb_entries,
            class_name: 'Ygg::Acao::OgnDdbEntry'
 
-  gs_rel_map << { from: :aircraft, to: :owner, to_cls: 'Ygg::Acao::Member', from_key: 'owner_id', }
+  gs_rel_map << { from: :aircraft, to: :aircraft_owner, to_cls: 'Ygg::Acao::Aircraft::Owner', to_key: 'aircraft_id', }
   gs_rel_map << { from: :aircraft, to: :club, to_cls: 'Ygg::Acao::Club', from_key: 'club_id', }
   gs_rel_map << { from: :aircraft, to: :club_owner, to_cls: 'Ygg::Acao::Club', from_key: 'club_owner_id', }
   gs_rel_map << { from: :aircraft, to: :flight, to_cls: 'Ygg::Acao::Flight', to_key: 'aircraft_id', }
@@ -61,7 +60,6 @@ class Aircraft < Ygg::PublicModel
 
   idxc_cached
   self.idxc_sensitive_attributes = [
-    :owner_id,
   ]
 
   after_create do
@@ -127,7 +125,6 @@ class Aircraft < Ygg::PublicModel
       :serial_number,
       :arc_valid_to,
       :insurance_valid_to,
-      :owner_id,
       :club_owner_id,
       :club_id,
       :available,
@@ -195,8 +192,8 @@ class Aircraft < Ygg::PublicModel
   end
 
   def self.destroy_unreferenced
-    self.where(club_id: nil, owner_id: nil, club_owner_id: nil).each do |x|
-      if x.flights.empty? && x.token_transactions.empty?
+    self.where(club_id: nil, club_owner_id: nil).each do |x|
+      if x.owners.empty? && x.flights.empty? && x.token_transactions.empty?
         x.destroy
       end
     end
@@ -226,13 +223,6 @@ class Aircraft < Ygg::PublicModel
     l_to_r: lambda { |l|
       puts "AIRCRAFT ADD #{l.id_mezzi} #{l.Marche}" if debug >= 1
 
-      owner = if !l.codice_proprietario.blank? &&
-         l.codice_proprietario != 0
-        Ygg::Acao::Member.find_by(code: l.codice_proprietario)
-      else
-         nil
-      end
-
       race_registration = if !l.sigla_gara.strip.upcase.blank? &&
                              l.sigla_gara.strip.upcase != 'S'
         l.sigla_gara.strip.upcase
@@ -249,13 +239,22 @@ class Aircraft < Ygg::PublicModel
         nil
       end
 
-      Aircraft.create!(
-        owner: owner,
+      ac = Aircraft.create!(
+        source_id: l.id_mezzi,
         registration: l.Marche.strip.upcase,
         race_registration: race_registration,
         flarm_identifier: flarm_identifier,
         hangar: false,
       )
+
+      if !l.codice_proprietario.blank? &&
+          l.codice_proprietario != 0
+        owner = Ygg::Acao::Member.find_by(code: l.codice_proprietario)
+
+        ac.owners.find_or_create_by(member: owner) do |o|
+          o.is_referent = true
+        end
+      end
     },
     r_to_l: lambda { |r|
 #      puts "AIRCRAFT DESTROY #{r.source_id} #{r.registration}" if debug >= 1
@@ -286,12 +285,20 @@ class Aircraft < Ygg::PublicModel
       end
 
       r.assign_attributes(
-        owner: owner,
         registration: l.Marche.strip.upcase,
         race_registration: race_registration,
         flarm_identifier: flarm_identifier,
         hangar: false,
       )
+
+      if !l.codice_proprietario.blank? &&
+          l.codice_proprietario != 0
+        owner = Ygg::Acao::Member.find_by(code: l.codice_proprietario)
+
+        r.owners.find_or_create_by(member: owner) do |o|
+          o.is_referent = true
+        end
+      end
 
       if r.deep_changed?
         puts "AIRCRAFT UPD =#{l.id_mezzi}" if debug >= 1
