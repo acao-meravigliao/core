@@ -14,7 +14,8 @@ class Flight < Ygg::PublicModel
   self.table_name = 'acao.flights'
 
   belongs_to :aircraft,
-             class_name: 'Ygg::Acao::Aircraft'
+             class_name: 'Ygg::Acao::Aircraft',
+             optional: true
 
   belongs_to :pilot1,
              class_name: 'Ygg::Acao::Member',
@@ -92,12 +93,13 @@ class Flight < Ygg::PublicModel
 
     # Do towplane flight (first, so that we can look it up for towed_by later)
 
+    cache = build_cache
+
     # ============================== TOW ==================================
     l_relation = Ygg::Acao::MainDb::Volo.all.
                    where('upper(trim(marche_aereo)) <> \'\'').
                    where('upper(trim(marche_aereo)) <> \'NO\'').
                    where('upper(trim(marche_aereo)) <> \'AUTO\'').
-                   where('upper(trim(marche_aereo)) <> \'I-ALTRI\'').
                    where('upper(trim(marche_aereo)) <> \'X-WINCH\'').
                    order(id_voli: :asc)
     l_relation = l_relation.where('id_voli >= ?', start) if start
@@ -128,7 +130,7 @@ class Flight < Ygg::PublicModel
             source_expansion: 'TOW',
           )
 
-          tow_flight.sync_from_maindb_as_tow(l)
+          tow_flight.sync_from_maindb_as_sep(l, cache: cache)
           tow_flight.save!
         end
       rescue InvalidRecord => e
@@ -143,7 +145,7 @@ class Flight < Ygg::PublicModel
       puts "TOW CMP #{l.id_voli}" if debug >= 3
 
       transaction do
-        r.sync_from_maindb_as_tow(l)
+        r.sync_from_maindb_as_sep(l, cache: cache)
 
         if r.deep_changed?
           puts "UPDATING TOW FLIGHT ID=#{l.id_voli}" if debug >= 1
@@ -160,8 +162,6 @@ class Flight < Ygg::PublicModel
                    where('upper(trim(marche_aliante)) <> \'NO\'').
                    where('upper(trim(marche_aliante)) <> \'NOALI\'').
                    where('upper(trim(marche_aliante)) <> \'ACAO\'').
-                   where('upper(trim(marche_aliante)) <> \'I-ALTRI\'').
-                   where('upper(trim(marche_aliante)) <> \'I-ALTRO\'').
                    where('upper(trim(marche_aliante)) <> \'DG1000\'').
                    order(id_voli: :asc)
     l_relation = l_relation.where('id_voli >= ?', start) if start
@@ -192,7 +192,7 @@ class Flight < Ygg::PublicModel
             source_expansion: 'GL',
           )
 
-          gl_flight.sync_from_maindb_as_gl(l)
+          gl_flight.sync_from_maindb_as_gl(l, cache: cache)
           gl_flight.save!
         end
       rescue InvalidRecord => e
@@ -207,7 +207,7 @@ class Flight < Ygg::PublicModel
       puts "GL CMP #{l.id_voli}" if debug >= 3
 
       transaction do
-        r.sync_from_maindb_as_gl(l)
+        r.sync_from_maindb_as_gl(l, cache: cache)
 
         if r.deep_changed?
           puts "GL UPD FLIGHT #{l.id_voli}" if debug >= 1
@@ -219,23 +219,54 @@ class Flight < Ygg::PublicModel
 
   end
 
-  def sync_from_maindb_as_gl(other = volo)
-    self.aircraft_reg = other.marche_aliante.strip.upcase
-    self.aircraft = Ygg::Acao::Aircraft.find_or_create_by!(registration: other.marche_aliante.strip.upcase)
+  class Cache
+    attr_accessor :airfields_by_icao
+    attr_accessor :airfields_by_symbol
+    attr_accessor :members
+    attr_accessor :aircrafts
+  end
+
+  def self.build_cache
+    cache = Cache.new
+    refresh_cache(cache)
+    cache
+  end
+
+  def self.refresh_cache(cache)
+    af = Ygg::Acao::Airfield.all.to_a
+    cache.airfields_by_icao = Hash[af.map { |x| [x.icao_code, x] }]
+    cache.airfields_by_symbol = Hash[af.map { |x| [x.symbol, x] }]
+    cache.members = Hash[ Ygg::Acao::Member.all.map { |x| [x.code, x] } ]
+    cache.aircrafts = Hash[ Ygg::Acao::Aircraft.all.map { |x| [x.registration, x] } ]
+  end
+
+  def sync_from_maindb_as_gl(other = volo, cache: self.class.build_cache)
+
+    self.aircraft_reg = aircraft_reg_orig = other.marche_aliante.strip.upcase
+
+    if self.aircraft_reg == 'I-ALTRI' ||
+       self.aircraft_reg == 'I-ALTRO' ||
+       self.aircraft_reg.start_with?('X-')
+      self.aircraft_reg = nil
+      self.aircraft = nil
+    else
+      self.aircraft = cache.aircrafts[self.aircraft_reg]
+      if !self.aircraft
+        self.aircraft = Ygg::Acao::Aircraft.create!(
+          registration: self.aircraft_reg,
+        )
+
+        self.class.refresh_cache(cache)
+      end
+    end
 
     self.takeoff_time = troiano_datetime_to_utc(other.ora_decollo_aereo)
     self.landing_time = troiano_datetime_to_utc(other.ora_atterraggio_aliante)
 
     self.towed_by = self.class.find_by(source_id: other.id_voli, source_expansion: 'TOW')
 
-    takeoff_airfield = Ygg::Acao::Airfield.find_by(icao_code: other.dep.strip.upcase)
-    takeoff_airfield ||= Ygg::Acao::Airfield.find_by(symbol: other.dep.strip.upcase)
-
-    landing_airfield = Ygg::Acao::Airfield.find_by(icao_code: other.arr.strip.upcase)
-    landing_airfield ||= Ygg::Acao::Airfield.find_by(symbol: other.arr.strip.upcase)
-
-    self.takeoff_airfield = takeoff_airfield
-    self.landing_airfield = landing_airfield
+    self.takeoff_airfield = cache.airfields_by_icao[other.dep.strip.upcase] || cache.airfields_by_symbol[other.dep.strip.upcase]
+    self.landing_airfield = cache.airfields_by_icao[other.arr.strip.upcase] || cache.airfields_by_icao[other.arr.strip.upcase]
 
     self.takeoff_location = takeoff_airfield.location if takeoff_airfield
     self.landing_location = landing_airfield.location if landing_airfield
@@ -243,20 +274,20 @@ class Flight < Ygg::PublicModel
     self.takeoff_location_raw = takeoff_airfield ? takeoff_airfield.icao_code || takeoff_airfield.name : other.dep.strip.upcase
     self.landing_location_raw = landing_airfield ? landing_airfield.icao_code || landing_airfield.name : other.arr.strip.upcase
 
-    if !other.codice_pilota_aliante.blank? &&
-        other.codice_pilota_aliante != 0
-      begin
-        self.pilot1 = Ygg::Acao::Member.find_by!(code: other.codice_pilota_aliante)
-      rescue ActiveRecord::RecordNotFound
-        raise InvalidRecord, "Missing referenced pilot1 code=#{other.codice_pilota_aliante}"
+    if other.codice_pilota_aliante.blank? || other.codice_pilota_aliante == 0
+      #raise InvalidRecord, "Flight #{other.id_voli} codice_pilota_aliante is blank!"
+    else
+      self.pilot1 = cache.members[other.codice_pilota_aliante]
+      if !self.pilot1
+        raise InvalidRecord, "Flight #{other.id_voli} Missing referenced pilot1 code=#{other.codice_pilota_aliante}"
       end
 
       self.pilot1_name = pilot1.person.name
-    else
-      self.pilot1 = nil
+      self.pilot1_role = 'PIC'
     end
 
     if other.codice_secondo_pilota_aliante == 1
+      self.pilot2 = nil
       self.pilot2_role = 'PAX'
       self.pilot2_name = 'PAX'
     elsif !other.codice_secondo_pilota_aliante.blank? &&
@@ -264,25 +295,30 @@ class Flight < Ygg::PublicModel
         other.codice_secondo_pilota_aliante != 1 &&
         other.codice_secondo_pilota_aliante != 9999 &&
         other.codice_secondo_pilota_aliante != 8888
-      self.pilot2 = Ygg::Acao::Member.find_by(code: other.codice_secondo_pilota_aliante)
-      if pilot2
-        self.pilot2_name = pilot2.person.name
-        self.pilot2_role = 'PAX'
-      else
-        self.pilot2_role = nil
-        raise InvalidRecord, "Missing referenced pilot2 code=#{other.codice_secondo_pilota_aliante}"
+      self.pilot2 = cache.members[other.codice_secondo_pilota_aliante]
+      if !self.pilot2
+        raise InvalidRecord, "Flight #{other.id_voli} Missing referenced pilot2 code=#{other.codice_secondo_pilota_aliante}"
       end
+
+      self.pilot2_name = pilot2.person.name
+      self.pilot2_role = 'PAX'
+    else
+      self.pilot2 = nil
+      self.pilot2_name = nil
+      self.pilot2_role = nil
     end
 
-    self.aircraft_owner_id = aircraft.owner_id
-    self.aircraft_owner = (aircraft.owner && aircraft.owner.person.name).presence
+    if self.aircraft
+      self.aircraft_owner_id = aircraft.owner_id
+      self.aircraft_owner = (aircraft.owner && aircraft.owner.person.name).presence
+    end
 
     if other.marche_aereo.strip == 'AUTO'
       self.launch_type = 'SL'
     elsif other.marche_aereo.strip == 'X-WINCH'
       self.launch_type = 'WINCH'
-    elsif other.tipo_volo_club == 11
-      self.launch_type = 'WINCH'
+    elsif aircraft && aircraft.aircraft_type && aircraft.aircraft_type.aircraft_class == 'TMG'
+      self.launch_type = nil
     else
       self.launch_type = 'TOW'
     end
@@ -320,6 +356,7 @@ class Flight < Ygg::PublicModel
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.aircraft_class = 'TMG'
+      self.launch_type = nil
     when 7   # ALIANTE PRIVATO S.S    : volo non scuola trainato su monoposto privato
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
@@ -332,6 +369,7 @@ class Flight < Ygg::PublicModel
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.aircraft_class = 'TMG'
+      self.launch_type = nil
     when 10  # ALIANTE DEC. AUT. PRIV.: volo non scuola non trainato su SLMG privato
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
@@ -340,6 +378,7 @@ class Flight < Ygg::PublicModel
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.aircraft_class = 'GLD'
+      self.launch_type = 'WINCH'
     when 12  # VOLO SEP CLUB          : volo non scuola di un monomotore (traino) del ACAO senza aliante
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
@@ -408,6 +447,7 @@ class Flight < Ygg::PublicModel
       self.proficiency_check = false
       self.skill_test = true
       self.aircraft_class = 'TMG'
+      self.launch_type = nil
     when 26  # ABILITAZIONE PAX
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
@@ -415,7 +455,19 @@ class Flight < Ygg::PublicModel
       self.aircraft_class = 'GLD'
     end
 
-    self.aircraft_class = aircraft.aircraft_type && aircraft.aircraft_type.aircraft_class if !self.aircraft_class
+    if !self.aircraft_class && aircraft_reg_orig == 'X-SAIL'
+      self.aircraft_class = 'GLD'
+    end
+
+    if !self.aircraft_class && aircraft_reg_orig == 'X-SLMG'
+      self.aircraft_class = 'GLD'
+    end
+
+    if !self.aircraft_class && aircraft_reg_orig == 'X-ULM'
+      self.aircraft_class = 'ULM'
+    end
+
+    self.aircraft_class ||= aircraft && aircraft.aircraft_type && aircraft.aircraft_type.aircraft_class
 
     self.acao_tipo_volo_club = other.tipo_volo_club
     self.acao_tipo_aereo_aliante = other.tipo_aereo_aliante
@@ -426,66 +478,104 @@ class Flight < Ygg::PublicModel
     self.acao_data_att = other.data_att
   end
 
-  def sync_from_maindb_as_tow(other = volo)
-    self.aircraft_reg = other.marche_aereo.strip.upcase
-    self.aircraft = Ygg::Acao::Aircraft.find_or_create_by!(registration: other.marche_aereo.strip.upcase)
+  def sync_from_maindb_as_sep(other = volo, cache: self.class.build_cache)
+
+    self.aircraft_reg = aircraft_reg_orig = other.marche_aereo.strip.upcase
+
+    if self.aircraft_reg == 'I-ALTRI' ||
+       self.aircraft_reg == 'I-ALTRO'
+       self.aircraft_reg.start_with?('X-')
+      self.aircraft_reg = nil
+      self.aircraft = nil
+    else
+      self.aircraft = cache.aircrafts[self.aircraft_reg]
+      if !self.aircraft
+        self.aircraft = Ygg::Acao::Aircraft.create!(
+          registration: self.aircraft_reg,
+        )
+
+        self.class.refresh_cache(cache)
+      end
+    end
 
     self.takeoff_time = troiano_datetime_to_utc(other.ora_decollo_aereo)
     self.landing_time = troiano_datetime_to_utc(other.ore_atterraggio_aereo)
 
 #    self.towing = self.class.find_by(source_id: other.id_voli, source_expansion: 'GL')
 
-    takeoff_airfield = Ygg::Acao::Airfield.find_by(icao_code: other.dep.strip.upcase)
-    takeoff_airfield ||= Ygg::Acao::Airfield.find_by(symbol: other.dep.strip.upcase)
-
-    landing_airfield = Ygg::Acao::Airfield.find_by(icao_code: other.dep.strip.upcase)
-    landing_airfield ||= Ygg::Acao::Airfield.find_by(symbol: other.dep.strip.upcase)
-
-    self.takeoff_airfield = takeoff_airfield
-    self.landing_airfield = landing_airfield
+    self.takeoff_airfield = cache.airfields_by_icao[other.dep.strip.upcase] || cache.airfields_by_symbol[other.dep.strip.upcase]
+    self.landing_airfield = cache.airfields_by_icao[other.arr.strip.upcase] || cache.airfields_by_icao[other.arr.strip.upcase]
 
     self.takeoff_location = takeoff_airfield.location if takeoff_airfield
     self.landing_location = landing_airfield.location if landing_airfield
 
-    self.takeoff_location_raw = takeoff_airfield ? takeoff_airfield.icao_code || takeoff_airfield.name : other.dep.strip.upcase
-    self.landing_location_raw = landing_airfield ? landing_airfield.icao_code || landing_airfield.name : other.arr.strip.upcase
+    self.takeoff_location_raw = takeoff_airfield ? (takeoff_airfield.icao_code || takeoff_airfield.name) : other.dep.strip.upcase
+    self.landing_location_raw = landing_airfield ? (landing_airfield.icao_code || landing_airfield.name) : other.arr.strip.upcase
 
-    self.aircraft_class = 'SEP'
+#    self.aircraft_class = aircraft && aircraft.aircraft_type && aircraft.aircraft_type.aircraft_class
 
-    begin
-      self.pilot1 = Ygg::Acao::Member.find_by!(code: other.codice_pilota_aereo)
-    rescue ActiveRecord::RecordNotFound
-      raise InvalidRecord, "Missing referenced pilot1 code=#{other.codice_pilota_aereo}"
+    if !self.aircraft_class && self.aircraft_reg == 'X-SAIL'
+      self.aircraft_class = 'GLD'
+    end
+
+    if !self.aircraft_class && aircraft_reg_orig == 'X-SLMG'
+      self.aircraft_class = 'GLD'
+    end
+
+    if !self.aircraft_class && self.aircraft_reg == 'X-ULM'
+      self.aircraft_class = 'ULM'
+    end
+
+    self.aircraft_class ||= 'SEP'
+
+    self.pilot1 = cache.members[other.codice_pilota_aereo]
+    if !self.pilot1
+      raise InvalidRecord, "Flight #{other.id_voli} Missing referenced pilot1 code=#{other.codice_pilota_aereo}"
     end
 
     self.pilot1_name = pilot1.person.name
     self.pilot1_role = 'PIC'
 
     if other.codice_secondo_pilota_aereo == 1
+      self.pilot2 = nil
+      self.pilot2_name = 'PAX'
       self.pilot2_role = 'PAX'
     elsif !other.codice_secondo_pilota_aereo.blank? &&
         other.codice_secondo_pilota_aereo != 0
-      self.pilot2 = Ygg::Acao::Member.find_by!(code: other.codice_secondo_pilota_aereo)
 
-      if !pilot2
-        raise InvalidRecord, "Missing referenced pilot2 code=#{other.codice_secondo_pilota_aereo}"
+      self.pilot2 = cache.members[other.codice_secondo_pilota_aereo]
+      if !self.pilot2
+        raise InvalidRecord, "Flight #{other.id_voli} Missing referenced pilot2 code=#{other.codice_secondo_pilota_aereo}"
       end
 
       self.pilot2_name = pilot2.person.name
       self.pilot2_role = 'PAX'
+    else
+      self.pilot2 = nil
+      self.pilot2_name = nil
+      self.pilot2_role = nil
     end
 
-    self.aircraft_owner_id = aircraft.owner_id
-    self.aircraft_owner = (aircraft.owner && aircraft.owner.name).presence
+    if self.aircraft
+      self.aircraft_owner_id = aircraft.owner_id
+      self.aircraft_owner = (aircraft.owner && aircraft.owner.name).presence
+    end
 
-    self.launch_type = 'SL'
+    self.launch_type = nil
 
     self.acao_tipo_volo_club = other.tipo_volo_club
     self.acao_tipo_aereo_aliante = other.tipo_aereo_aliante
     self.acao_durata_volo_aereo_minuti = other.durata_volo_aereo_minuti
     self.acao_durata_volo_aliante_minuti = other.durata_volo_aliante_minuti
     self.acao_quota = other.quota != 0 ? other.quota : nil
-    self.acao_bollini_volo = other.bollini_volo
+
+    ma = other.marche_aliante.strip.upcase
+    if ma == '' || ma == 'NO' || ma == 'NOALI'
+      self.acao_bollini_volo = other.bollini_volo
+    else
+      self.acao_bollini_volo = nil
+    end
+
     self.acao_data_att = other.data_att
   end
 
