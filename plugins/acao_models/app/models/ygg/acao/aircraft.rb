@@ -64,6 +64,10 @@ class Aircraft < Ygg::PublicModel
     :owner_id,
   ]
 
+  after_create do
+    associate_flarm_entries
+  end
+
   class IncompatibleRecord < Ygg::Exception
     attr_reader :diffs
 
@@ -71,6 +75,44 @@ class Aircraft < Ygg::PublicModel
       super(**args)
 
       @diffs = diffs
+    end
+  end
+
+  def associate_flarm_entries
+    fe = Ygg::Acao::FlarmnetEntry.find_by(registration: registration)
+    if fe
+      fe.aircraft = self
+      fe.save!
+    end
+
+    fe = Ygg::Acao::FlarmnetEntry.find_by(device_id: flarm_identifier, device_type: 'F')
+    if fe
+      fe.aircraft = self
+      fe.save!
+    end
+
+    fe = Ygg::Acao::FlarmnetEntry.find_by(device_id: icao_identifier, device_type: 'I')
+    if fe
+      fe.aircraft = self
+      fe.save!
+    end
+
+    fe = Ygg::Acao::OgnDdbEntry.find_by(aircraft_registration: registration)
+    if fe
+      fe.aircraft = self
+      fe.save!
+    end
+
+    fe = Ygg::Acao::OgnDdbEntry.find_by(device_id: flarm_identifier, device_type: 'F')
+    if fe
+      fe.aircraft = self
+      fe.save!
+    end
+
+    fe = Ygg::Acao::OgnDdbEntry.find_by(device_id: icao_identifier, device_type: 'I')
+    if fe
+      fe.aircraft = self
+      fe.save!
     end
   end
 
@@ -160,13 +202,6 @@ class Aircraft < Ygg::PublicModel
     end
   end
 
-  def self.inconsistences
-    {
-     reg_duplicated: Ygg::Acao::Aircraft.group(:registration).having('count(*) > 1').count,
-     
-    }
-  end
-
   def self.sync_from_maindb!(debug: 0)
     dups = Ygg::Acao::MainDb::Mezzo.select('numero_flarm,count(*)').where("numero_flarm <> 'id'").where("numero_flarm <> ''").
                                     group(:numero_flarm).having('count(*) > 1')
@@ -176,35 +211,94 @@ class Aircraft < Ygg::PublicModel
       fail
     end
 
-    Ygg::Acao::MainDb::Mezzo.where("numero_flarm <> 'id'").where("numero_flarm <> ''").each do |mezzo|
+    l_relation = Ygg::Acao::MainDb::Mezzo.where.not('Marche' =>
+                    [ '', '1-1001', 'ALZATE', 'BARRO', 'AUTO', 'C.D.F.', 'MISMA',
+                      'MOBIL1', 'MOTTAR.', 'NO', 'NOALI', 'TRIVERO', 'VENTUS2',
+                      'X-HELI', 'X-SEP', 'X-SLMG', 'X-TMG', 'X-TUG', 'X-ULM',
+                      'X-WINCH', 'Y2K', 'SALENA' ]).order(id_mezzi: :asc)
 
-      flarm_identifier = mezzo.numero_flarm.strip.upcase
-      registration = mezzo.Marche.strip.upcase
+    r_relation = Ygg::Acao::Aircraft.all.order(source_id: :asc)
 
-      data = {
-        mdb_id: mezzo.id_mezzi,
-        registration: registration,
-      }
+    Ygg::Toolkit.merge(
+    l: l_relation,
+    r: r_relation,
+    l_cmp_r: lambda { |l,r| l.id_mezzi <=> r.source_id },
+    l_to_r: lambda { |l|
+      puts "AIRCRAFT ADD #{l.id_mezzi} #{l.Marche}" if debug >= 1
 
-      race_registration = mezzo.sigla_gara.strip.upcase
-      data[:race_registration] = race_registration if race_registration != 'S'
-
-      p = Ygg::Acao::Aircraft.find_by(flarm_identifier: flarm_identifier) ||
-          Ygg::Acao::Aircraft.find_by(registration: registration)
-      if !p
-        data.merge!({ flarm_identifier: flarm_identifier })
-        puts "CRE #{data}" if debug >= 1
-        Ygg::Acao::Aircraft.create!(data)
+      owner = if !l.codice_proprietario.blank? &&
+         l.codice_proprietario != 0
+        Ygg::Acao::Member.find_by(code: l.codice_proprietario)
       else
-        p.assign_attributes(data)
-
-        if p.changes.any?
-          puts "UPD #{p.changes}" if debug >= 1
-          p.save!
-        end
+         nil
       end
 
-    end
+      race_registration = if !l.sigla_gara.strip.upcase.blank? &&
+                             l.sigla_gara.strip.upcase != 'S'
+        l.sigla_gara.strip.upcase
+      else
+        nil
+      end
+
+      flarm_identifier = if !l.numero_flarm.strip.upcase.blank? &&
+                            l.numero_flarm.strip.upcase != 'CA2A7' &&
+                            l.numero_flarm.strip.upcase != 'ee' &&
+                            l.numero_flarm.strip.upcase != '111111'
+        l.numero_flarm.strip.upcase
+      else
+        nil
+      end
+
+      Aircraft.create!(
+        owner: owner,
+        registration: l.Marche.strip.upcase,
+        race_registration: race_registration,
+        flarm_identifier: flarm_identifier,
+        hangar: false,
+      )
+    },
+    r_to_l: lambda { |r|
+#      puts "AIRCRAFT DESTROY #{r.source_id} #{r.registration}" if debug >= 1
+#      r.destroy!
+    },
+    lr_update: lambda { |l,r|
+      owner = if !l.codice_proprietario.blank? &&
+         l.codice_proprietario != 0
+        Ygg::Acao::Member.find_by(code: l.codice_proprietario)
+      else
+         nil
+      end
+
+      race_registration = if !l.sigla_gara.strip.upcase.blank? &&
+                             l.sigla_gara.strip.upcase != 'S'
+        l.sigla_gara.strip.upcase
+      else
+        nil
+      end
+
+      flarm_identifier = if !l.numero_flarm.strip.upcase.blank? &&
+                            l.numero_flarm.strip.upcase != 'CA2A7' &&
+                            l.numero_flarm.strip.upcase != 'ee' &&
+                            l.numero_flarm.strip.upcase != '111111'
+        l.numero_flarm.strip.upcase
+      else
+        nil
+      end
+
+      r.assign_attributes(
+        owner: owner,
+        registration: l.Marche.strip.upcase,
+        race_registration: race_registration,
+        flarm_identifier: flarm_identifier,
+        hangar: false,
+      )
+
+      if r.deep_changed?
+        puts "AIRCRAFT UPD =#{l.id_mezzi}" if debug >= 1
+        puts r.deep_changes.awesome_inspect(plain: true)
+        r.save!
+      end
+    })
   end
 
   def self.clean_duplicates!
