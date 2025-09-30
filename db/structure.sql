@@ -581,6 +581,20 @@ CREATE TABLE acao.member_access_remotes (
 
 
 --
+-- Name: member_roles; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.member_roles (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    member_id uuid,
+    symbol character varying(32) NOT NULL,
+    name character varying,
+    valid_from timestamp without time zone,
+    valid_to timestamp without time zone
+);
+
+
+--
 -- Name: member_services; Type: TABLE; Schema: acao; Owner: -
 --
 
@@ -4406,6 +4420,14 @@ ALTER TABLE ONLY acao.member_access_remotes
 
 
 --
+-- Name: member_roles member_roles_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.member_roles
+    ADD CONSTRAINT member_roles_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: member_services member_services_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -5973,6 +5995,20 @@ CREATE INDEX index_member_access_remotes_on_member_id ON acao.member_access_remo
 --
 
 CREATE UNIQUE INDEX index_member_access_remotes_on_remote_id ON acao.member_access_remotes USING btree (remote_id);
+
+
+--
+-- Name: index_member_roles_on_member_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_member_roles_on_member_id ON acao.member_roles USING btree (member_id);
+
+
+--
+-- Name: index_member_roles_on_member_id_and_symbol; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_member_roles_on_member_id_and_symbol ON acao.member_roles USING btree (member_id, symbol);
 
 
 --
@@ -8150,6 +8186,14 @@ ALTER TABLE ONLY acao.member_services
 
 
 --
+-- Name: member_roles fk_rails_8c85e76fea; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.member_roles
+    ADD CONSTRAINT fk_rails_8c85e76fea FOREIGN KEY (member_id) REFERENCES acao.members(id) ON DELETE CASCADE;
+
+
+--
 -- Name: flights fk_rails_918c481775; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8900,6 +8944,7 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250930090714'),
 ('20250929161248'),
 ('20250929131033'),
 ('20250929123504'),

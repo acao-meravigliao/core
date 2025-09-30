@@ -96,7 +96,7 @@ class Membership < Ygg::PublicModel
       enabled: true,
     }
 
-    if now > year.late_renewal_deadline && !member.is_student # && member.was_member_previous_year(year: year)
+    if now > year.late_renewal_deadline && !member.is_spl_student? # && member.was_member_previous_year(year: year)
       services << {
         service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'ASS_LATE').id,
         removable: false,
@@ -247,12 +247,6 @@ class Membership < Ygg::PublicModel
         status: 'WAITING_PAYMENT',
         valid_from: Time.now,
         valid_to: (Time.local(year.year).end_of_year + 31.days).end_of_day,
-        possible_roster_chief: member.roster_chief,
-        student: member.is_student,
-        tug_pilot: member.is_tug_pilot,
-        board_member: member.is_board_member,
-        instructor: member.is_instructor,
-        fireman: member.is_fireman,
       )
 
       # Services
