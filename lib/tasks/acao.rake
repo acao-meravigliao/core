@@ -76,11 +76,11 @@ namespace :acao do
   task(:'aircrafts' => :environment) do
     desc 'Sync aircrafts'
 
-    TimeoutActor.new(tout: 100).do do
+    TimeoutActor.new(tout: 300).do do
       Ygg::Acao::FlarmnetEntry.sync!
     end
 
-    TimeoutActor.new(tout: 100).do do
+    TimeoutActor.new(tout: 300).do do
       Ygg::Acao::OgnDdbEntry.sync!
     end
 

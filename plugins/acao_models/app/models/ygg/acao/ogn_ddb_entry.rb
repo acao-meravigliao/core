@@ -39,6 +39,25 @@ class OgnDdbEntry < Ygg::PublicModel
     }
   end
 
+  class Cache
+    attr_accessor :aircraft_by_reg
+    attr_accessor :aircraft_by_flarm
+    attr_accessor :aircraft_by_icao
+  end
+
+  def self.build_cache
+    cache = Cache.new
+    refresh_cache(cache)
+    cache
+  end
+
+  def self.refresh_cache(cache)
+    aircrafts = Ygg::Acao::Aircraft.all.to_a
+    cache.aircraft_by_reg = Hash[aircrafts.map { |x| [x.registration, x] } ]
+    cache.aircraft_by_flarm = Hash[aircrafts.map { |x| [x.flarm_identifier, x] } ]
+    cache.aircraft_by_icao = Hash[aircrafts.map { |x| [x.icao_identifier, x] } ]
+  end
+
   def self.sync!(debug: 0)
     db = retrieve_ddb_db
     db.sort! { |a,b| "#{a[:device_type]}-#{a[:device_id]}" <=> "#{b[:device_type]}-#{b[:device_id]}"}
@@ -46,12 +65,14 @@ class OgnDdbEntry < Ygg::PublicModel
     transaction do
       puts "Syncing #{db.count} entries"
 
+      cache = build_cache
+
       Ygg::Toolkit.merge(
       l: db,
       r: self.all.order(device_type: :asc, device_id: :asc),
       l_cmp_r: lambda { |l,r| l[:device_type] != r.device_type ? (l[:device_type] <=> r.device_type) : (l[:device_id] <=> r.device_id) },
       l_to_r: lambda { |l|
-        puts "ADD #{l}"
+        puts "ADD #{l}" if debug >= 2
 
         entry = self.new(
           device_type: l[:device_type],
@@ -64,11 +85,11 @@ class OgnDdbEntry < Ygg::PublicModel
           last_update: Time.now,
         )
 
-        entry.associate_with_aircraft
+        entry.associate_with_aircraft(cache: cache)
         entry.save!
       },
       r_to_l: lambda { |r|
-        puts "Entry #{r.device_id} #{r.registration} removed"
+        puts "Entry #{r.device_id} #{r.aircraft_registration} removed" if debug >= 1
 
         r.destroy
       },
@@ -81,10 +102,10 @@ class OgnDdbEntry < Ygg::PublicModel
           identified: l[:identified] == 'Y',
         )
 
-        r.associate_with_aircraft
+        r.associate_with_aircraft(cache: cache)
 
         if r.changes.any? || !r.last_update
-          puts "UPD #{r.changes}"
+          puts "UPD #{l[:device_id]} #{l[:aircraft_registation]} #{r.changes}" if debug >= 2
           r.last_update = Time.now
           r.save!
         end
@@ -96,13 +117,12 @@ class OgnDdbEntry < Ygg::PublicModel
     sync.save!
   end
 
-  def associate_with_aircraft
-    aircraft = Ygg::Acao::Aircraft.find_by(registration: aircraft_registration)
-    aircraft ||= Ygg::Acao::Aircraft.find_by(flarm_identifier: device_id) if device_type == 'F'
-    aircraft ||= Ygg::Acao::Aircraft.find_by(icao_identifier: device_id) if device_type == 'I'
+  def associate_with_aircraft(cache:)
+    aircraft = cache.aircraft_by_reg[aircraft_registration]
+    aircraft ||= cache.aircraft_by_flarm[device_id] if device_type == 'F'
+    aircraft ||= cache.aircraft_by_icao[device_id] if device_type == 'I'
     self.aircraft = aircraft
   end
-
 end
 
 end
