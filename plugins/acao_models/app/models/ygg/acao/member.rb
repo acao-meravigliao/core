@@ -69,6 +69,9 @@ class Member < Ygg::PublicModel
   belongs_to :person,
           class_name: '::Ygg::Core::Person'
 
+  has_many :roles,
+          class_name: '::Ygg::Acao::Member::Role'
+
   has_many :memberships,
            class_name: '::Ygg::Acao::Membership'
 
@@ -167,12 +170,14 @@ class Member < Ygg::PublicModel
              foreign_key: 'ext_id',
              optional: true
 
+  gs_rel_map << { from: :member, to: :role, to_cls: 'Ygg::Acao::Member::Role', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :membership, to_cls: 'Ygg::Acao::Membership', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :aircraft_owner, to_cls: 'Ygg::Acao::Aircraft::Owner', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :keyfob, to_cls: 'Ygg::Acao::KeyFob', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :roster_entry, to_cls: 'Ygg::Acao::RosterEntry', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :bar_transaction, to_cls: 'Ygg::Acao::BarTransaction', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :token_transaction, to_cls: 'Ygg::Acao::TokenTransaction', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :debt, to_cls: 'Ygg::Acao::Debt', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :invoice, to_cls: 'Ygg::Acao::Invoice', to_key: 'member_id', }
   gs_rel_map << { from: :owner, to: :aircraft, to_cls: 'Ygg::Acao::Aircraft', to_key: 'owner_id', }
   gs_rel_map << { from: :acao_member, to: :person, to_cls: 'Ygg::Core::Person', from_key: 'person_id', }
@@ -236,7 +241,7 @@ class Member < Ygg::PublicModel
       needed[:total] = 0
       needed[:high_season] = 0
       needed[:reason] = 'older_than_65'
-    elsif is_instructor
+    elsif is_spl_instructor?
       needed[:total] = 0
       needed[:high_season] = 0
       needed[:reason] = 'instructor'
@@ -244,11 +249,11 @@ class Member < Ygg::PublicModel
       needed[:total] = 0
       needed[:high_season] = 0
       needed[:reason] = 'has_disability'
-    elsif is_board_member
+    elsif is_board_member?
       needed[:total] = 0
       needed[:high_season] = 0
       needed[:reason] = 'board_member'
-    elsif is_tug_pilot
+    elsif is_tug_pilot?
       needed[:total] = 1
       needed[:high_season] = 0
       needed[:reason] = 'tow_pilot'
@@ -993,9 +998,9 @@ class Member < Ygg::PublicModel
   def wp_roles
     roles = [ 'src_acao' ]
     roles << 'socio' if active?
-    roles << 'trainatore' if is_tug_pilot
-    roles << 'allievo' if is_student
-    roles << 'istruttore' if is_instructor
+    roles << 'trainatore' if is_tug_pilot?
+    roles << 'allievo' if is_spl_student?
+    roles << 'istruttore' if is_spl_instructor?
 
     roles
   end
@@ -1397,16 +1402,36 @@ class Member < Ygg::PublicModel
     active_members(time: time)
   end
 
-  def self.students
-    active_members.where(is_student: true)
+  def self.spl_students
+    active_members.joins(:roles).where(roles: { symbol: 'SPL_STUDENT' })
   end
 
   def self.board_members
-    active_members.where(is_board_member: true)
+    active_members.joins(:roles).where(roles: { symbol: 'BOARD_MEMBER' })
   end
 
   def self.tug_pilots
-    active_members.where(is_tug_pilot: true)
+    active_members.joins(:roles).where(roles: { symbol: 'TUG_PILOT' })
+  end
+
+  def is_spl_student?
+    roles.find_by(symbol: 'SPL_STUDENT')
+  end
+
+  def is_spl_instructor?
+    roles.find_by(symbol: 'SPL_INSTRUCTOR')
+  end
+
+  def is_tug_pilot?
+    roles.find_by(symbol: 'TUG_PILOT')
+  end
+
+  def is_board_member?
+    roles.find_by(symbol: 'BOARD_MEMBER')
+  end
+
+  def is_fireman?
+    roles.find_by(symbol: 'FIREMAN')
   end
 
 end
