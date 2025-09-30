@@ -168,6 +168,7 @@ class Member < Ygg::PublicModel
              optional: true
 
   gs_rel_map << { from: :member, to: :membership, to_cls: 'Ygg::Acao::Membership', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :aircraft_owner, to_cls: 'Ygg::Acao::Aircraft::Owner', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :keyfob, to_cls: 'Ygg::Acao::KeyFob', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :roster_entry, to_cls: 'Ygg::Acao::RosterEntry', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :bar_transaction, to_cls: 'Ygg::Acao::BarTransaction', to_key: 'member_id', }
