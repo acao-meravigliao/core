@@ -81,6 +81,10 @@ class Member < Ygg::PublicModel
   has_many :aircraft_owners,
            class_name: '::Ygg::Acao::Aircraft::Owner'
 
+  has_many :aircrafts,
+           class_name: '::Ygg::Acao::Aircraft',
+           through: :aircraft_owners
+
   has_many :onda_invoice_exports,
            class_name: 'Ygg::Acao::OndaInvoiceExport'
 

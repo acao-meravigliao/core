@@ -89,6 +89,7 @@ class Aircraft::RestController < Ygg::Hel::RestController
   end
 
   def authorization_prefilter
+    # FIXME, use owners join table
     ar_model.where(owner_id: aaa_context.auth_person.id)
   end
 
@@ -96,6 +97,20 @@ class Aircraft::RestController < Ygg::Hel::RestController
     aaa_context &&
     aaa_context.authenticated? &&
     aaa_context.auth_person.id == obj.owner_id ? [ :owner ] : []
+    # FIXME, use owners join table
+  end
+
+  def upload_photo
+    ensure_authenticated!
+
+    File.open(File.join(Rails.application.config.acao.pics_store, "#{params[:id]}_ac_photo"), 'w') do |file|
+      IO.copy_stream(request.body, file)
+    end
+
+    # require 'rszr'
+    # image = Rszr::Image.load('/opt/pics/b57b0da8-6156-495c-8a01-2f66d5ceb230_ac_photo')
+    # image.resize!(64,64)
+    # image.save('/opt/pics/b57b0da8-6156-495c-8a01-2f66d5ceb230_ac_photo-64x64')
   end
 end
 

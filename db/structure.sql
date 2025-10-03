@@ -7942,7 +7942,7 @@ ALTER TABLE ONLY acao.aircrafts
 --
 
 ALTER TABLE ONLY acao.roster_entries
-    ADD CONSTRAINT fk_rails_078cdcc4f0 FOREIGN KEY (roster_day_id) REFERENCES acao.roster_days(id);
+    ADD CONSTRAINT fk_rails_078cdcc4f0 FOREIGN KEY (roster_day_id) REFERENCES acao.roster_days(id) ON DELETE CASCADE;
 
 
 --
@@ -8941,9 +8941,10 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO public;
+SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251001150720'),
 ('20250930090714'),
 ('20250929161248'),
 ('20250929131033'),

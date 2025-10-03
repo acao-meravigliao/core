@@ -311,8 +311,8 @@ class Flight < Ygg::PublicModel
     if self.aircraft
       owner = aircraft.owners.find_by(is_referent: true)
       if owner
-        self.aircraft_owner_id = owner.id
-        self.aircraft_owner = owner.person.name
+        self.aircraft_owner_id = owner.member.id
+        self.aircraft_owner = owner.member.person.name
       end
     end
 
@@ -562,8 +562,8 @@ class Flight < Ygg::PublicModel
     if self.aircraft
       owner = aircraft.owners.find_by(is_referent: true)
       if owner
-        self.aircraft_owner_id = owner.id
-        self.aircraft_owner = owner.person.name
+        self.aircraft_owner_id = owner.member.id
+        self.aircraft_owner = owner.member.person.name
       end
     end
 
