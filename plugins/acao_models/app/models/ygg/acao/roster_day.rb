@@ -24,7 +24,8 @@ class RosterDay < Ygg::PublicModel
   ]
 
   has_many :roster_entries,
-           class_name: 'Ygg::Acao::RosterEntry'
+           class_name: 'Ygg::Acao::RosterEntry',
+           dependent: :destroy
 
   gs_rel_map << { from: :day, to: :entry, to_cls: '::Ygg::Acao::RosterEntry', to_key: 'roster_day_id' }
   gs_rel_map << { from: :roster_entry, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
