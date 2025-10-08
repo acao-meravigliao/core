@@ -77,8 +77,12 @@ loop do
     Ygg::Acao::Member.transaction do
       time0 = Time.new
       puts "Updating Ygg::Acao::Aircraft" if debug >= 1
-      Ygg::Acao::Aircraft.sync_from_maindb!
-      Ygg::Acao::MainDb::Mezzo.update_last_update!
+
+      Ygg::Acao::Aircraft.transaction do
+        Ygg::Acao::Aircraft.sync_from_maindb!
+        Ygg::Acao::MainDb::Mezzo.update_last_update!
+      end
+
       puts "Aircraft done, took #{Time.new - time0} seconds" if debug >= 1
     end
   end

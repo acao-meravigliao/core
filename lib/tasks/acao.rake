@@ -85,7 +85,9 @@ namespace :acao do
     end
 
     TimeoutActor.new(tout: 100).do do
-      Ygg::Acao::Aircraft.sync_from_maindb!
+      Ygg::Acao::Aircraft.transaction do
+        Ygg::Acao::Aircraft.sync_from_maindb!
+      end
     end
   end
 
