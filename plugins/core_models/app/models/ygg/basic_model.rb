@@ -35,6 +35,10 @@ class BasicModel < ActiveRecord::Base
     attributes.symbolize_keys!
   end
 
+  def self.attrs
+    attribute_names.map(&:to_sym)
+  end
+
   class_attribute :gs_rel_map
   self.gs_rel_map = []
 
