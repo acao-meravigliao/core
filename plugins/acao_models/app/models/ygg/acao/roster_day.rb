@@ -104,7 +104,7 @@ class RosterDay < Ygg::PublicModel
 
   def check_and_mark_chief!
     unless roster_entries.where(chief: true).any?
-      entry = roster_entries.to_a.sort { |a,b| b.person.birth_date <=> a.person.birth_date }.first { |x| x.person.acao_roster_chief }
+      entry = roster_entries.to_a.sort { |a,b| b.member.person.birth_date <=> a.member.person.birth_date }.first { |x| x.member.person.acao_roster_chief }
       if entry
         entry.chief = true
         entry.save!
