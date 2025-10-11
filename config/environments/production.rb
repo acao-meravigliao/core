@@ -88,6 +88,8 @@ Rails.application.configure do
       'https://servizi-staging.acao.it',
       'https://pub.acao.it',
       'https://dash.acao.it',
+      'https://dash-staging.acao.it',
+      'https://dash-staging-lilc.acao.it',
     ]
 
     config.rails_vos.routes.merge!({
