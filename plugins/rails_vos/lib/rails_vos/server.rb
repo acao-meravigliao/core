@@ -280,7 +280,7 @@ class Server
       end
 
       begin
-        body = meth.call(**(msg.params || {}))
+        body = meth.call(body: msg.body, **(msg.params || {}))
       rescue StandardError => e
         actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: e))
 
@@ -320,7 +320,7 @@ class Server
       end
 
       begin
-        body = meth.call(obj: msg.obj, **(msg.params || {}))
+        body = meth.call(obj: msg.obj, body: msg.body, **(msg.params || {}))
       rescue StandardError => e
         actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: e))
 

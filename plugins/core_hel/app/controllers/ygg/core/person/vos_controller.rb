@@ -12,7 +12,7 @@ module Ygg
 module Core
 
 class Person::VosController < Ygg::Hel::VosBaseController
-  def search(query:)
+  def search(query:, **)
     if query.to_i != 0
       res = Ygg::Acao::Member.find_by(code: query.to_i)
       return [search_repr(res.person)] if res

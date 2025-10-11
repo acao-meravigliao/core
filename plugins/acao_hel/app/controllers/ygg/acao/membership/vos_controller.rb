@@ -13,7 +13,7 @@ module Acao
 
 class Membership::VosController < Ygg::Hel::VosBaseController
 
-  def renew_context(year:)
+  def renew_context(year:, **)
     ensure_authenticated!
 
     person = session.auth_person

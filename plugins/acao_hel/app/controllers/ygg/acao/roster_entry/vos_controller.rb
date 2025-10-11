@@ -12,7 +12,7 @@ module Ygg
 module Acao
 
 class RosterEntry::VosController < Ygg::Hel::VosBaseController
-  def create(obj:)
+  def create(body:, **)
     ensure_authenticated!
     raise AuthorizationError unless session.has_global_roles?(:superuser)
 
@@ -21,8 +21,8 @@ class RosterEntry::VosController < Ygg::Hel::VosBaseController
     ActiveRecord::Base.connection_pool.with_connection do
       ActiveRecord::Base.transaction do
         new_obj = Ygg::Acao::RosterEntry.create(
-          member: Ygg::Acao::Member.find(obj[:member_id]),
-          roster_day: Ygg::Acao::RosterDay.find(obj[:roster_day_id]),
+          member: Ygg::Acao::Member.find(body[:member_id]),
+          roster_day: Ygg::Acao::RosterDay.find(body[:roster_day_id]),
         )
       end
     end
@@ -36,7 +36,7 @@ class RosterEntry::VosController < Ygg::Hel::VosBaseController
     ))
   end
 
-  def move(obj:, to_day_id:)
+  def move(obj:, to_day_id:, **)
     old_day_id = obj.roster_day_id
 
     obj.roster_day_id = to_day_id
@@ -53,13 +53,13 @@ class RosterEntry::VosController < Ygg::Hel::VosBaseController
     ))
   end
 
-  def destroy(obj:)
+  def destroy(obj:, **)
     ds.tell(::AM::GrafoStore::Store::MsgObjectDestroy.new(id: obj.id))
 
     obj.destroy!
   end
 
-  def compute_status()
+  def compute_status(**)
     member = session.auth_person.acao_member
 
     current_year = Ygg::Acao::Year.find_by(year: Time.new.year)
