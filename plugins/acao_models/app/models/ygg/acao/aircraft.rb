@@ -200,6 +200,9 @@ class Aircraft < Ygg::PublicModel
   end
 
   def self.sync_from_maindb!(debug: 0)
+
+    self.connection.execute('SET CONSTRAINTS ALL DEFERRED')
+
     dups = Ygg::Acao::MainDb::Mezzo.select('numero_flarm,count(*)').where("numero_flarm <> 'id'").where("numero_flarm <> ''").
                                     group(:numero_flarm).having('count(*) > 1')
     if dups.to_a.any?
@@ -214,7 +217,7 @@ class Aircraft < Ygg::PublicModel
                       'X-HELI', 'X-SEP', 'X-SLMG', 'X-TMG', 'X-TUG', 'X-ULM',
                       'X-WINCH', 'Y2K', 'SALENA' ]).order(id_mezzi: :asc)
 
-    r_relation = Ygg::Acao::Aircraft.all.order(source_id: :asc)
+    r_relation = Ygg::Acao::Aircraft.all.where.not(source_id: nil).order(source_id: :asc)
 
     Ygg::Toolkit.merge(
     l: l_relation,
@@ -239,13 +242,18 @@ class Aircraft < Ygg::PublicModel
         nil
       end
 
-      ac = Aircraft.create!(
-        source_id: l.id_mezzi,
-        registration: l.Marche.strip.upcase,
-        race_registration: race_registration,
-        flarm_identifier: flarm_identifier,
-        hangar: false,
-      )
+      ac = Aircraft.find_by(registration: l.Marche.strip.upcase)
+      if ac
+        ac.source_id = l.id_mezzi
+      else
+        ac = Aircraft.create!(
+          source_id: l.id_mezzi,
+          registration: l.Marche.strip.upcase,
+          race_registration: race_registration,
+          flarm_identifier: flarm_identifier,
+          hangar: false,
+        )
+      end
 
       if !l.codice_proprietario.blank? &&
           l.codice_proprietario != 0
@@ -255,6 +263,8 @@ class Aircraft < Ygg::PublicModel
           o.is_referent = true
         end
       end
+
+      ac.save!
     },
     r_to_l: lambda { |r|
 #      puts "AIRCRAFT DESTROY #{r.source_id} #{r.registration}" if debug >= 1
@@ -270,6 +280,7 @@ class Aircraft < Ygg::PublicModel
 
       race_registration = if !l.sigla_gara.strip.upcase.blank? &&
                              l.sigla_gara.strip.upcase != 'S'
+                             l.sigla_gara.strip.upcase != '-'
         l.sigla_gara.strip.upcase
       else
         nil
@@ -301,7 +312,7 @@ class Aircraft < Ygg::PublicModel
       end
 
       if r.deep_changed?
-        puts "AIRCRAFT UPD =#{l.id_mezzi}" if debug >= 1
+        puts "AIRCRAFT UPD = #{l.id_mezzi}" if debug >= 1
         puts r.deep_changes.awesome_inspect(plain: true)
         r.save!
       end
