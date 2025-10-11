@@ -101,6 +101,9 @@ class Flight < Ygg::PublicModel
                    where('upper(trim(marche_aereo)) <> \'NO\'').
                    where('upper(trim(marche_aereo)) <> \'AUTO\'').
                    where('upper(trim(marche_aereo)) <> \'X-WINCH\'').
+                   where('CAST (ora_decollo_aereo AS time) <> \'00:00:00\'').
+                   where('CAST (ore_atterraggio_aereo AS time) <> \'00:00:00\'').
+                   where('CAST (ora_atterraggio_aliante AS time) <> \'00:00:00\'').
                    order(id_voli: :asc)
     l_relation = l_relation.where('id_voli >= ?', start) if start
     l_relation = l_relation.where('id_voli <= ?', stop) if stop
@@ -211,6 +214,65 @@ class Flight < Ygg::PublicModel
 
         if r.deep_changed?
           puts "GL UPD FLIGHT #{l.id_voli}" if debug >= 1
+          puts r.deep_changes.awesome_inspect(plain: true)
+          r.save!
+        end
+      end
+    })
+
+    # ============================== TICKETS ==================================
+
+    l_relation = Ygg::Acao::MainDb::Volo.all.
+                   where('upper(trim(marche_aereo)) <> \'X-WINCH\'').
+                   where('CAST (ora_decollo_aereo AS time) = \'00:00:00\'').
+                   where('CAST (ore_atterraggio_aereo AS time) = \'00:00:00\'').
+                   where('CAST (ora_atterraggio_aliante AS time) = \'00:00:00\'').
+                   order(id_voli: :asc)
+    l_relation = l_relation.where('id_voli >= ?', start) if start
+    l_relation = l_relation.where('id_voli <= ?', stop) if stop
+
+    r_relation = Ygg::Acao::Ticket.
+                   where(source: 'OLDDB').
+                   where('source_id IS NOT NULL').
+                   order(source_id: :asc)
+    r_relation = r_relation.where('source_id >= ?', start) if start
+    r_relation = r_relation.where('source_id <= ?', stop) if stop
+
+    Ygg::Toolkit.merge(
+    l: l_relation,
+    r: r_relation,
+    l_cmp_r: lambda { |l,r| l.id_voli <=> r.source_id },
+    l_to_r: lambda { |l|
+      puts "TIK CHK ADD #{l.id_voli}" if debug >= 3
+
+      begin
+        puts "ADDING TICKET ID=#{l.id_voli}" if debug >= 1
+
+        transaction do
+          ticket = Ygg::Acao::Ticket.new(
+            source: 'OLDDB',
+            source_id: l.id_voli,
+          )
+
+          ticket.sync_from_maindb(l, syncer: self, cache: cache)
+          ticket.save!
+        end
+      rescue InvalidRecord => e
+        puts "OOOOOOOOOOOOOOOOHHHHHHHHH In record #{l.id_voli} (TOW): #{e.to_s}"
+      end
+    },
+    r_to_l: lambda { |r|
+      puts "TICKET DEL #{r.source_id}" if debug >= 1
+      r.destroy!
+    },
+    lr_update: lambda { |l,r|
+      puts "TICKET CMP #{l.id_voli}" if debug >= 3
+
+      transaction do
+        r.sync_from_maindb(l, syncer: self, cache: cache)
+
+        if r.deep_changed?
+          puts "UPDATING TICKET ID=#{l.id_voli}" if debug >= 1
           puts r.deep_changes.awesome_inspect(plain: true)
           r.save!
         end

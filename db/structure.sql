@@ -1004,6 +1004,59 @@ CREATE TABLE acao.skysight_codes (
 
 
 --
+-- Name: tickets; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.tickets (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    number integer NOT NULL,
+    number_short integer,
+    member_id uuid,
+    state character varying DEFAULT 'NEW'::character varying NOT NULL,
+    aircraft_id uuid,
+    takeoff_airfield_id uuid,
+    landing_airfield_id uuid,
+    pilot1_id uuid,
+    pilot1_role character varying,
+    pilot2_id uuid,
+    pilot2_role character varying,
+    tipo_volo_club integer,
+    bollini integer,
+    height integer,
+    launch_type character varying(16),
+    aircraft_class character varying(16),
+    instruction_flight boolean,
+    skill_test boolean,
+    proficiency_test boolean,
+    maintenance_flight boolean,
+    source character varying,
+    source_id integer
+);
+
+
+--
+-- Name: tickets_number_seq; Type: SEQUENCE; Schema: acao; Owner: -
+--
+
+CREATE SEQUENCE acao.tickets_number_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tickets_number_seq; Type: SEQUENCE OWNED BY; Schema: acao; Owner: -
+--
+
+ALTER SEQUENCE acao.tickets_number_seq OWNED BY acao.tickets.number;
+
+
+--
 -- Name: timetable_entries; Type: TABLE; Schema: acao; Owner: -
 --
 
@@ -3878,6 +3931,13 @@ ALTER TABLE ONLY acao.radar_events ALTER COLUMN id SET DEFAULT nextval('acao.trk
 
 
 --
+-- Name: tickets number; Type: DEFAULT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.tickets ALTER COLUMN number SET DEFAULT nextval('acao.tickets_number_seq'::regclass);
+
+
+--
 -- Name: trailers id_old; Type: DEFAULT; Schema: acao; Owner: -
 --
 
@@ -4577,6 +4637,14 @@ ALTER TABLE ONLY acao.service_types
 
 ALTER TABLE ONLY acao.skysight_codes
     ADD CONSTRAINT skysight_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tickets tickets_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.tickets
+    ADD CONSTRAINT tickets_pkey PRIMARY KEY (id);
 
 
 --
@@ -6292,6 +6360,20 @@ CREATE UNIQUE INDEX index_skysight_codes_on_code ON acao.skysight_codes USING bt
 
 
 --
+-- Name: index_tickets_on_member_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_tickets_on_member_id ON acao.tickets USING btree (member_id);
+
+
+--
+-- Name: index_tickets_on_number; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_tickets_on_number ON acao.tickets USING btree (number);
+
+
+--
 -- Name: index_timetable_entries_on_landing_airfield_id; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -7970,6 +8052,14 @@ ALTER TABLE ONLY acao.flights
 
 
 --
+-- Name: tickets fk_rails_0ac9350a09; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.tickets
+    ADD CONSTRAINT fk_rails_0ac9350a09 FOREIGN KEY (landing_airfield_id) REFERENCES acao.airfields(id);
+
+
+--
 -- Name: trackers fk_rails_0cb6b830a4; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8122,6 +8212,14 @@ ALTER TABLE ONLY acao.tow_roster_entries
 
 
 --
+-- Name: tickets fk_rails_3cfc985f6a; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.tickets
+    ADD CONSTRAINT fk_rails_3cfc985f6a FOREIGN KEY (takeoff_airfield_id) REFERENCES acao.airfields(id);
+
+
+--
 -- Name: payment_services fk_rails_41705eeab7; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8146,6 +8244,14 @@ ALTER TABLE ONLY acao.member_services
 
 
 --
+-- Name: tickets fk_rails_56af1c6c67; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.tickets
+    ADD CONSTRAINT fk_rails_56af1c6c67 FOREIGN KEY (member_id) REFERENCES acao.members(id) ON DELETE SET NULL;
+
+
+--
 -- Name: roster_entries fk_rails_59678736b3; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8159,6 +8265,14 @@ ALTER TABLE ONLY acao.roster_entries
 
 ALTER TABLE ONLY acao.invoices
     ADD CONSTRAINT fk_rails_5cf95fcf83 FOREIGN KEY (member_id) REFERENCES acao.members(id);
+
+
+--
+-- Name: tickets fk_rails_7375842f97; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.tickets
+    ADD CONSTRAINT fk_rails_7375842f97 FOREIGN KEY (aircraft_id) REFERENCES acao.aircrafts(id);
 
 
 --
@@ -8378,6 +8492,14 @@ ALTER TABLE ONLY acao.airfield_circuits
 
 
 --
+-- Name: tickets fk_rails_ce84b2b39d; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.tickets
+    ADD CONSTRAINT fk_rails_ce84b2b39d FOREIGN KEY (pilot1_id) REFERENCES acao.members(id) ON DELETE SET NULL;
+
+
+--
 -- Name: payment_services fk_rails_d1da4cc328; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8455,6 +8577,14 @@ ALTER TABLE ONLY acao.licenses
 
 ALTER TABLE ONLY acao.meters
     ADD CONSTRAINT fk_rails_e9e4aa7ceb FOREIGN KEY (member_id) REFERENCES acao.members(id);
+
+
+--
+-- Name: tickets fk_rails_f0d0f92a56; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.tickets
+    ADD CONSTRAINT fk_rails_f0d0f92a56 FOREIGN KEY (pilot2_id) REFERENCES acao.members(id) ON DELETE SET NULL;
 
 
 --
@@ -8941,9 +9071,10 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO "$user", public;
+SET search_path TO public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251011132904'),
 ('20251001150720'),
 ('20250930090714'),
 ('20250929161248'),
