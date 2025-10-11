@@ -19,6 +19,9 @@ class KeyFob < Ygg::PublicModel
 #  belongs_to :member,
 #             class_name: '::Ygg::Acao::Member'
 
+  gs_rel_map << { from: :key_fob, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
+
+
   include Ygg::Core::Versioned
   self.versioning_insensitive_attributes += [
     :last_notify_run,
@@ -32,12 +35,50 @@ class KeyFob < Ygg::PublicModel
     :person_id,
   ]
 
+  FAAC_ACTIVE = [
+    554,  # Fabio
+    7002, # Daniela
+    7024, # Chicca
+    7017, # Matteo Negri
+    1088, # Francois
+    7011, # Paola Bellora
+    113,  # Adriano Sandri
+    7023, # Clara Ridolfi
+    87,   # Nicolini
+    7013, # Castelnovo
+    6077, # Grinza
+    1141, # Elio Cresci
+    7014, # Michele Roberto Martignoni
+    7008, # Alessandra Caraffini
+    7010, # Luisa Clerici
+    7018, # Nuri Palomino Pulizie
+    500,  # Piera Bagnus
+    403,  # Antonio Zanini (docente)
+    942,  # Marco Gavazzi
+  ]
+
   def self.code_from_faac(code)
     code ? code.to_i(8).to_s(16).rjust(10, '0') : nil
   end
 
   def code_for_faac
     code ? code.to_i(16).to_s(8).rjust(14, '0') : nil
+  end
+
+  def validity_ranges
+    member ? member.access_validity_ranges : []
+  end
+
+  def validity_start
+    validity_ranges.first ? validity_ranges.first.begin : nil
+  end
+
+  def validity_end
+   validity_ranges.first ? validity_ranges.first.end : nil
+  end
+
+  def always_valid
+    FAAC_ACTIVE.include?(member.code)
   end
 
   def self.sync_from_maindb!(debug: 0)

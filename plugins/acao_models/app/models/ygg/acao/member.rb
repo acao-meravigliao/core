@@ -44,28 +44,6 @@ module Acao
 class Member < Ygg::PublicModel
   self.table_name = 'acao.members'
 
-  FAAC_ACTIVE = [
-    554,  # Fabio
-    7002, # Daniela
-    7024, # Chicca
-    7017, # Matteo Negri
-    1088, # Francois
-    7011, # Paola Bellora
-    113,  # Adriano Sandri
-    7023, # Clara Ridolfi
-    87,   # Nicolini
-    7013, # Castelnovo
-    6077, # Grinza
-    1141, # Elio Cresci
-    7014, # Michele Roberto Martignoni
-    7008, # Alessandra Caraffini
-    7010, # Luisa Clerici
-    7018, # Nuri Palomino Pulizie
-    500,  # Piera Bagnus
-    403,  # Antonio Zanini (docente)
-    942,  # Marco Gavazzi
-  ]
-
   belongs_to :person,
           class_name: '::Ygg::Core::Person'
 
@@ -367,6 +345,9 @@ class Member < Ygg::PublicModel
     attr_accessor :descr
     attr_accessor :member
     attr_accessor :member_id
+    attr_accessor :enabled
+    attr_accessor :validity_start
+    attr_accessor :validity_end
 
     def initialize(**args)
       args.each { |k,v| send("#{k}=", v) }
@@ -502,8 +483,18 @@ class Member < Ygg::PublicModel
     l_records = []
     l_records += Ygg::Acao::KeyFob.all.
       select { |x| users[x.member_id] }.
-      map { |x| Media.new(id: x.id, number: nil, code: x.code, member: users[x.member_id],
-                          member_id: x.member_id, code_for_faac: x.code_for_faac) }
+      map { |x| Media.new(
+        id: x.id,
+        number: nil,
+        code: x.code,
+        member: users[x.member_id],
+        member_id: x.member_id,
+        code_for_faac: x.code_for_faac,
+        enabled: x.validity_ranges.any?,
+        validity_start: x.validity_start,
+        validity_end: x.validity_end,
+      )
+    }
 
     Ygg::Acao::MemberAccessRemote.all.each do |x|
       if users[x.member_id] && x.remote.ch1_code
@@ -513,7 +504,10 @@ class Member < Ygg::PublicModel
           code: x.remote.ch1_code,
           member_id: x.member_id,
           member: users[x.member_id],
-          code_for_faac: x.remote.ch1_code_for_faac
+          code_for_faac: x.remote.ch1_code_for_faac,
+          enabled: x.validity_ranges.any?,
+          validity_start: x.validity_start,
+          validity_end: x.validity_end,
         )
       end
 
@@ -524,7 +518,10 @@ class Member < Ygg::PublicModel
           code: x.remote.ch2_code,
           member_id: x.member_id,
           member: users[x.member_id],
-          code_for_faac: x.remote.ch2_code_for_faac
+          code_for_faac: x.remote.ch2_code_for_faac,
+          enabled: x.validity_ranges.any?,
+          validity_start: x.validity_start,
+          validity_end: x.validity_end,
         ) if x.remote.ch2_code
       end
 
@@ -535,7 +532,10 @@ class Member < Ygg::PublicModel
           code: x.remote.ch3_code,
           member_id: x.member_id,
           member: users[x.member_id],
-          code_for_faac: x.remote.ch3_code_for_faac
+          code_for_faac: x.remote.ch3_code_for_faac,
+          enabled: x.validity_ranges.any?,
+          validity_start: x.validity_start,
+          validity_end: x.validity_end,
         ) if x.remote.ch3_code
       end
 
@@ -546,7 +546,10 @@ class Member < Ygg::PublicModel
           code: x.remote.ch4_code,
           member_id: x.member_id,
           member: users[x.member_id],
-          code_for_faac: x.remote.ch4_code_for_faac
+          code_for_faac: x.remote.ch4_code_for_faac,
+          enabled: x.validity_ranges.any?,
+          validity_start: x.validity_start,
+          validity_end: x.validity_end,
         )
       end
     end
@@ -580,22 +583,22 @@ class Member < Ygg::PublicModel
       if r_records_hash[l.code_for_faac]
         puts "DUPLICATE MEDIA??? #{r_records_hash[l.code_for_faac]}"
       else
-        ranges = l.member.access_validity_ranges
-        range = ranges.first
+        #ranges = l.member.access_validity_ranges
+        #range = ranges.first
 
-        validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
-        validity_end = range && range.end && (range.end.to_i * 1000) || 0
-        always_valid = FAAC_ACTIVE.include?(l.member.code)
+        #validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
+        #validity_end = range && range.end && (range.end.to_i * 1000) || 0
+        #always_valid = FAAC_ACTIVE.include?(l.member.code)
 
         faac.media_create(data: {
           uuid: l.id,
           identifier: l.code_for_faac,
           mediaTypeCode: 0,
   #        number: l.number,
-          enabled: !!range,
-          validityStart: validity_start,
-          validityEnd: validity_end,
-          validityMode: (validity_end == 0) ? 0 : 1,
+          enabled: l.enabled,
+          validityStart: l.validity_start ? (l.validity_start.to_i * 1000) : 0,
+          validityEnd: l.validity_end ? (l.validity_end.to_i * 1000) : 0,
+          validityMode: l.validity_end ? 1 : 0,
           antipassbackEnabled: false,
           countingEnabled: true,
           userUuid: l.member_id,
@@ -614,21 +617,21 @@ class Member < Ygg::PublicModel
     lr_update: lambda { |l,r|
       puts "Media update check #{l.id} #{l.code}" if debug > 1
 
-      ranges = l.member.access_validity_ranges
-      range = ranges.first
+      #ranges = l.member.access_validity_ranges
+      #range = ranges.first
 
-      validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
-      validity_end = range && range.end && (range.end.to_i * 1000) || 0
-      always_valid = FAAC_ACTIVE.include?(l.member.code)
+      #validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
+      #validity_end = range && range.end && (range.end.to_i * 1000) || 0
+      #always_valid = FAAC_ACTIVE.include?(l.member.code)
 
       intended = {
         identifier: l.code_for_faac,
         mediaTypeCode: 0,
 #        number: l.number,
-        enabled: !!range,
-        validityStart: validity_start,
-        validityEnd: validity_end,
-        validityMode: (validity_end == 0) ? 0 : 1,
+        enabled: l.enabled,
+        validityStart: l.validity_start ? (l.validity_start.to_i * 1000) : 0,
+        validityEnd: l.validity_end ? (l.validity_end.to_i * 1000) : 0,
+        validityMode: l.validity_end ? 1 : 0,
         antipassbackEnabled: false,
         countingEnabled: true,
         userUuid: l.member_id,

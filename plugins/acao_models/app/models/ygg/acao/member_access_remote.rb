@@ -23,6 +23,18 @@ class MemberAccessRemote < Ygg::PublicModel
   belongs_to :remote,
              class_name: 'Ygg::Acao::AccessRemote'
 
+  def validity_ranges
+    member ? member.access_validity_ranges : []
+  end
+
+  def validity_start
+    validity_ranges.first ? validity_ranges.first.begin : nil
+  end
+
+  def validity_end
+   validity_ranges.first ? validity_ranges.first.end : nil
+  end
+
   def self.sync_from_maindb!(debug: 0)
     Ygg::Toolkit.merge(
       l: Ygg::Acao::MainDb::Tessera.where('len(tag) < 10').order('LOWER(tag)').lock,
