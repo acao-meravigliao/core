@@ -138,14 +138,6 @@ loop do
 
   if onda_changed
     Ygg::Acao::Member.transaction do
-      puts "Running trigger replacement" if debug >= 1
-      time0 = Time.new
-      Ygg::Acao::Onda::DocTesta.trigger_replacement(debug: debug)
-      puts "trigger replacement done, took #{Time.new - time0} seconds" if debug >= 1
-
-      Ygg::Acao::Invoice.sync_from_maindb!(from_time: Time.now - 30.days, debug: debug)
-
-      Ygg::Acao::Onda::DocTesta.update_last_update!
     end
   end
 
