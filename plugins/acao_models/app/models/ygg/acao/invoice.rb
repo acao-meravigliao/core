@@ -117,18 +117,18 @@ class Invoice < Ygg::PublicModel
           total_amount: riga.Totale,
           descr: riga.Descrizione,
         )
-
-        invoice.save!
       end
+
+      # TODO: Associate TokenTransactions with this invoice
+      ##tt = Ygg::Acao::TokenTransaction.where('recorded_at BETWEEN ? AND ?',
+      ##       invoice.recorded_at.beginning_of_year, invoice.recorded_at.ending_of_year).where('descr LIKE \'%?%\'', invoice.identifier)
 
       invoice.save!
     },
     r_to_l: lambda { |r|
       puts "INVOICE DESTROY #{r.source_id} #{r.identifier}" #if debug >= 1
 
-      # Remove only non-pending invoices
-
-      #r.destroy!
+      r.destroy!
     },
     lr_update: lambda { |l,r|
       puts "INVOICE CMP #{l.IdDoc} #{l.NumeroDocumento}" if debug >= 3
@@ -156,6 +156,8 @@ class Invoice < Ygg::PublicModel
         email: anagrafica.E_mail,
         amount: l.TotDocumento,
       )
+
+      # TODO: Associate TokenTransactions with this invoice
 
       if r.deep_changed? || force
         r.details.destroy_all
