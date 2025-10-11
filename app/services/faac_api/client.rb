@@ -91,7 +91,17 @@ class Client
   end
 
 
-  def media_get(page_index: 0, page_size: 1000)
+  def media_get_by_code(code)
+    res = genreq(verb: 'POST', uri: '/keydom/api-external/accessMedias/getPageByFilter',
+      body: { pageIndex: 0, pageSize: 2, identifierFilterPattern: code }.to_json,
+    )
+
+    body = JSON.parse(res.body, symbolize_names: true)
+
+    body[:data].first
+  end
+
+  def media_get_page(page_index: 0, page_size: 1000)
     res = genreq(verb: 'GET', uri: '/keydom/api-external/accessMedias/getPage',
       query: { pageIndex: page_index, pageSize: page_size },
     )
@@ -106,7 +116,7 @@ class Client
     users = []
 
     loop do
-      res = media_get(page_index: page, page_size: 1000)
+      res = media_get_page(page_index: page, page_size: 1000)
 
       users += res
 
