@@ -13,36 +13,6 @@ module Acao
 class Payment < Ygg::PublicModel
   self.table_name = 'acao.payments'
 
-  self.porn_migration += [
-    [ :must_have_column, { name: "id", type: :integer, null: false, limit: 4 } ],
-    [ :must_have_column, { name: "uuid", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-    [ :must_have_column, {name: "invoice_id", type: :uuid, default: nil, null: true}],
-    #[ :must_have_column, {name: "invoice_id", type: :uuid, default: nil, null: false}],
-    [ :must_have_column, {name: "person_id", type: :integer, default: nil, limit: 4, null: false}],
-    [ :must_have_column, {name: "identifier", type: :string, default: nil, limit: 8, null: true}],
-    #[ :must_have_column, {name: "identifier", type: :string, default: nil, limit: 8, null: false}],
-    [ :must_have_column, {name: "amount", type: :decimal, default: nil, precision: 14, scale: 6, null: true}],
-    #[ :must_have_column, {name: "amount", type: :decimal, default: nil, precision: 14, scale: 6, null: false}],
-    [ :must_have_column, {name: "payment_method", type: :string, default: nil, limit: 32, null: false}],
-    [ :must_have_column, {name: "created_at", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "state", type: :string, default: "PENDING", limit: 32, null: false}],
-    [ :must_have_column, {name: "reason_for_payment", type: :string, default: nil, limit: 140, null: true}],
-    [ :must_have_column, {name: "completed_at", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "wire_value_date", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "receipt_code", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "expires_at", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "notes", type: :text, default: nil, null: true}],
-    [ :must_have_column, {name: "last_chore", type: :datetime, default: nil, null: true}],
-
-    [ :must_have_index, {columns: ["uuid"], unique: true}],
-    [ :must_have_index, {columns: ["identifier"], unique: true}],
-    [ :must_have_index, {columns: ["invoice_id"], unique: false}],
-    [ :must_have_index, {columns: ["person_id"], unique: false}],
-
-    [ :must_have_fk, {to_table: "acao_invoices", column: "invoice_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core_people", column: "person_id", primary_key: "id", on_delete: nil, on_update: nil}],
-  ]
-
   belongs_to :debt,
              class_name: 'Ygg::Acao::Debt'
 
@@ -56,6 +26,8 @@ class Payment < Ygg::PublicModel
   define_default_log_controller(self)
 
   include Ygg::Core::Notifiable
+
+  gs_rel_map << { from: :payment, to: :debt, to_cls: '::Ygg::Acao::Debt', from_key: 'debt_id' }
 
   after_initialize do
     if new_record?
@@ -82,7 +54,7 @@ class Payment < Ygg::PublicModel
     end
   end
 
-  def completed!(no_export: false, no_reg: false, wire_value_date: nil, receipt_code: nil)
+  def completed!(wire_value_date: nil, receipt_code: nil)
     transaction do
       lock!
 
@@ -94,12 +66,15 @@ class Payment < Ygg::PublicModel
       self.receipt_code = receipt_code
       save!
 
-      if invoice
-        invoice.onda_export_status = 'DISABLED' if no_export
-        invoice.onda_no_reg = true if no_reg
-        invoice.save!
-        invoice.one_payment_has_been_completed!(self)
+      if debt
+        debt.one_payment_has_been_completed!(self)
       end
+
+      # Debts are now only for pre-invoice contexts
+      #
+      #if invoice
+      #  invoice.one_payment_has_been_completed!(self)
+      #end
 
       Ygg::Ml::Msg.notify(destinations: person, template: 'PAYMENT_COMPLETED', template_context: {
         first_name: person.first_name,
@@ -108,7 +83,7 @@ class Payment < Ygg::PublicModel
     end
   end
 
-  require 'am/satispay'
+  require 'am/satispay/client'
 
   def satispay_initiate(phone_number:)
     satispay_charges.each do |c|

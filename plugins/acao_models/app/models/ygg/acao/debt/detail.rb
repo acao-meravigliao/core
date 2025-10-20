@@ -22,6 +22,8 @@ class Detail < Ygg::BasicModel
              polymorphic: true,
              optional: true
 
+  gs_rel_map << { from: :detail, to: :debt, to_cls: '::Ygg::Acao::Debt', from_key: 'debt_id' }
+
   has_meta_class
 
   include Ygg::Core::Loggable

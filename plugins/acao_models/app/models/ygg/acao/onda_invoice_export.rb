@@ -28,6 +28,9 @@ class OndaInvoiceExport < Ygg::PublicModel
            dependent: :destroy,
            autosave: true
 
+  gs_rel_map << { from: :onda_invoice_export, to: :debt, to_cls: '::Ygg::Acao::Debt', from_key: 'debt_id' }
+  gs_rel_map << { from: :onda_invoice_export, to: :detail, to_cls: '::Ygg::Acao::OndaInvoiceExport::Detail', to_key: 'onda_invoice_export_id' }
+
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 
@@ -231,14 +234,14 @@ class OndaInvoiceExport < Ygg::PublicModel
     File.join(Rails.application.config.acao.onda_import_dir, '_importati', "#{filename}.xml0")
   end
 
-  def send!(force: false)
+  def send!(no_reg: false, force: false)
     raise "Cannot export in state #{state}" if state != 'PENDING' && !force
 
     full_filename_new = full_filename + '.new'
 
     begin
       File.open(full_filename_new , 'w') do |file|
-        file.write(build_xml_for_onda_fattura)
+        file.write(build_xml_for_onda_fattura(no_reg: no_reg))
       end
 
       File.rename(full_filename_new, full_filename)

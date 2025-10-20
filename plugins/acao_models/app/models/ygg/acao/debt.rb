@@ -35,6 +35,11 @@ class Debt < Ygg::PublicModel
 
   include Ygg::Core::Notifiable
 
+  gs_rel_map << { from: :debt, to: :member, to_cls: '::Ygg::Acao::Member', from_key: 'member_id' }
+  gs_rel_map << { from: :debt, to: :detail, to_cls: '::Ygg::Acao::Debt::Detail', to_key: 'debt_id' }
+  gs_rel_map << { from: :debt, to: :payment, to_cls: '::Ygg::Acao::Payment', to_key: 'debt_id' }
+  gs_rel_map << { from: :debt, to: :onda_invoice_export, to_cls: '::Ygg::Acao::OndaInvoiceExport', to_key: 'debt_id' }
+
   def self.readables_relation(person_id:)
     joins(:readables).where(core_readables_uuid: { person_id: person_id })
   end
@@ -62,16 +67,9 @@ class Debt < Ygg::PublicModel
     self.identifier = identifier
   end
 
-  def total
-    details.reduce(0) { |a,x| a + x.total }
-  end
-
   def one_payment_has_been_completed!(payment)
-    if payments.all? { |x| x.state == 'COMPLETED' }
+    if total_paid >= total
       paid_in_full!
-    else
-      self.state = 'PARTIALLY_PAID'
-      save!
     end
   end
 
@@ -95,11 +93,13 @@ class Debt < Ygg::PublicModel
         end
       end
 
-      export_to_onda!
+      if onda_export
+        export_to_onda!
+      end
     end
   end
 
-  def export_to_onda!
+  def export_to_onda!(no_reg: false)
     raise "No payment registered" if payments.empty?
 
     onda_export = nil
@@ -139,19 +139,15 @@ class Debt < Ygg::PublicModel
       end
     end
 
-    onda_export.send!
+    onda_export.send!(no_reg: onda_export_no_reg)
   end
 
-  def generate_payment!(reason: "Pagamento fattura", timeout: 10.days)
-    Ygg::Acao::Payment.create(
-      person: person,
-      invoice: self,
-      created_at: Time.now,
-      expires_at: Time.now + timeout,
-      payment_method: payment_method,
-      reason_for_payment: reason,
-      amount: total,
-    )
+  def total
+    details.reduce(0) { |a,x| a + x.total }
+  end
+
+  def total_paid
+    payments.reduce(0) { |a,x| (x.state == 'COMPLETED') ? a + x.amount : 0 }
   end
 
   def self.run_chores!
@@ -196,15 +192,6 @@ class Debt < Ygg::PublicModel
       end
     end
   end
-
-  PAYMENT_METHOD_MAP = {
-    'WIRE'      => 'BB',
-    'CHECK'     => 'AS',
-    'SATISPAY'  => 'SP',
-    'CARD'      => 'CC',
-    'CASH'      => 'CO',
-  }
-
 end
 
 end
