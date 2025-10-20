@@ -76,6 +76,8 @@ module AcaoCore
       config.acao.wol_username = 'lino-wol'
       config.acao.wol_host = 'rutterone.acao.it'
 
+      config.acao.pics_store = '/opt/pics'
+
       config.acao.flarmnet_fln_url = 'https://www.flarmnet.org/files/data.fln'
       config.acao.flarmnet_ddb_url = 'https://www.flarmnet.org/files/ddb.json'
       config.acao.ogn_ddb_url = 'https://ddb.glidernet.org/download'

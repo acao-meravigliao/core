@@ -70,15 +70,20 @@ Rails.application.configure do
 
   #config.ml.email_also_bcc = 'daniele@orlandi.com'
 
-  config.acao.soci_ml_dry_run = false
-  config.acao.faac_endpoint = 'https://ac-controller.acao.it/'
-  config.acao.faac_generic_user = 'acao'
-  config.acao.faac_debug = 0
-  config.acao.faac_actions = {
-    CANCELLO: '3870651b-3702-454c-ad30-42c16337ebbf',
-    SBARRA: 'e4113bd9-c6b9-401b-a157-2c37b83b5155',
-    PEDONALE: 'a93e70a7-0e62-48bb-82be-5d6c769cb6a4',
-  }
+  if config.respond_to?(:acao)
+    config.acao.soci_ml_dry_run = false
+    config.acao.faac_endpoint = 'https://ac-controller.acao.it/'
+    config.acao.faac_generic_user = 'acao'
+    config.acao.faac_debug = 0
+    config.acao.faac_actions = {
+      CANCELLO: '3870651b-3702-454c-ad30-42c16337ebbf',
+      SBARRA: 'e4113bd9-c6b9-401b-a157-2c37b83b5155',
+      PEDONALE: 'a93e70a7-0e62-48bb-82be-5d6c769cb6a4',
+    }
+
+    config.acao.satispay_endpoint = 'https://authservices.satispay.com/'
+    config.acao.satispay_callback_url = 'https://servizi.acao.it/ygg/acao/payments/satispay_callback'
+  end
 
   if config.respond_to?(:rails_vos)
     config.rails_vos.allowed_request_origins = [
