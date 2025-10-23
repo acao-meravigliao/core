@@ -153,6 +153,8 @@ class Member < Ygg::PublicModel
              optional: true
 
   gs_rel_map << { from: :member, to: :role, to_cls: 'Ygg::Acao::Member::Role', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :medical, to_cls: 'Ygg::Acao::Medical', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :license, to_cls: 'Ygg::Acao::License', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :membership, to_cls: 'Ygg::Acao::Membership', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :aircraft_owner, to_cls: 'Ygg::Acao::Aircraft::Owner', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :keyfob, to_cls: 'Ygg::Acao::KeyFob', to_key: 'member_id', }
@@ -203,46 +205,101 @@ class Member < Ygg::PublicModel
     completed_years
   end
 
+  # Verifica che i turni di linea necessari siano stati selezionati
+  #
+  def roster_needed_entries_present(time: Time.now)
+    needed = roster_entries_needed(time: time)
+
+    entries = roster_entries.joins(:roster_day).where('roster_days.date': (
+      time.beginning_of_year..time.end_of_year
+    ))
+
+    entries_high = entries.where('roster_days.high_season')
+
+    entries.count >= needed[:total] && entries_high.count >= needed[:high_season]
+  end
+
   # Implementazione dei criteri che stabiliscono il numero di turni di linea da fare
   #
-  def roster_entries_needed(year: Time.now.year)
-    ym = Ygg::Acao::Year.find_by!(year: year)
+  def roster_entries_needed(time: Time.now)
+    ym = Ygg::Acao::Year.find_by!(year: time.year)
+
+    role_models = roles_at(time: time)
+    roles = role_models.map(&:symbol)
 
     needed = {
-      total: 2,
-      high_season: 1,
+      total: 0,
+      high_season: 0,
     }
 
-    # As by request from Treccilubba roster enrollment is needed for anybody, including people not paying CAV
-    #
-    #if !with_cav
-    #  needed[:total] = 0
-    #  needed[:high_season] = 0
-    #  needed[:reason] = 'cav_not_paid'
-    if person.birth_date && compute_completed_years(person.birth_date, ym.renew_opening_time) >= 65
-      needed[:total] = 0
-      needed[:high_season] = 0
-      needed[:reason] = 'older_than_65'
-    elsif is_spl_instructor?
-      needed[:total] = 0
-      needed[:high_season] = 0
-      needed[:reason] = 'instructor'
-    elsif has_disability
-      needed[:total] = 0
-      needed[:high_season] = 0
-      needed[:reason] = 'has_disability'
-    elsif is_board_member?
-      needed[:total] = 0
-      needed[:high_season] = 0
-      needed[:reason] = 'board_member'
-    elsif is_tug_pilot?
-      needed[:total] = 1
-      needed[:high_season] = 0
-      needed[:reason] = 'tow_pilot'
+    if roles.include?('SPL_PILOT') ||
+       roles.include?('SPL_STUDENT')
+
+      if person.birth_date && compute_completed_years(person.birth_date, ym.renew_opening_time) >= 65
+        needed[:total] = 0
+        needed[:high_season] = 0
+        needed[:reason] = 'older_than_65'
+      elsif roles.include?('SPL_INSTRUCTOR')
+        needed[:total] = 0
+        needed[:high_season] = 0
+        needed[:reason] = 'instructor'
+      elsif has_disability
+        needed[:total] = 0
+        needed[:high_season] = 0
+        needed[:reason] = 'has_disability'
+      elsif roles.include?('BOARD_MEMBER')
+        needed[:total] = 0
+        needed[:high_season] = 0
+        needed[:reason] = 'board_member'
+      elsif roles.include?('TOW_PILOT')
+        needed[:total] = 1
+        needed[:high_season] = 0
+        needed[:reason] = 'tow_pilot'
+      else
+        needed[:total] = 2
+        needed[:high_season] = 1
+      end
     end
 
     needed
   end
+
+  def roster_status(time:)
+    year_model = Ygg::Acao::Year.find_by!(year: time.year)
+
+    res = {
+      year: time.year,
+    }
+
+    membership = memberships.find_by(reference_year: year_model)
+
+    needed_entries_present = nil
+    needed_total = nil
+    needed_high_season = nil
+
+    if membership && (membership.status == 'MEMBER' || membership.status == 'WAITING_PAYMENT')
+      roster_entries_needed = roster_entries_needed(time: time)
+      needed_entries_present = roster_needed_entries_present(time: time)
+
+      entries = roster_entries.joins(:roster_day).where('roster_days.date': (
+        time.beginning_of_year..time.end_of_year
+      ))
+
+      entries_high = entries.where('roster_days.high_season')
+
+      res.merge!(
+        can_select_entries: true,
+        total: entries.count,
+        high_season: entries_high.count,
+        needed_total: roster_entries_needed[:total],
+        needed_high_season: roster_entries_needed[:high_season],
+        needed_entries_present: needed_entries_present,
+      )
+    end
+
+    res
+  end
+
 
   def active?(time: Time.now)
     memberships.any? { |x| x.active?(time: time) }
@@ -251,20 +308,6 @@ class Member < Ygg::PublicModel
   def active_to(time: Time.now)
     m = memberships.select { |x| x.active?(time: time) }.max { |x| x.valid_to }
     m ? m.valid_to : nil
-  end
-
-  # Verifica che i turni di linea necessari siano stati selezionati
-  #
-  def roster_needed_entries_present(year: Time.now.year)
-    needed = roster_entries_needed(year: year)
-
-    entries = roster_entries.joins(:roster_day).where('roster_days.date': (
-      DateTime.new(year).beginning_of_year..DateTime.new(year).end_of_year
-    ))
-
-    entries_high = entries.where('roster_days.high_season')
-
-    entries.count >= needed[:total] && entries_high.count >= needed[:high_season]
   end
 
   def send_initial_password!
@@ -1197,7 +1240,9 @@ class Member < Ygg::PublicModel
   end
 
   def sync_credentials(l, debug: 0)
-    pw = Password.xkcd(words: 3, dict: VihaiPasswordRails.dict('it'))
+    cred = person.credentials.where(sti_type: 'Ygg::Core::Person::Credential::ObfuscatedPassword').first
+
+    pw = cred ? cred.password : Password.xkcd(words: 3, dict: VihaiPasswordRails.dict('it'))
 
     sync_credential("#{l.codice_socio_dati_generale.to_s}@cp.acao.it", pw)
 
@@ -1419,6 +1464,10 @@ class Member < Ygg::PublicModel
 
   def self.tug_pilots
     active_members.joins(:roles).where(roles: { symbol: 'TUG_PILOT' })
+  end
+
+  def roles_at(time:)
+    roles.to_a.select { |x| !x.valid_from ? (!x.valid_to || time < x.valid_to) : (time > x.valid_from && time < x.valid_to) }
   end
 
   def is_spl_student?
