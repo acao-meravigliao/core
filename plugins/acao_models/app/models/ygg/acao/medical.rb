@@ -17,6 +17,8 @@ class Medical < Ygg::PublicModel
   belongs_to :member,
              class_name: 'Ygg::Acao::Member'
 
+  gs_rel_map << { from: :medical, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
+
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 

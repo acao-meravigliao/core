@@ -23,6 +23,8 @@ class License < Ygg::PublicModel
            autosave: true,
            dependent: :destroy
 
+  gs_rel_map << { from: :license, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
+
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 
