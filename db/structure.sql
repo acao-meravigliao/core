@@ -334,7 +334,8 @@ CREATE TABLE acao.debt_details (
     data character varying,
     service_type_id uuid,
     obj_type character varying,
-    obj_id uuid
+    obj_id uuid,
+    row_index integer DEFAULT 1 NOT NULL
 );
 
 
@@ -354,7 +355,9 @@ CREATE TABLE acao.debts (
     expires_at timestamp without time zone,
     notes character varying,
     last_chore timestamp without time zone,
-    synced_at timestamp(6) without time zone DEFAULT now() NOT NULL
+    synced_at timestamp(6) without time zone DEFAULT now() NOT NULL,
+    onda_export boolean DEFAULT true NOT NULL,
+    onda_export_no_reg boolean DEFAULT false NOT NULL
 );
 
 
@@ -932,6 +935,21 @@ CREATE TABLE acao.radar_raw_points (
     tr double precision,
     cr double precision,
     aircraft_id uuid NOT NULL
+);
+
+
+--
+-- Name: roles; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.roles (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    symbol character varying,
+    descr character varying,
+    icon character varying,
+    usable boolean DEFAULT true NOT NULL
 );
 
 
@@ -1782,6 +1800,33 @@ CREATE TABLE core.person_credentials (
     fqda character varying NOT NULL,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     person_id uuid NOT NULL
+);
+
+
+--
+-- Name: person_email_validation_tokens; Type: TABLE; Schema: core; Owner: -
+--
+
+CREATE TABLE core.person_email_validation_tokens (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    person_email_id uuid NOT NULL,
+    code character varying NOT NULL,
+    created_at timestamp without time zone,
+    expires_at timestamp without time zone
+);
+
+
+--
+-- Name: person_emails; Type: TABLE; Schema: core; Owner: -
+--
+
+CREATE TABLE core.person_emails (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    person_id uuid NOT NULL,
+    email character varying NOT NULL,
+    ml_address_id uuid
 );
 
 
@@ -4608,6 +4653,14 @@ ALTER TABLE ONLY acao.radar_events
 
 
 --
+-- Name: roles roles_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.roles
+    ADD CONSTRAINT roles_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: roster_days roster_days_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -4949,6 +5002,22 @@ ALTER TABLE ONLY core.person_contacts
 
 ALTER TABLE ONLY core.person_credentials
     ADD CONSTRAINT person_credentials_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: person_email_validation_tokens person_email_validation_tokens_pkey; Type: CONSTRAINT; Schema: core; Owner: -
+--
+
+ALTER TABLE ONLY core.person_email_validation_tokens
+    ADD CONSTRAINT person_email_validation_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: person_emails person_emails_pkey; Type: CONSTRAINT; Schema: core; Owner: -
+--
+
+ALTER TABLE ONLY core.person_emails
+    ADD CONSTRAINT person_emails_pkey PRIMARY KEY (id);
 
 
 --
@@ -6318,6 +6387,13 @@ CREATE UNIQUE INDEX index_planes_on_uuid ON acao.planes USING btree (id);
 
 
 --
+-- Name: index_roles_on_symbol; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_roles_on_symbol ON acao.roles USING btree (symbol);
+
+
+--
 -- Name: index_roster_days_on_uuid; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -7155,6 +7231,34 @@ CREATE INDEX index_person_contacts_on_person_id ON core.person_contacts USING bt
 --
 
 CREATE INDEX index_person_credentials_on_person_id ON core.person_credentials USING btree (person_id);
+
+
+--
+-- Name: index_person_email_validation_tokens_on_code; Type: INDEX; Schema: core; Owner: -
+--
+
+CREATE UNIQUE INDEX index_person_email_validation_tokens_on_code ON core.person_email_validation_tokens USING btree (code);
+
+
+--
+-- Name: index_person_email_validation_tokens_on_person_email_id; Type: INDEX; Schema: core; Owner: -
+--
+
+CREATE INDEX index_person_email_validation_tokens_on_person_email_id ON core.person_email_validation_tokens USING btree (person_email_id);
+
+
+--
+-- Name: index_person_emails_on_person_id; Type: INDEX; Schema: core; Owner: -
+--
+
+CREATE INDEX index_person_emails_on_person_id ON core.person_emails USING btree (person_id);
+
+
+--
+-- Name: index_person_emails_on_person_id_and_email; Type: INDEX; Schema: core; Owner: -
+--
+
+CREATE INDEX index_person_emails_on_person_id_and_email ON core.person_emails USING btree (person_id, email);
 
 
 --
@@ -8756,6 +8860,14 @@ ALTER TABLE ONLY core.log_entries
 
 
 --
+-- Name: person_emails fk_rails_3a03614bb8; Type: FK CONSTRAINT; Schema: core; Owner: -
+--
+
+ALTER TABLE ONLY core.person_emails
+    ADD CONSTRAINT fk_rails_3a03614bb8 FOREIGN KEY (person_id) REFERENCES core.people(id) ON DELETE CASCADE;
+
+
+--
 -- Name: klass_members_role_defs fk_rails_3a58f3a83e; Type: FK CONSTRAINT; Schema: core; Owner: -
 --
 
@@ -9074,6 +9186,10 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251020122322'),
+('20251015095856'),
+('20251013232750'),
+('20251011225621'),
 ('20251011132904'),
 ('20251001150720'),
 ('20250930090714'),

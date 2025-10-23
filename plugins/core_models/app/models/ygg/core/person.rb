@@ -64,6 +64,11 @@ class Person < OrgaPerson
     "P-#{computed}"
   end
 
+  has_many :emails,
+           class_name: '::Ygg::Core::Person::Email',
+           dependent: :destroy,
+           foreign_key: :person_id
+
   has_many :contacts,
            class_name: '::Ygg::Core::Person::Contact',
            dependent: :destroy,
@@ -149,6 +154,7 @@ class Person < OrgaPerson
 
 #  has_many :accesses, class_name: 'Ygg::Sevio::Access'
 
+  gs_rel_map << { from: :person, to: :email, to_cls: '::Ygg::Core::Person::Email', to_key: 'person_id' }
   gs_rel_map << { from: :person, to: :contact, to_cls: '::Ygg::Core::Person::Contact', to_key: 'person_id' }
   gs_rel_map << { from: :person, to: :credential, to_cls: '::Ygg::Core::Person::Credential', to_key: 'person_id' }
   gs_rel_map << { from: :person, to: :birth_location, to_cls: '::Ygg::Core::Location', from_key: 'birth_location_id' }
@@ -178,6 +184,10 @@ class Person < OrgaPerson
   end
 
   def self.search(query)
+    query = query.strip.downcase
+
+    return [] if query.empty?
+
     (first_name, last_name) = query.split(' ')
 
     if !last_name
@@ -185,10 +195,10 @@ class Person < OrgaPerson
       first_name = nil
     end
 
-    res = Ygg::Core::Person.where('last_name ILIKE ?', last_name.downcase + '%')
+    res = Ygg::Core::Person.where('last_name ILIKE ?', last_name + '%')
 
     if first_name
-      res = res.where('first_name ILIKE ?', first_name.downcase + '%')
+      res = res.where('first_name ILIKE ?', first_name + '%')
     end
 
     res
