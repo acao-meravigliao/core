@@ -949,6 +949,7 @@ class Member < Ygg::PublicModel
 
     l_records = relation.joins(:person).includes(:person).
                          joins(:person => :contacts).includes(:person => :contacts).
+                         joins(:person => :emails).includes(:person => :emails).
                          joins(:person => :credentials).sort_by { |x| x.code.to_s }
     r_records = data.select { |x| x[:roles].split(',').include?('src_acao') }.sort_by { |x| x[:user_login] }
 
@@ -961,7 +962,7 @@ class Member < Ygg::PublicModel
 
       updates << [
         l.code.to_s,
-        l.person.contacts.where(type: 'email').any? ? l.person.contacts.where(type: 'email').first.value : '',
+        l.person.emails.any? ? l.person.emails.first.email : '',
         l.person.credentials.where('fqda LIKE \'%@cp.acao.it\'').first.password,
         l.person.first_name,
         l.person.last_name,
@@ -999,7 +1000,7 @@ class Member < Ygg::PublicModel
 
       updates << [
         l.code.to_s,
-        l.person.contacts.where(type: 'email').any? ? l.person.contacts.where(type: 'email').first.value : '',
+        l.person.emails.any? ? l.person.emails.first.email : '',
         l.person.credentials.where('fqda LIKE \'%@cp.acao.it\'').first.password,
         l.person.first_name,
         l.person.last_name,
@@ -1414,33 +1415,41 @@ class Member < Ygg::PublicModel
     end
   end
 
-  def sync_contacts(r, person:, debug: 0)
-    if r.Email && !r.Email.strip.empty? && r.Email.strip != 'acao@acao.it' && r.Email.strip != 'NO'
-      person.contacts.find_or_create_by(type: 'email', value: r.Email.strip)
+  def sync_contacts(other, person:, debug: 0)
+    if other.Email && !other.Email.strip.empty? && other.Email.strip != 'acao@acao.it' && other.Email.strip != 'NO'
+      person.emails.find_or_create_by(email: other.Email.strip) do |email|
+        email.ml_address = Ygg::Ml::Address.find_or_create_by(addr: other.Email.strip, addr_type: 'EMAIL') do |addr|
+          addr.name = person.name
+        end
+      end
     end
 
-    if r.Telefono_Casa && r.Telefono_Casa.strip != '' && r.Telefono_Casa.strip != '0'
-      person.contacts.find_or_create_by(type: 'phone', value: r.Telefono_Casa.strip, descr: 'Casa')
+    if other.Email && !other.Email.strip.empty? && other.Email.strip != 'acao@acao.it' && other.Email.strip != 'NO'
+      person.contacts.find_or_create_by(type: 'email', value: other.Email.strip)
     end
 
-    if r.Telefono_Ufficio && r.Telefono_Ufficio.strip != '' && r.Telefono_Ufficio.strip != '0'
-      person.contacts.find_or_create_by(type: 'phone', value: r.Telefono_Ufficio.strip, descr: 'Ufficio')
+    if other.Telefono_Casa && other.Telefono_Casa.strip != '' && other.Telefono_Casa.strip != '0'
+      person.contacts.find_or_create_by(type: 'phone', value: other.Telefono_Casa.strip, descr: 'Casa')
     end
 
-    if r.Telefono_Altro && r.Telefono_Altro.strip != '' && r.Telefono_Altro.strip != '0'
-      person.contacts.find_or_create_by(type: 'phone', value: r.Telefono_Altro.strip, descr: 'Ufficio')
+    if other.Telefono_Ufficio && other.Telefono_Ufficio.strip != '' && other.Telefono_Ufficio.strip != '0'
+      person.contacts.find_or_create_by(type: 'phone', value: other.Telefono_Ufficio.strip, descr: 'Ufficio')
     end
 
-    if r.Telefono_Cellulare && r.Telefono_Cellulare.strip != '' && r.Telefono_Cellulare.strip != '0'
-      person.contacts.find_or_create_by(type: 'mobile', value: r.Telefono_Cellulare.strip)
+    if other.Telefono_Altro && other.Telefono_Altro.strip != '' && other.Telefono_Altro.strip != '0'
+      person.contacts.find_or_create_by(type: 'phone', value: other.Telefono_Altro.strip, descr: 'Ufficio')
     end
 
-    if r.Fax && r.Fax.strip != '' && r.Fax.strip != '0'
-      person.contacts.find_or_create_by(type: 'fax', value: r.Fax.strip)
+    if other.Telefono_Cellulare && other.Telefono_Cellulare.strip != '' && other.Telefono_Cellulare.strip != '0'
+      person.contacts.find_or_create_by(type: 'mobile', value: other.Telefono_Cellulare.strip)
     end
 
-    if r.Sito_Web && r.Sito_Web.strip != '' && r.Sito_Web.strip != 'W'
-      person.contacts.find_or_create_by(type: 'url', value: r.Sito_Web.strip)
+    if other.Fax && other.Fax.strip != '' && other.Fax.strip != '0'
+      person.contacts.find_or_create_by(type: 'fax', value: other.Fax.strip)
+    end
+
+    if other.Sito_Web && other.Sito_Web.strip != '' && other.Sito_Web.strip != 'W'
+      person.contacts.find_or_create_by(type: 'url', value: other.Sito_Web.strip)
     end
   end
 

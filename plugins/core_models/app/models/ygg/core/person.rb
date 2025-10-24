@@ -237,6 +237,7 @@ class Person < OrgaPerson
     other.last_name += ' *MERGED*'
 
     contacts << other.contacts
+    emails << other.emails
     log_entries_as_person << other.log_entries_as_person
 
     package_instances << other.package_instances
