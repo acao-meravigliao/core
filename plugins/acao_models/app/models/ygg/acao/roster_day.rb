@@ -37,7 +37,7 @@ class RosterDay < Ygg::PublicModel
     where(date: Time.new(year).beginning_of_year..Time.new(year).end_of_year)
   end
 
-  def self.init_for_year(year: Time.now.year)
+  def self.populate_year(year: Time.now.year)
 
     # Alta stagione 1/3 => 30/9 (4 persone)
     # Da metà febbraio 3 persone
