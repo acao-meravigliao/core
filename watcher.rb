@@ -168,6 +168,8 @@ loop do
     puts "  FAAC update done, took #{Time.new - time0} seconds" if debug >= 1
   end
 
+  Ygg::Acao::OndaInvoiceExport.check_rejects!
+
   if soci_changed || mezzo_changed || volo_changed || onda_changed || logbar_changed || logbol_changed
     puts "------------------------------- DONE ---------------------------------" if debug >= 1
   end
