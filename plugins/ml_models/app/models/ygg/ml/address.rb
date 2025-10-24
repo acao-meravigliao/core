@@ -12,16 +12,6 @@ module Ml
 class Address < Ygg::PublicModel
   self.table_name = 'ml.addresses'
 
-  self.porn_migration += [
-    [ :must_have_column, {name: "id", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-    [ :must_have_column, {name: "addr", type: :string, default: nil, null: false}],
-    [ :must_have_column, {name: "name", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "addr_type", type: :string, default: nil, limit: 32, null: false}],
-    [ :must_have_column, {name: "failed_deliveries", type: :integer, default: 0, limit: 4, null: false}],
-
-    [ :must_have_index, {columns: ["addr_type","addr"], unique: true}],
-  ]
-
   validates :addr, presence: true
   validates :addr_type, presence: true
 
@@ -36,6 +26,50 @@ class Address < Ygg::PublicModel
   has_many :messages,
            class_name: '::Ygg::Ml::Msg::Rcpt',
            dependent: :destroy
+
+  has_many :validation_tokens,
+           class_name: '::Ygg::Ml::Address::ValidationToken',
+           dependent: :destroy
+
+  gs_rel_map << { from: :address, to: :validation_token, to_cls: '::Ygg::Ml::Address::ValidationToken', to_key: 'address_id' }
+
+  def bounce_received!
+    self.failed_deliveries += 1
+    self.reliability_score = self.reliability_score * 0.7
+
+    if reliability_score < 0.3
+      self.reliable = false
+    end
+  end
+
+  def start_validation!(person:)
+    transaction do
+      vt = validation_tokens.create!(expires_at: Time.now + 1.hour)
+
+      tpl = Ygg::Ml::Template.find_by(symbol: 'ML_EMAIL_VALIDATION', language: person.preferred_language) ||
+            Ygg::Ml::Template.find_by(symbol: 'ML_EMAIL_VALIDATION')
+
+      raise "Template missing" if !tpl
+
+      Ygg::Ml::Msg::Email.notify_raw(
+        sender: Rails.application.config.ml.default_sender,
+        rcpt_name: person.name,
+        rcpt: addr,
+        tpl: tpl,
+        template_context: {
+          code: vt.code,
+          first_name: person.first_name,
+          expires_at: vt.expires_at,
+        },
+        person: person,
+        objects: [ self ],
+        msg_attrs: {},
+        flush: false,
+      )
+    end
+
+    Ygg::Ml::Msg.queue_flush!
+  end
 end
 
 end

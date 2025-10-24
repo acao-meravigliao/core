@@ -13,32 +13,6 @@ class Bounce < Ygg::PublicModel
   self.table_name = 'ml.msg_bounces'
   self.inheritance_column = false
 
-  self.porn_migration += [
-    [ :must_have_column, {name: "id", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-    [ :must_have_column, {name: "msg_id", type: :integer, default: nil, limit: 4, null: false}],
-    [ :must_have_column, {name: "body", type: :text, default: nil, null: true}],
-    [ :must_have_column, {name: "sender", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "score", type: :integer, default: 0, limit: 4, null: false}],
-    [ :must_have_column, {name: "rem_arrival_date", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "reporting_mta", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "received_at", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "rem_postfix_queue_id", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "rem_postfix_sender", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "diagnostic_code", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "status", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "action", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "original_recipient", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "final_recipient", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "reporting_ua", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "disposition", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "disposition_error", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "type", type: :string, default: nil, limit: 32, null: true}],
-
-    [ :must_have_index, {columns: ["msg_id"], unique: false}],
-
-    [ :must_have_fk, {to_table: "ml.msgs", column: "msg_id", primary_key: "id", on_delete: nil, on_update: nil}],
-  ]
-
   belongs_to :msg,
              class_name: '::Ygg::Ml::Msg::Email'
 
@@ -144,20 +118,20 @@ class Bounce < Ygg::PublicModel
 
       recipient = nil
 
-      #if per_rec[:original_recipient]
-      #  recipient ||= msg.rcpts.find_by(addr: per_rec[:original_recipient].to_s.split(';')[1].strip)
-      #end
+      if per_rec[:original_recipient]
+        recipient ||= msg.rcpts.find_by(addr: per_rec[:original_recipient].to_s.split(';')[1].strip)
+      end
 
-      #if per_rec[:final_recipient]
-      #  recipient ||= msg.rcpts.find_by(addr: per_rec[:final_recipient].to_s.split(';')[1].strip)
-      #end
-      #
-      #if recipient && per_rec[:action]
-      #  if per_rec[:action].to_s == 'failed'
-      #    recipient.failed_deliveries += 1
-      #    recipient.save!
-      #  end
-      #end
+      if per_rec[:final_recipient]
+        recipient ||= msg.rcpts.find_by(addr: per_rec[:final_recipient].to_s.split(';')[1].strip)
+      end
+
+      if recipient && per_rec[:action]
+        if per_rec[:action].to_s == 'failed'
+          recipient.bounce_received!
+          recipient.save!
+        end
+      end
 
       attrs = bounce_attrs.merge(
         action: per_rec[:action] ? per_rec[:action].to_s.downcase : nil,

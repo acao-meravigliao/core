@@ -2877,6 +2877,30 @@ CREATE TABLE i18n.translations (
 
 
 --
+-- Name: address_validation_tokens; Type: TABLE; Schema: ml; Owner: -
+--
+
+CREATE TABLE ml.address_validation_tokens (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    address_id uuid NOT NULL,
+    code character varying NOT NULL,
+    created_at timestamp without time zone,
+    expires_at timestamp without time zone,
+    used_at timestamp without time zone,
+    http_remote_addr character varying(42),
+    http_remote_port integer,
+    http_x_forwarded_for text,
+    http_via text,
+    http_server_addr character varying(42),
+    http_server_port integer,
+    http_server_name character varying(64),
+    http_referer text,
+    http_user_agent text,
+    http_request_uri text
+);
+
+
+--
 -- Name: addresses; Type: TABLE; Schema: ml; Owner: -
 --
 
@@ -2885,7 +2909,11 @@ CREATE TABLE ml.addresses (
     addr character varying NOT NULL,
     name character varying,
     addr_type character varying(32) NOT NULL,
-    failed_deliveries integer DEFAULT 0 NOT NULL
+    failed_deliveries integer DEFAULT 0 NOT NULL,
+    validated boolean DEFAULT false NOT NULL,
+    validated_at timestamp without time zone,
+    reliable boolean DEFAULT true NOT NULL,
+    reliability_score integer DEFAULT 100 NOT NULL
 );
 
 
@@ -5293,6 +5321,14 @@ ALTER TABLE ONLY i18n.translations
 
 
 --
+-- Name: address_validation_tokens address_validation_tokens_pkey; Type: CONSTRAINT; Schema: ml; Owner: -
+--
+
+ALTER TABLE ONLY ml.address_validation_tokens
+    ADD CONSTRAINT address_validation_tokens_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: addresses addresses_pkey; Type: CONSTRAINT; Schema: ml; Owner: -
 --
 
@@ -7549,6 +7585,20 @@ CREATE UNIQUE INDEX index_translations_on_uuid ON i18n.translations USING btree 
 
 
 --
+-- Name: index_address_validation_tokens_on_address_id; Type: INDEX; Schema: ml; Owner: -
+--
+
+CREATE INDEX index_address_validation_tokens_on_address_id ON ml.address_validation_tokens USING btree (address_id);
+
+
+--
+-- Name: index_address_validation_tokens_on_code; Type: INDEX; Schema: ml; Owner: -
+--
+
+CREATE UNIQUE INDEX index_address_validation_tokens_on_code ON ml.address_validation_tokens USING btree (code);
+
+
+--
 -- Name: index_list_members_on_address_id; Type: INDEX; Schema: ml; Owner: -
 --
 
@@ -9108,6 +9158,14 @@ ALTER TABLE ONLY ml.msg_objects
 
 
 --
+-- Name: address_validation_tokens fk_rails_5fa823855f; Type: FK CONSTRAINT; Schema: ml; Owner: -
+--
+
+ALTER TABLE ONLY ml.address_validation_tokens
+    ADD CONSTRAINT fk_rails_5fa823855f FOREIGN KEY (address_id) REFERENCES ml.addresses(id) ON DELETE CASCADE;
+
+
+--
 -- Name: msg_bounces fk_rails_900dcea961; Type: FK CONSTRAINT; Schema: ml; Owner: -
 --
 
@@ -9186,6 +9244,7 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251024121004'),
 ('20251020122322'),
 ('20251015095856'),
 ('20251013232750'),

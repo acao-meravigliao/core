@@ -15,18 +15,6 @@ class CreatePersonEmail < ActiveRecord::Migration[8.0]
 
     add_foreign_key 'person_emails', 'people', column: 'person_id', on_delete: :cascade
 
-#    create_table 'person_email_validation_tokens', id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-#      t.uuid :person_email_id, null: false
-#      t.string :code, null: false
-#      t.timestamp :created_at
-#      t.timestamp :expires_at
-#    end
-#
-#    add_index 'person_email_validation_tokens', [ :code ], unique: true
-#    add_index 'person_email_validation_tokens', [ :person_email_id ]
-#
-#    add_foreign_key 'person_email_validation_tokens', 'person_emails', column: 'person_email_id', on_delete: :cascade
-
     Ygg::Core::Person::Contact.where(type: 'email').each do |contact|
       Ygg::Core::Person::Email.create!(
         person_id: contact.person_id,
@@ -39,6 +27,6 @@ class CreatePersonEmail < ActiveRecord::Migration[8.0]
   end
 
   def down
-#    drop_table 'acao.person_emails'
+    drop_table 'acao.person_emails'
   end
 end

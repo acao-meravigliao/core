@@ -12,37 +12,6 @@ module Ml
 class Msg < Ygg::PublicModel
   self.table_name = 'ml.msgs'
 
-  self.porn_migration += [
-    [ :must_have_column, {name: "id", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-    [ :must_have_column, {name: "message", type: :text, default: nil, null: false}],
-    [ :must_have_column, {name: "abstract", type: :string, default: nil, null: false}],
-    [ :must_have_column, {name: "created_at", type: :datetime, default: nil, null: false}],
-    [ :must_have_column, {name: "delivery_started_at", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "sender_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "email_message_id", type: :string, default: nil, limit: 32, null: true}],
-    [ :must_have_column, {name: "status", type: :string, default: nil, limit: 32, null: true}],
-    [ :must_have_column, {name: "person_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "type", type: :string, default: nil, limit: 64, null: false}],
-    [ :must_have_column, {name: "updated_at", type: :datetime, default: nil, null: false}],
-    [ :must_have_column, {name: "delivery_last_attempt_at", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "recipient_id", type: :integer, default: nil, limit: 4, null: false}],
-    [ :must_have_column, {name: "delivery_successful_at", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "receipt_code", type: :string, default: nil, limit: 64, null: true}],
-    [ :must_have_column, {name: "email_mdn_request", type: :boolean, default: false, null: false}],
-    [ :must_have_column, {name: "email_data_response", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "skebby_order", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "submitted_at", type: :datetime, default: nil, null: true}],
-
-    [ :must_have_index, {columns: ["email_message_id"], unique: true}],
-    [ :must_have_index, {columns: ["person_id"], unique: false}],
-    [ :must_have_index, {columns: ["recipient_id"], unique: false}],
-    [ :must_have_index, {columns: ["sender_id"], unique: false}],
-
-    [ :must_have_fk, {to_table: "core_people", column: "person_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "ml.addresses", column: "recipient_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "ml.senders", column: "sender_id", primary_key: "id", on_delete: nil, on_update: nil}],
-  ]
-
   belongs_to :sender,
            class_name: '::Ygg::Ml::Sender'
 

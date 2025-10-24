@@ -54,10 +54,10 @@ class List < Ygg::PublicModel
     self.class.merge(l: people, r: current_members,
       l_cmp_r: lambda { |l,r| l.id <=> r.owner_id },
       l_to_r: lambda { |l|
-        l.person.contacts.where(type: 'email').each do |contact|
-          addr = Ygg::Ml::Address.find_or_create_by(addr: contact.value, addr_type: 'EMAIL')
-          addr.name = l.person.name
-          addr.save!
+        l.person.emails.each do |email|
+          addr = Ygg::Ml::Address.find_or_create_by(addr: email.email, addr_type: 'EMAIL') do |addr|
+            addr.name = l.person.name
+          end
 
           members << Ygg::Ml::List::Member.new(
             address: addr,

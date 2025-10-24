@@ -11,6 +11,9 @@ Rails.application.routes.draw do
   namespace :ygg do
     namespace :ml do
       hel_resources :addresses, controller: 'address/rest' do
+        collection do
+          post :validate
+        end
       end
 
       hel_resources :lists, controller: 'list/rest' do

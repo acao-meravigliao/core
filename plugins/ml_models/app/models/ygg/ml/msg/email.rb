@@ -201,12 +201,12 @@ class Msg::Email < Ygg::Ml::Msg
           raise TemplateNotFound if !tpl
         end
 
-        person.contacts.where(type: 'email').to_a.reject { |x| exclude_addrs.include?(x.value) }.each do |contact|
+        person.emails.to_a.reject { |x| exclude_addrs.include?(x.email) }.each do |email|
 
           msg = notify_raw(
             sender: sender,
             rcpt_name: person.name,
-            rcpt: contact.value,
+            rcpt: email.email,
             tpl: tpl,
             template_context: template_context,
             person: person,
