@@ -98,7 +98,7 @@ class OndaInvoiceExport < Ygg::PublicModel
           testa.dati_controparte = XmlInterface::RicFisc::Docu::Testa::DatiControparte.new
           testa.dati_controparte.citta = person.residence_location.city
           testa.dati_controparte.codice_fiscale = person.italian_fiscal_code || person.vat_number
-          testa.dati_controparte.e_mail = person.contacts.where(type: 'email').first.value
+          testa.dati_controparte.e_mail = person.emails.first && person.emails.first.email
           testa.dati_controparte.indirizzo = person.residence_location.full_address
           testa.dati_controparte.partita_iva = person.vat_number || ''
           testa.dati_controparte.ragione_sociale = person.name
@@ -252,6 +252,10 @@ class OndaInvoiceExport < Ygg::PublicModel
     self.state = 'WAIT_CONFIRM'
 
     save!
+  end
+
+  def pending?
+    state == 'WAIT_CONFIRM'
   end
 
   def check_reject!
