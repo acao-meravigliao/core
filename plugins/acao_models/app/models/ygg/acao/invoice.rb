@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 #
-# Copyright (C) 2017-2018, Daniele Orlandi
+# Copyright (C) 2017-2025, Daniele Orlandi
 #
 # Author:: Daniele Orlandi <daniele@orlandi.com>
 #
@@ -183,84 +183,14 @@ class Invoice < Ygg::PublicModel
 
   end
 
-#  after_initialize do
-#    if new_record?
-#      if person
-#        self.first_name = person.first_name
-#        self.last_name = person.last_name
-#        self.address = person.residence_location && person.residence_location.full_address
-#      end
-#
-#      assign_identifier!
-#    end
-#  end
-
   idxc_cached
   self.idxc_sensitive_attributes = [
     :person_id,
   ]
 
-#  def assign_identifier!
-#    identifier = nil
-#
-#    loop do
-#      identifier = "I-" + Password.random(length: 4, symbols: 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
-#      break if !self.class.find_by_identifier(identifier)
-#    end
-#
-#    self.identifier = identifier
-#  end
-
   def total
     details.reduce(0) { |a,x| a + x.price }
   end
-
-#  def close!
-#    self.state = 'CLOSED'
-#    save!
-#  end
-
-#  def one_payment_has_been_completed!(payment)
-#    if payments.all? { |x| x.state == 'COMPLETED' }
-#      paid_in_full!
-#    else
-#      self.payment_state = 'PARTIALLY_PAID'
-#      save!
-#    end
-#  end
-#
-#  def paid_in_full!
-#    self.payment_state = 'PAID_IN_FULL'
-#    save!
-#
-#    details.all.each do |detail|
-#      detail.membership.payment_completed!  if detail.membership
-#      detail.member_service.payment_completed!  if detail.member_service
-#
-#      if detail.service_type.symbol == 'SKYSIGHT'
-#        Ygg::Acao::SkysightCode.assign_and_send!(person: person)
-#      end
-#    end
-#
-#    if onda_export_status == nil
-#      self.onda_export_status = 'PENDING'
-#      save!
-#
-#      export_to_onda!
-#    end
-#  end
-#
-#  def generate_payment!(reason: "Pagamento fattura", timeout: 10.days)
-#    Ygg::Acao::Payment.create(
-#      person: person,
-#      invoice: self,
-#      created_at: Time.now,
-#      expires_at: Time.now + timeout,
-#      payment_method: payment_method,
-#      reason_for_payment: reason,
-#      amount: total,
-#    )
-#  end
 
   PAYMENT_METHOD_MAP = {
     'WIRE'      => 'BB',
