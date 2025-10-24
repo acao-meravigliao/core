@@ -76,14 +76,14 @@ class Payment < Ygg::PublicModel
       #  invoice.one_payment_has_been_completed!(self)
       #end
 
-      Ygg::Ml::Msg.notify(destinations: person, template: 'PAYMENT_COMPLETED', template_context: {
-        first_name: person.first_name,
+      Ygg::Ml::Msg.notify(destinations: debt.member.person, template: 'PAYMENT_COMPLETED', template_context: {
+        first_name: debt.member.person.first_name,
         code: identifier,
       }, objects: self)
     end
   end
 
-  require 'am/satispay/client'
+#  require 'am/satispay/client'
 
   def satispay_initiate(phone_number:)
     satispay_charges.each do |c|
