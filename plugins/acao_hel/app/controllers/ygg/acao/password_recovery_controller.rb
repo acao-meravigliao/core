@@ -26,8 +26,7 @@ class PasswordRecoveryController < Ygg::Hel::BaseController
     credential = person.credentials.where('fqda LIKE \'%@cp.acao.it\'').first
     raise CredentialNotFound if !credential
 
-    contact = person.contacts.where(type: 'email').first
-    raise ContactNotFound if !contact
+    raise ContactNotFound if person.emails.empty?
 
     Ygg::Ml::Msg.notify(destinations: person, template: 'PASSWORD_RECOVERY', template_context: {
       first_name: person.first_name,
