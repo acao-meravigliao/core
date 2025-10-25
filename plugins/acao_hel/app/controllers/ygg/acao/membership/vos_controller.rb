@@ -18,15 +18,13 @@ class Membership::VosController < Ygg::Hel::VosBaseController
 
     person = session.auth_person
     member = person.acao_member
-    year = Ygg::Acao::Year.find_by(year: year)
+    year = Ygg::Acao::Year.find_by!(year: year)
 
     return {
       blocked: member.debtor,
       base_services: Ygg::Acao::Membership.determine_base_services(member: member, year: year),
     }
   end
-
-
 
 #  def create(obj:)
 #    ensure_authenticated!

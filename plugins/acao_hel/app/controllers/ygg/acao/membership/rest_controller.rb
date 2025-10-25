@@ -129,17 +129,39 @@ class Membership::RestController < Ygg::Hel::RestController
     # FIXME Check if acao_person is not null
 
     hel_transaction('Membership renewal wizard') do
+      member = aaa_context.auth_person.acao_member
+
+      member.assign_attributes(
+        email_allowed: json_request[:email_allowed],
+        privacy_accepted: json_request[:privacy_accepted],
+        consent_association: json_request[:consent_association],
+        consent_surveillance: json_request[:consent_surveillance],
+        consent_accessory: json_request[:consent_accessory],
+        consent_profiling: json_request[:consent_profiling],
+        consent_magazine: json_request[:consent_magazine],
+        consent_fai: json_request[:consent_fai],
+        consent_marketing: json_request[:consent_marketing],
+      )
+
+      if json_request[:email_allowed]
+        member.email_allowed_at = Time.now
+      end
+
+      if json_request[:privacy_accepted]
+        member.privacy_accepted_at = Time.now
+      end
+
+      member.save!
+
       membership = Ygg::Acao::Membership.renew(
-        acao_person: aaa_context.auth_person.acao_person,
-        payment_method: json_request[:payment_method],
-        enable_email: json_request[:enable_email],
+        member: aaa_context.auth_person.acao_member,
         services: json_request[:services],
         selected_roster_days: json_request[:selected_roster_days],
       )
     end
 
     render(json: {
-      payment_id: membership.invoice_detail.invoice.payments.first.id,
+      debt_id: membership.debt_detail.debt.id,
     })
   end
 end

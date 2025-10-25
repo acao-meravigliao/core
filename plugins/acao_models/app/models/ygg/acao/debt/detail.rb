@@ -14,6 +14,9 @@ class Debt < Ygg::PublicModel
 class Detail < Ygg::BasicModel
   self.table_name = 'acao.debt_details'
 
+  belongs_to :debt,
+             class_name: 'Ygg::Acao::Debt'
+
   belongs_to :service_type,
              class_name: 'Ygg::Acao::ServiceType',
              optional: true
@@ -23,6 +26,7 @@ class Detail < Ygg::BasicModel
              optional: true
 
   gs_rel_map << { from: :detail, to: :debt, to_cls: '::Ygg::Acao::Debt', from_key: 'debt_id' }
+  gs_rel_map << { from: :detail, to: :service_type, to_cls: '::Ygg::Acao::ServiceType', from_key: 'service_type_id' }
 
   has_meta_class
 

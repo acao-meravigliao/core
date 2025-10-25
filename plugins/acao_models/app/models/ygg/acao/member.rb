@@ -268,7 +268,6 @@ class Member < Ygg::PublicModel
     year_model = Ygg::Acao::Year.find_by!(year: time.year)
 
     res = {
-      year: time.year,
     }
 
     membership = memberships.find_by(reference_year: year_model)
@@ -277,27 +276,29 @@ class Member < Ygg::PublicModel
     needed_total = nil
     needed_high_season = nil
 
-    if membership && (membership.status == 'MEMBER' || membership.status == 'WAITING_PAYMENT')
-      roster_entries_needed = roster_entries_needed(time: time)
-      needed_entries_present = roster_needed_entries_present(time: time)
+    is_member = membership && (membership.status == 'MEMBER' || membership.status == 'WAITING_PAYMENT')
 
-      entries = roster_entries.joins(:roster_day).where('roster_days.date': (
-        time.beginning_of_year..time.end_of_year
-      ))
+    roster_entries_needed = roster_entries_needed(time: time)
+    needed_entries_present = roster_needed_entries_present(time: time)
 
-      entries_high = entries.where('roster_days.high_season')
+    entries = roster_entries.joins(:roster_day).where('roster_days.date': (
+      time.beginning_of_year..time.end_of_year
+    ))
 
-      res.merge!(
-        can_select_entries: true,
-        total: entries.count,
-        high_season: entries_high.count,
-        needed_total: roster_entries_needed[:total],
-        needed_high_season: roster_entries_needed[:high_season],
-        needed_entries_present: needed_entries_present,
-      )
-    end
+    entries_high = entries.where('roster_days.high_season')
 
-    res
+    {
+      year: time.year,
+      can_select_entries: true,
+      total: entries.count,
+      high_season: entries_high.count,
+      will_need_total: roster_entries_needed[:total],
+      will_need_high_season: roster_entries_needed[:high_season],
+      will_need_reason: roster_entries_needed[:reason],
+      needed_total: is_member ? roster_entries_needed[:total] : nil,
+      needed_high_season: is_member ? roster_entries_needed[:high_season] : nil,
+      needed_entries_present: needed_entries_present,
+    }
   end
 
 

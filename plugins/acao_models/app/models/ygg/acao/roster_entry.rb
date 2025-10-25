@@ -57,14 +57,16 @@ class RosterEntry < Ygg::PublicModel
     end
   end
 
-  def self.status_for_year(member:, year:)
+  def self.compute_status(member:, time:)
     person = member.person
 
+    year_model = Ygg::Acao::Year.find_by!(time.year)
+
     res = {
-      year: year.year,
+      year: time.year,
     }
 
-    membership = member.memberships.find_by(reference_year: year)
+    membership = member.memberships.find_by(reference_year: year_model)
 
     needed_entries_present = nil
     needed_total = nil
@@ -73,8 +75,8 @@ class RosterEntry < Ygg::PublicModel
     roster_entries = nil
 
     if membership && (membership.status == 'MEMBER' || membership.status == 'WAITING_PAYMENT')
-      roster_entries_needed = member.roster_entries_needed(year: year.year)
-      needed_entries_present = member.roster_needed_entries_present(year: year.year)
+      roster_entries_needed = member.roster_entries_needed(time: time)
+      needed_entries_present = member.roster_needed_entries_present(year: time.year)
 
       res.merge!(
         can_select_entries: true,

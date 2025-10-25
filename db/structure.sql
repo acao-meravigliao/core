@@ -357,7 +357,12 @@ CREATE TABLE acao.debts (
     last_chore timestamp without time zone,
     synced_at timestamp(6) without time zone DEFAULT now() NOT NULL,
     onda_export boolean DEFAULT true NOT NULL,
-    onda_export_no_reg boolean DEFAULT false NOT NULL
+    onda_export_no_reg boolean DEFAULT false NOT NULL,
+    pm_card_enabled boolean DEFAULT true,
+    pm_wire_enabled boolean DEFAULT true,
+    pm_check_enabled boolean DEFAULT true,
+    pm_cash_enabled boolean DEFAULT true,
+    pm_satispay_enabled boolean DEFAULT true
 );
 
 
@@ -646,7 +651,19 @@ CREATE TABLE acao.members (
     visita_lastmod timestamp without time zone,
     licenza_lastmod timestamp without time zone,
     bar_last_summary timestamp without time zone,
-    last_notify_run timestamp without time zone
+    last_notify_run timestamp without time zone,
+    visible_to_other_members boolean DEFAULT false,
+    email_allowed_at timestamp without time zone,
+    privacy_accepted boolean DEFAULT false,
+    privacy_accepted_at timestamp without time zone,
+    consent_association boolean DEFAULT false,
+    consent_surveillance boolean DEFAULT false,
+    consent_accessory boolean DEFAULT false,
+    consent_profiling boolean DEFAULT false,
+    consent_magazine boolean DEFAULT false,
+    consent_fai boolean DEFAULT false,
+    consent_marketing boolean DEFAULT false,
+    consent_members boolean DEFAULT false
 );
 
 
@@ -9241,9 +9258,11 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO public;
+SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251025144510'),
+('20251025111127'),
 ('20251024121004'),
 ('20251020122322'),
 ('20251015095856'),

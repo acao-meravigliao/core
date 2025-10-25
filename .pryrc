@@ -1,3 +1,5 @@
+# Pry.config.commands.command 'persons', 'Get persons by name, code, ecc' do |s|
+
 def persons(s)
   res = Ygg::Core::Person.where('lower(last_name) = ?', s.downcase)
   return res if res.count > 0

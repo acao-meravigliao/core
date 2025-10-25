@@ -30,6 +30,10 @@ Rails.application.routes.draw do
         collection do
           get 'by_code/:id(.:format)' => :by_code
         end
+
+        member do
+          post :upload_photo
+        end
       end
 
       hel_resources :aircraft_types, controller: 'aircraft_type/rest' do

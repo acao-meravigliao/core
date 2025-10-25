@@ -104,16 +104,15 @@ class Debt < Ygg::PublicModel
 
   def export_to_onda!(no_reg: onda_export_no_reg)
     raise NoPaymentRegistered if payments.empty?
-    raise OndaExportStillPending if Ygg::Acao::OndaInvoiceExport.any? { |x| x.pending? }
+    raise OndaExportStillPending if onda_invoice_exports.any? { |x| x.pending? }
 
     onda_export = nil
 
     transaction do
-      cnt = Ygg::Acao::OndaInvoiceExport.where(debt: self).count
+      cnt = onda_invoice_exports.count
 
-      onda_export = Ygg::Acao::OndaInvoiceExport.create!(
+      onda_export = onda_invoice_exports.create!(
         member: member,
-        debt: self,
         identifier: "#{identifier}_#{cnt}",
         descr: descr,
         notes: notes,

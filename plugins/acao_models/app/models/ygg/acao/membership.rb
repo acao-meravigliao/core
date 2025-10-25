@@ -17,9 +17,10 @@ class Membership < Ygg::PublicModel
   belongs_to :member,
              class_name: '::Ygg::Acao::Member'
 
-#  belongs_to :debt_detail,
-#             class_name: 'Ygg::Acao::Debt::Detail',
-#             optional: true
+  has_one :debt_detail,
+          class_name: 'Ygg::Acao::Debt::Detail',
+          as: :obj,
+          dependent: :nullify
 
   belongs_to :reference_year,
              class_name: 'Ygg::Acao::Year'
@@ -199,7 +200,7 @@ class Membership < Ygg::PublicModel
     services
   end
 
-  def self.renew(member:, year: Ygg::Acao::Year.renewal_year, services:, enable_email:, selected_roster_days:, force: false)
+  def self.renew(member:, year: Ygg::Acao::Year.renewal_year, services:, selected_roster_days:, force: false)
     payment = nil
 
     person = member.person
@@ -232,9 +233,12 @@ class Membership < Ygg::PublicModel
         descr: "Rinnovo associazione #{year.year}",
         expires_at: Time.now + 10.days,
         state: 'PENDING',
+        pm_card_enabled: true,
+        pm_wire_enabled: true,
+        pm_check_enabled: true,
+        pm_cash_enabled: false,
+        pm_satispay_enabled: true,
       )
-
-      member.email_allowed = enable_email
 
       if member.memberships.find_by(reference_year: year)
         raise "Membership already present"

@@ -101,24 +101,6 @@ class RosterEntry::RestController < Ygg::Hel::RestController
     # TODO FIXME: check consistency (valid roster_day!)
   end
 
-  def get_status
-    member = aaa_context.auth_person.acao_member
-
-    current_year = Ygg::Acao::Year.find_by(year: Time.new.year)
-    next_year = Ygg::Acao::Year.renewal_year
-
-    res = {}
-
-    if current_year
-      res[:current] = Ygg::Acao::RosterEntry.status_for_year(member: member, year: current_year)
-    end
-
-    if next_year && next_year != current_year
-      res[:next] = Ygg::Acao::RosterEntry.status_for_year(member: member, year: next_year)
-    end
-
-    ar_respond_with(res)
-  end
 
   # Request:
   # - person (implicit in aaa_context)
