@@ -296,10 +296,24 @@ class Membership < Ygg::PublicModel
 
       # Done! -------------
 
+      roster_days_text = member.roster_entries.map { |x| x.roster_day.date.strftime('%d-%m-%Y') }.join("\n")
+
+      consents_text = <<EOF
+  per fini istituzionali: #{member.consent_association ? "Sì" : "No"}
+  per videosorveglianza: #{member.consent_surveillance ? "Sì" : "No"}
+  per fini accessori: #{member.consent_accessory ? "Sì" : "No"}
+  per profilazione: #{member.consent_profiling ? "Sì" : "No"}
+  per rivista: #{member.consent_magazine ? "Sì" : "No"}
+  per comunicazione alla FAI: #{member.consent_fai ? "Sì" : "No"}
+  per marketing: #{member.consent_marketing ? "Sì" : "No"}
+EOF
+
       Ygg::Ml::Msg.notify(destinations: person, template: 'MEMBERSHIP_RENEWED', template_context: {
         first_name: person.first_name,
         year: year_model.year,
         payment_expiration: debt.expires_at.strftime('%d-%m-%Y'),
+        roster_days_selected: roster_days_text,
+        consents: consents_text,
       }, objects: [ debt, membership ])
     end
 
