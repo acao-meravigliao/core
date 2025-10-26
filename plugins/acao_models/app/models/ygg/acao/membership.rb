@@ -296,7 +296,9 @@ class Membership < Ygg::PublicModel
 
       # Done! -------------
 
-      roster_days_text = member.roster_entries.map { |x| x.roster_day.date.strftime('%d-%m-%Y') }.join("\n")
+      roster_days_text = member.roster_entries.joins(:roster_day).where('roster_days.date': (
+        Time.local(year_model.year).beginning_of_year...Time.local(year_model.year).end_of_year
+      )).map { |x| x.roster_day.date.strftime('%d-%m-%Y') }.join("\n")
 
       consents_text = <<EOF
   per fini istituzionali: #{member.consent_association ? "Sì" : "No"}
