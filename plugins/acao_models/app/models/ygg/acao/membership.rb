@@ -57,36 +57,59 @@ class Membership < Ygg::PublicModel
 
     person = member.person
 
+    role_models = roles_at(time: now)
+    roles = role_models.map(&:symbol)
+
     if person.birth_date
       age = compute_completed_years(person.birth_date, year_model.renew_opening_time)
 
-      if age < 23
-        ass_type = 'ASS_23'
-        cav_type = nil
-      elsif age <= 26
-        ass_type = 'ASS_STANDARD'
-        cav_type = 'CAV_26'
-      elsif age >= 75
-        ass_type = 'ASS_STANDARD'
-        cav_type = 'CAV_75'
-      elsif member.has_disability
-        # This supposes CAV_DIS is always equal or more expensive than CAV_75 a CAV_26
-        ass_type = 'ASS_STANDARD'
-        cav_type = 'CAV_DIS'
+      if roles.include?('SPL_INSTRUCTOR')
+        if age < 23
+          ass_type = 'ASS_23'
+          cav_type = nil
+        else if age <= 26
+          ass_type = 'ASS_FI'
+          cav_type = 'CAV_26'
+        elsif age >= 75
+          ass_type = 'ASS_FI'
+          cav_type = 'CAV_75'
+        elsif member.has_disability
+          # This supposes CAV_DIS is always equal or more expensive than CAV_75 a CAV_26
+          ass_type = 'ASS_FI'
+          cav_type = 'CAV_DIS'
+        else
+          ass_type = 'ASS_FI'
+          cav_type = 'CAV_STANDARD'
+        end
       else
-        #if person.residence_location &&
-        #   Geocoder::Calculations.distance_between(
-        #     [ person.residence_location.lat, person.residence_location.lng ],
-        #     [ 45.810189, 8.770963 ]) > 300000
-
-        #  cav_amount = 700.00
-        #  cav_type = 'CAV residenti oltre 300 km'
-        #else
-
-        ass_type = 'ASS_STANDARD'
-        cav_type = 'CAV_STANDARD'
+        if age < 23
+          ass_type = 'ASS_23'
+          cav_type = nil
+        else if age <= 26
+          ass_type = 'ASS_STANDARD'
+          cav_type = 'CAV_26'
+        elsif age >= 75
+          ass_type = 'ASS_STANDARD'
+          cav_type = 'CAV_75'
+        elsif member.has_disability
+          # This supposes CAV_DIS is always equal or more expensive than CAV_75 a CAV_26
+          ass_type = 'ASS_STANDARD'
+          cav_type = 'CAV_DIS'
+        else
+          ass_type = 'ASS_STANDARD'
+          cav_type = 'CAV_STANDARD'
+        end
       end
     end
+
+    #if person.residence_location &&
+    #   Geocoder::Calculations.distance_between(
+    #     [ person.residence_location.lat, person.residence_location.lng ],
+    #     [ 45.810189, 8.770963 ]) > 300000
+
+    #  cav_amount = 700.00
+    #  cav_type = 'CAV residenti oltre 300 km'
+    #else
 
     services = []
 
