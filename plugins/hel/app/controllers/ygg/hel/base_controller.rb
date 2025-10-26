@@ -9,6 +9,8 @@
 # present and provide common methods to check session validity.
 #
 
+require 'json'
+
 module Ygg
 module Hel
 
@@ -58,16 +60,9 @@ class BaseController < ActionController::Base
   end
 
   def json_request
-    return @json_request if @json_request
+    return @json_request if @json_requestA
 
-    @json_request = ActiveSupport::JSON.decode(request.body.read)
-
-    if @json_request.is_a?(Hash)
-      @json_request = @json_request.with_indifferent_access
-    else
-      @json_request = @json_request.map { |x| x.with_indifferent_access }
-    end
-
+    @json_request = JSON.parse(request.body.read, symbolize_names: true)
     @json_request
   end
 

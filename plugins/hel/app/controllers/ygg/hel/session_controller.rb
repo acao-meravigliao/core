@@ -204,7 +204,7 @@ class SessionController < Ygg::Hel::BaseController
 
         aaa_context.save!
 
-        if json_request['associate_cert'] && retrieve_client_certificate
+        if json_request[:associate_cert] && retrieve_client_certificate
           cert = OpenSSL::X509::Certificate.new(retrieve_client_certificate)
           ccred = Ygg::Core::Person::Credential::X509Certificate.new
           ccred.cert = cert
@@ -265,7 +265,7 @@ class SessionController < Ygg::Hel::BaseController
 
         aaa_context.save!
 
-        if json_request['associate_cert'] && retrieve_client_certificate
+        if json_request[:associate_cert] && retrieve_client_certificate
           cert = OpenSSL::X509::Certificate.new(retrieve_client_certificate)
           ccred = Ygg::Core::Person::Credential::X509Certificate.new
           ccred.cert = cert
