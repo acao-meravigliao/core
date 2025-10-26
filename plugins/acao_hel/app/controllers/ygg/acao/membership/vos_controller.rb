@@ -22,7 +22,7 @@ class Membership::VosController < Ygg::Hel::VosBaseController
 
     return {
       blocked: member.debtor,
-      base_services: Ygg::Acao::Membership.determine_base_services(member: member, year: year),
+      base_services: Ygg::Acao::Membership.determine_base_services(member: member, year_model: year),
     }
   end
 

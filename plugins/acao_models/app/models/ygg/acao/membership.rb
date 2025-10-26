@@ -51,14 +51,14 @@ class Membership < Ygg::PublicModel
     completed_years
   end
 
-  def self.determine_base_services(member:, year:, now: Time.now)
+  def self.determine_base_services(member:, year_model:, now: Time.now)
     ass_type = 'ASS_STANDARD'
     cav_type = 'CAV_STANDARD'
 
     person = member.person
 
     if person.birth_date
-      age = compute_completed_years(person.birth_date, year.renew_opening_time)
+      age = compute_completed_years(person.birth_date, year_model.renew_opening_time)
 
       if age < 23
         ass_type = 'ASS_23'
@@ -97,7 +97,7 @@ class Membership < Ygg::PublicModel
       enabled: true,
     }
 
-    if now > year.late_renewal_deadline && !member.is_spl_student? # && member.was_member_previous_year(year: year)
+    if now > year_model.late_renewal_deadline && !member.is_spl_student? # && member.was_member_previous_year(year: year_model)
       services << {
         service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'ASS_LATE').id,
         removable: false,
@@ -200,12 +200,12 @@ class Membership < Ygg::PublicModel
     services
   end
 
-  def self.renew(member:, year: Ygg::Acao::Year.renewal_year, services:, selected_roster_days:, force: false)
+  def self.renew(member:, year_model: Ygg::Acao::Year.renewal_year, services:, selected_roster_days:, force: false)
     payment = nil
 
     person = member.person
 
-    base_services = determine_base_services(member: member, year: year)
+    base_services = determine_base_services(member: member, year_model: year_model)
 
     # Check that every non-removable service is still present, non toggable service has the previous state
 
@@ -230,7 +230,7 @@ class Membership < Ygg::PublicModel
       # Debt -----------------
       debt = Ygg::Acao::Debt.create!(
         member: member,
-        descr: "Rinnovo associazione #{year.year}",
+        descr: "Rinnovo associazione #{year_model.year}",
         expires_at: Time.now + 10.days,
         state: 'PENDING',
         pm_card_enabled: true,
@@ -240,17 +240,17 @@ class Membership < Ygg::PublicModel
         pm_satispay_enabled: true,
       )
 
-      if member.memberships.find_by(reference_year: year)
+      if member.memberships.find_by(reference_year: year_model)
         raise "Membership already present"
       end
 
       # Membership
       membership = Ygg::Acao::Membership.create!(
         member: member,
-        reference_year: year,
+        reference_year: year_model,
         status: 'WAITING_PAYMENT',
         valid_from: Time.now,
-        valid_to: (Time.local(year.year).end_of_year + 31.days).end_of_day,
+        valid_to: (Time.local(year_model.year).end_of_year + 31.days).end_of_day,
       )
 
       # Services
@@ -274,8 +274,8 @@ class Membership < Ygg::PublicModel
           Ygg::Acao::MemberService.create!(
             member: member,
             service_type: service_type,
-            valid_from: Time.local(year.year).beginning_of_year,
-            valid_to: (Time.local(year.year).end_of_year + 31.days).end_of_day,
+            valid_from: Time.local(year_model.year).beginning_of_year,
+            valid_to: (Time.local(year_model.year).end_of_year + 31.days).end_of_day,
             service_data: service[:extra_info],
           )
         end
@@ -297,7 +297,7 @@ class Membership < Ygg::PublicModel
 
       Ygg::Ml::Msg.notify(destinations: person, template: 'MEMBERSHIP_RENEWED', template_context: {
         first_name: person.first_name,
-        year: year.year,
+        year: year_model.year,
         payment_expiration: debt.expires_at.strftime('%d-%m-%Y'),
       }, objects: [ debt, membership ])
     end

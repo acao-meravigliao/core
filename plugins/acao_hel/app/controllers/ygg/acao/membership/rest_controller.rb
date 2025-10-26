@@ -101,7 +101,7 @@ class Membership::RestController < Ygg::Hel::RestController
         announce_time: current_year.renew_announce_time,
         opening_time: current_year.renew_opening_time,
         blocked: person.acao_debtor,
-        services: Ygg::Acao::Membership.determine_base_services(person: person, year: current_year),
+        services: Ygg::Acao::Membership.determine_base_services(person: person, year_model: current_year),
       }
     end
 
@@ -112,7 +112,7 @@ class Membership::RestController < Ygg::Hel::RestController
         announce_time: next_year.renew_announce_time,
         opening_time: next_year.renew_opening_time,
         blocked: person.acao_debtor,
-        services: Ygg::Acao::Membership.determine_base_services(person: person, year: next_year),
+        services: Ygg::Acao::Membership.determine_base_services(person: person, year_model: next_year),
       }
     end
 
@@ -153,8 +153,14 @@ class Membership::RestController < Ygg::Hel::RestController
 
       member.save!
 
+      year_model = Ygg::Acao::Year.find_by!(year: json_request[:year])
+
+      # FIXME: consider passpartout ROLE
+      #raise "Renewal not open" if Time.now < year_model.renew_opening_time
+
       membership = Ygg::Acao::Membership.renew(
         member: aaa_context.auth_person.acao_member,
+        year_model: year_model,
         services: json_request[:services],
         selected_roster_days: json_request[:selected_roster_days],
       )
