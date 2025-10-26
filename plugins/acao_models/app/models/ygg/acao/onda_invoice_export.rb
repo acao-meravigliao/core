@@ -69,6 +69,7 @@ class OndaInvoiceExport < Ygg::PublicModel
     'CHECK'     => 'AS',
     'SATISPAY'  => 'SP',
     'CARD'      => 'CC',
+    'DEBT'      => 'BA',
     'CASH'      => 'CO',
   }
 

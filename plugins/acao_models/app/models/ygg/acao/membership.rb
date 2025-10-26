@@ -234,6 +234,7 @@ class Membership < Ygg::PublicModel
         expires_at: Time.now + 10.days,
         state: 'PENDING',
         pm_card_enabled: true,
+        pm_debt_enabled: true,
         pm_wire_enabled: true,
         pm_check_enabled: true,
         pm_cash_enabled: false,

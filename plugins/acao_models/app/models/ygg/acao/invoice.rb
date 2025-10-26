@@ -192,14 +192,6 @@ class Invoice < Ygg::PublicModel
     details.reduce(0) { |a,x| a + x.price }
   end
 
-  PAYMENT_METHOD_MAP = {
-    'WIRE'      => 'BB',
-    'CHECK'     => 'AS',
-    'SATISPAY'  => 'SP',
-    'CARD'      => 'CC',
-    'CASH'      => 'CO',
-  }
-
 end
 
 end

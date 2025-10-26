@@ -362,7 +362,8 @@ CREATE TABLE acao.debts (
     pm_wire_enabled boolean DEFAULT true,
     pm_check_enabled boolean DEFAULT true,
     pm_cash_enabled boolean DEFAULT true,
-    pm_satispay_enabled boolean DEFAULT true
+    pm_satispay_enabled boolean DEFAULT true,
+    pm_debt_enabled boolean DEFAULT true
 );
 
 
@@ -9261,6 +9262,7 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251026124251'),
 ('20251025144510'),
 ('20251025111127'),
 ('20251024121004'),
