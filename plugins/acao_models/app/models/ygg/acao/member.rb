@@ -251,7 +251,7 @@ class Member < Ygg::PublicModel
         needed[:total] = 0
         needed[:high_season] = 0
         needed[:reason] = 'board_member'
-      elsif roles.include?('TOW_PILOT')
+      elsif roles.include?('TUG_PILOT')
         needed[:total] = 1
         needed[:high_season] = 0
         needed[:reason] = 'tow_pilot'
@@ -1477,7 +1477,10 @@ class Member < Ygg::PublicModel
   end
 
   def roles_at(time:)
-    roles.to_a.select { |x| !x.valid_from ? (!x.valid_to || time < x.valid_to) : (time > x.valid_from && time < x.valid_to) }
+    roles.to_a.select { |x|
+       (!x.valid_from || time > x.valid_from) &&
+       (!x.valid_to || time < x.valid_to)
+    }
   end
 
   def is_spl_student?

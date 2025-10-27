@@ -57,7 +57,7 @@ class Membership < Ygg::PublicModel
 
     person = member.person
 
-    role_models = roles_at(time: now)
+    role_models = member.roles_at(time: now)
     roles = role_models.map(&:symbol)
 
     if person.birth_date
@@ -67,7 +67,7 @@ class Membership < Ygg::PublicModel
         if age < 23
           ass_type = 'ASS_23'
           cav_type = nil
-        else if age <= 26
+        elsif age <= 26
           ass_type = 'ASS_FI'
           cav_type = 'CAV_26'
         elsif age >= 75
@@ -85,7 +85,7 @@ class Membership < Ygg::PublicModel
         if age < 23
           ass_type = 'ASS_23'
           cav_type = nil
-        else if age <= 26
+        elsif age <= 26
           ass_type = 'ASS_STANDARD'
           cav_type = 'CAV_26'
         elsif age >= 75
