@@ -155,6 +155,10 @@ class Debt < Ygg::PublicModel
     payments.reduce(0) { |a,x| (x.state == 'COMPLETED') ? a + x.amount : 0 }
   end
 
+  def total_due
+    total - total_paid
+  end
+
   def self.run_chores!
     all.each do |debt|
       debt.run_chores!
