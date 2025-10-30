@@ -22,11 +22,17 @@ class VosBaseController
   attr_reader :vos_server
   attr_reader :ds
   attr_reader :session
+  attr_reader :request_id
 
-  def initialize(vos_server:, ds:, session:)
+  def initialize(vos_server:, ds:, session:, request_id:)
     @vos_server = vos_server
     @ds = ds
     @session = session
+    @request_id = request_id
+  end
+
+  def hel_transaction(msg, request_id: request.uuid, **args, &block)
+    Ygg::Core::Transaction.new(msg, aaa_context: session, request_id: request_id, **args, &block)
   end
 
   def ensure_authenticated!

@@ -269,6 +269,7 @@ class Server
         vos_server: self,
         ds: @ds,
         session: session,
+        request_id: msg.request_id,
       )
 
       meth = nil
@@ -309,6 +310,7 @@ class Server
         vos_server: self,
         ds: @ds,
         session: session,
+        request_id: msg.request_id,
       )
 
       meth = nil
