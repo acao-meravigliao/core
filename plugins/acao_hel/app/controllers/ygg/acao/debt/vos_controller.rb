@@ -12,6 +12,9 @@ module Ygg
 module Acao
 
 class Debt::VosController < Ygg::Hel::VosBaseController
+
+  class AlreadyPaid < Ygg::Exception ; end
+
   def create_payment(obj:, body:, **)
     ensure_authenticated!
     raise AuthorizationError unless session.has_global_roles?(:superuser)
@@ -22,15 +25,21 @@ class Debt::VosController < Ygg::Hel::VosBaseController
         obj.onda_export_no_reg = body.has_key?(:onda_export_no_reg) ? body[:onda_export_no_reg] : false
         obj.save!
 
-        payment = obj.payments.create!(
-          amount: body[:amount],
-          payment_method: body[:method],
-        )
+        if obj.total_due <= 0
+          raise  AlreadyPaid
+        end
 
-        payment.completed!(
-          wire_value_date: nil,
-          receipt_code: nil,
-        )
+        hel_transaction('Create payment') do
+          payment = obj.payments.create!(
+            amount: body[:amount],
+            payment_method: body[:method],
+          )
+
+          payment.completed!(
+            wire_value_date: nil,
+            receipt_code: nil,
+          )
+        end
       end
     end
 #
@@ -41,48 +50,6 @@ class Debt::VosController < Ygg::Hel::VosBaseController
 #        { from_as: :entry, to_as: :day, to: new_obj.roster_day_id },
 #      ]
 #    ))
-  end
-
-  def move(obj:, to_day_id:, **)
-    old_day_id = obj.roster_day_id
-
-    obj.roster_day_id = to_day_id
-    obj.save!
-
-    ds.tell(::AM::GrafoStore::Store::MsgRelationDestroy.new(
-      a_as: :entry, a: obj.id,
-      b_as: :day, b: old_day_id,
-    ))
-
-    ds.tell(::AM::GrafoStore::Store::MsgRelationCreate.new(
-      a_as: :entry, a: obj.id,
-      b_as: :day, b: to_day_id,
-    ))
-  end
-
-  def destroy(obj:, **)
-    ds.tell(::AM::GrafoStore::Store::MsgObjectDestroy.new(id: obj.id))
-
-    obj.destroy!
-  end
-
-  def compute_status(**)
-    member = session.auth_person.acao_member
-
-    current_year = Ygg::Acao::Year.find_by(year: Time.new.year)
-    next_year = Ygg::Acao::Year.renewal_year
-
-    res = {}
-
-    if current_year
-      res[:current] = Ygg::Acao::RosterEntry.status_for_year(member: member, year: current_year)
-    end
-
-    if next_year && next_year != current_year
-      res[:next] = Ygg::Acao::RosterEntry.status_for_year(member: member, year: next_year)
-    end
-
-    res
   end
 
   def onda_retry(obj:, **)
