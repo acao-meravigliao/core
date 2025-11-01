@@ -14,84 +14,13 @@ class Payment::RestController < Ygg::Hel::RestController
 
   load_role_defs!
 
-  member_action :complete
-
-  view :grid do
-    empty!
-    attribute(:id) { show! }
-    attribute(:uuid) { show! }
-    attribute(:identifier) { show! }
-    attribute(:state) { show! }
-    attribute(:amount) { show! }
-    attribute(:created_at) { show! }
-    attribute(:expires_at) { show! }
-    attribute(:completed_at) { show! }
-
-    attribute :person do
-      show!
-      empty!
-      attribute(:first_name) { show! }
-      attribute(:last_name) { show! }
-      attribute(:acao_code) { show! }
-    end
-  end
-
-  view :edit do
-    self.with_perms = true
-
-    attribute :person do
-      show!
-      empty!
-      attribute(:first_name) { show! }
-      attribute(:last_name) { show! }
-      attribute(:handle) { show! }
-      attribute(:italian_fiscal_code) { show! }
-    end
-  end
-
-  view :full do
-    attribute :person do
-      show!
-      empty!
-      attribute(:first_name) { show! }
-      attribute(:last_name) { show! }
-      attribute(:handle) { show! }
-      attribute(:italian_fiscal_code) { show! }
-    end
-  end
-
-  def authorization_prefilter
-    ar_model.where(person_id: aaa_context.auth_person.id)
-  end
-
-  build_member_roles(:blahblah) do |obj|
-     aaa_context.auth_person.id == obj.person_id ? [ :owner ] : []
-  end
-
-  def complete
-    ar_retrieve_resource
-    ar_authorize_member_action(resource: ar_resource, action: :complete)
-
-    hel_transaction('Payment completed') do
-      ar_resource.completed!(
-        no_export: json_request[:no_export],
-        no_reg: json_request[:no_reg],
-        wire_value_date: json_request[:wire_value_date],
-        receipt_code: json_request[:receipt_code],
-      )
-    end
-
-    ar_respond_with({})
-  end
-
   def satispay_callback
-    charge_id = request.query_parameters[:charge_id]
-
-    charge = Ygg::Acao::Payment::SatispayCharge.find_by!(charge_id: charge_id)
+    payment_id = request.query_parameters[:payment_id]
 
     begin
       hel_transaction('Satispay state change') do
-        charge.sync!
+        payment = Ygg::Acao::Payment.find_by!(sp_id: payment_id).lock(true)
+        payment.sp_update!
       end
     rescue AM::Satispay::Client::GenericError
     end

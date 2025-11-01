@@ -20,7 +20,7 @@ class Debt::VosController < Ygg::Hel::VosBaseController
     raise AuthorizationError unless session.has_global_roles?(:superuser)
 
     ActiveRecord::Base.connection_pool.with_connection do
-      ActiveRecord::Base.transaction do
+      hel_transaction('Payment received') do
         obj.onda_export = body.has_key?(:onda_export) ? body[:onda_export] : true
         obj.onda_export_no_reg = body.has_key?(:onda_export_no_reg) ? body[:onda_export_no_reg] : false
         obj.save!
@@ -29,17 +29,15 @@ class Debt::VosController < Ygg::Hel::VosBaseController
           raise  AlreadyPaid
         end
 
-        hel_transaction('Create payment') do
-          payment = obj.payments.create!(
-            amount: body[:amount],
-            payment_method: body[:method],
-          )
+        payment = obj.payments.create!(
+          amount: body[:amount],
+          payment_method: body[:method],
+        )
 
-          payment.completed!(
-            wire_value_date: nil,
-            receipt_code: nil,
-          )
-        end
+        payment.completed!(
+          wire_value_date: nil,
+          receipt_code: nil,
+        )
       end
     end
 #
@@ -58,6 +56,36 @@ class Debt::VosController < Ygg::Hel::VosBaseController
 
     obj.export_to_onda!
   end
+
+  def pay_with_satispay(obj:, **)
+    ensure_authenticated!
+
+    sp_payment = nil
+
+    hel_transaction('Payment received') do
+      if obj.total_due <= 0
+        raise AlreadyPaid
+      end
+
+      member = session.auth_person.acao_member
+
+      payment = Ygg::Acao::Payment.create!(
+        member: member,
+        debt: self,
+        obj: self,
+        amount: obj.total_due,
+        payment_method: 'SATISPAY',
+      )
+
+      sp_payment = payment.sp_initiate!
+    end
+
+    return {
+      success: true,
+      redirect_url: sp_payment[:redirect_url],
+    }
+  end
+
 end
 
 end

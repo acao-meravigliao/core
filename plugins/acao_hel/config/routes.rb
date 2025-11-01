@@ -115,11 +115,6 @@ Rails.application.routes.draw do
       hel_resources :payments, controller: 'payment/rest' do
         collection do
           get 'satispay_callback' => :satispay_callback
-          post 'satispay_callback' => :satispay_callback
-        end
-
-        member do
-          post 'complete' => :complete
         end
       end
 

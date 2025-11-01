@@ -79,7 +79,9 @@ class DocTesta < ActiveRecord::Base
 
         case riga.CodArt
         when '0001S', # Associazione annuale
-             '0003S' # Associazione Trainatori Istruttori
+             '0003S', # Associazione Trainatori Istruttori
+             '0096S', # Associazione Istruttori
+             '0004S'
 
           iscr = mdb_socio.iscrizioni.find_by(anno_iscrizione: year)
           if iscr

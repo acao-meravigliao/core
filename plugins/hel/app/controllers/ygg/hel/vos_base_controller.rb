@@ -31,7 +31,7 @@ class VosBaseController
     @request_id = request_id
   end
 
-  def hel_transaction(msg, request_id: request.uuid, **args, &block)
+  def hel_transaction(msg, request_id: self.request_id, **args, &block)
     Ygg::Core::Transaction.new(msg, aaa_context: session, request_id: request_id, **args, &block)
   end
 

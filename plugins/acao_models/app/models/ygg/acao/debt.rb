@@ -67,7 +67,7 @@ class Debt < Ygg::PublicModel
     self.identifier = identifier
   end
 
-  def one_payment_has_been_completed!(payment)
+  def one_payment_has_been_completed!(payment:)
     if total_paid >= total
       paid_in_full!
     end

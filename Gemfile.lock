@@ -1,4 +1,12 @@
 PATH
+  remote: ../am-satispay
+  specs:
+    am-satispay (0.2.0)
+      activesupport
+      am-http (~> 0.7)
+      sys-uname (~> 1.2.2)
+
+PATH
   remote: plugins/acao_hel
   specs:
     acao_hel (1.0.0)
@@ -153,9 +161,6 @@ GEM
       am-sockets (~> 0.17)
       sqlite3 (~> 1.7)
     am-io-buffer (0.4.0)
-    am-satispay (0.1.0)
-      activesupport
-      am-http (~> 0.7)
     am-session-manager (0.0.5)
       actor_model
       sqlite3
@@ -496,6 +501,8 @@ GEM
     sqlite3 (1.7.3-x86_64-linux)
     stringio (3.1.7)
     structured_warnings (0.5.0)
+    sys-uname (1.2.3)
+      ffi (~> 1.1)
     thor (1.4.0)
     timeout (0.4.4)
     tiny_tds (3.3.0)

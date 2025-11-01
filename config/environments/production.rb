@@ -82,7 +82,9 @@ Rails.application.configure do
     }
 
     config.acao.satispay_endpoint = 'https://authservices.satispay.com/'
-    config.acao.satispay_callback_url = 'https://servizi.acao.it/ygg/acao/payments/satispay_callback'
+    config.acao.satispay_callback_url = 'https://servizi.acao.it/ygg/acao/payments/satispay_callback?payment_id={uuid}'
+    config.acao.bar_satispay_redirect_url = 'https://servizi.acao.it/authen/payment/show'
+    config.acao.bar_add_maindb_transaction = true
   end
 
   if config.respond_to?(:rails_vos)
