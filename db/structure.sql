@@ -853,12 +853,8 @@ CREATE TABLE acao.payments (
     sp_status character varying,
     sp_status_ownership boolean,
     sp_expired boolean,
-    sp_sender_id character varying,
-    sp_sender_type character varying,
-    sp_sender_name character varying,
-    sp_sender_profile_picture character varying,
-    sp_receiver_id character varying,
-    sp_receiver_type character varying,
+    sp_sender_id uuid,
+    sp_receiver_id uuid,
     sp_daily_closure_id character varying,
     sp_daily_closure_date timestamp without time zone,
     sp_insert_date timestamp without time zone,
@@ -866,8 +862,6 @@ CREATE TABLE acao.payments (
     sp_description character varying,
     sp_flow character varying,
     sp_external_code character varying,
-    sp_redirect_url character varying,
-    sp_status_code integer,
     obj_id uuid,
     obj_type character varying,
     member_id uuid
@@ -1004,6 +998,36 @@ CREATE TABLE acao.roster_entries (
     person_id uuid,
     roster_day_id uuid NOT NULL,
     member_id uuid NOT NULL
+);
+
+
+--
+-- Name: satispay_entities; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.satispay_entities (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    type character varying,
+    name character varying
+);
+
+
+--
+-- Name: satispay_profile_pictures; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.satispay_profile_pictures (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    entity_id uuid NOT NULL,
+    source character varying NOT NULL,
+    width integer,
+    height integer,
+    is_original boolean,
+    url character varying
 );
 
 
@@ -4721,6 +4745,22 @@ ALTER TABLE ONLY acao.roster_entries
 
 
 --
+-- Name: satispay_entities satispay_entities_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.satispay_entities
+    ADD CONSTRAINT satispay_entities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: satispay_profile_pictures satispay_profile_pictures_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.satispay_profile_pictures
+    ADD CONSTRAINT satispay_profile_pictures_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: service_types service_types_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -6383,6 +6423,20 @@ CREATE INDEX index_payments_on_member_id ON acao.payments USING btree (member_id
 
 
 --
+-- Name: index_payments_on_sp_receiver_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_payments_on_sp_receiver_id ON acao.payments USING btree (sp_receiver_id);
+
+
+--
+-- Name: index_payments_on_sp_sender_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_payments_on_sp_sender_id ON acao.payments USING btree (sp_sender_id);
+
+
+--
 -- Name: index_payments_on_uuid; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -6443,6 +6497,13 @@ CREATE INDEX index_roster_entries_on_roster_day_id ON acao.roster_entries USING 
 --
 
 CREATE UNIQUE INDEX index_roster_entries_on_uuid ON acao.roster_entries USING btree (id);
+
+
+--
+-- Name: index_satispay_profile_pictures_on_entity_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_satispay_profile_pictures_on_entity_id ON acao.satispay_profile_pictures USING btree (entity_id);
 
 
 --
@@ -8274,6 +8335,14 @@ ALTER TABLE ONLY acao.aircraft_owners
 
 
 --
+-- Name: payments fk_rails_25fe513812; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.payments
+    ADD CONSTRAINT fk_rails_25fe513812 FOREIGN KEY (sp_receiver_id) REFERENCES acao.satispay_entities(id) ON DELETE CASCADE;
+
+
+--
 -- Name: flights fk_rails_27046fa821; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8303,6 +8372,14 @@ ALTER TABLE ONLY acao.memberships
 
 ALTER TABLE ONLY acao.flarmnet_entries
     ADD CONSTRAINT fk_rails_296041249c FOREIGN KEY (aircraft_id) REFERENCES acao.aircrafts(id) ON DELETE SET NULL;
+
+
+--
+-- Name: satispay_profile_pictures fk_rails_29923e07d7; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.satispay_profile_pictures
+    ADD CONSTRAINT fk_rails_29923e07d7 FOREIGN KEY (entity_id) REFERENCES acao.satispay_entities(id) ON DELETE CASCADE;
 
 
 --
@@ -8431,6 +8508,14 @@ ALTER TABLE ONLY acao.flights
 
 ALTER TABLE ONLY acao.fai_cards
     ADD CONSTRAINT fk_rails_7b79a6a52f FOREIGN KEY (member_id) REFERENCES acao.members(id);
+
+
+--
+-- Name: payments fk_rails_82e923f711; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.payments
+    ADD CONSTRAINT fk_rails_82e923f711 FOREIGN KEY (sp_sender_id) REFERENCES acao.satispay_entities(id) ON DELETE CASCADE;
 
 
 --
@@ -9229,9 +9314,10 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO "$user", public;
+SET search_path TO public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251103124817'),
 ('20251031172144'),
 ('20251031170811'),
 ('20251030175317'),
