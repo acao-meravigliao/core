@@ -112,7 +112,7 @@ Rails.application.routes.draw do
       hel_resources :years, controller: 'year/rest' do
       end
 
-      hel_resources :payments, controller: 'payment/rest' do
+      hel_resources :payments, controller: 'payment/basic' do
         collection do
           get 'satispay_callback' => :satispay_callback
         end

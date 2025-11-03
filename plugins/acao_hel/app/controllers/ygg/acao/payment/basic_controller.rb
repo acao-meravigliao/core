@@ -9,23 +9,19 @@
 module Ygg
 module Acao
 
-class Payment::RestController < Ygg::Hel::RestController
-  ar_controller_for Ygg::Acao::Payment
-
-  load_role_defs!
-
+class Payment::BasicController < Ygg::Hel::BaseController
   def satispay_callback
     payment_id = request.query_parameters[:payment_id]
 
     begin
       hel_transaction('Satispay state change') do
-        payment = Ygg::Acao::Payment.find_by!(sp_id: payment_id).lock(true)
+        payment = Ygg::Acao::Payment.find_by!(sp_id: payment_id)
         payment.sp_update!
       end
     rescue AM::Satispay::Client::GenericError
     end
 
-    ar_respond_with({ thanks: true })
+    render(json: { thank: 'you' })
   end
 end
 

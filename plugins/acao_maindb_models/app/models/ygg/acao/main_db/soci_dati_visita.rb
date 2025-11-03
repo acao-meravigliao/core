@@ -19,7 +19,7 @@ class SociDatiVisita < ActiveRecord::Base
   belongs_to :socio,
              class_name: '::Ygg::Acao::MainDb::Socio',
              primary_key: 'codice_socio_dati_generale',
-             foreign_key: 'codice_socio_dati_visite'
+             foreign_key: 'Codice_socio_Dati_Visite'
 
   extend Ygg::Acao::MainDb::LastUpdateTracker
 end

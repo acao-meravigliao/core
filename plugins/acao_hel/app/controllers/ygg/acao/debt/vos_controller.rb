@@ -30,6 +30,7 @@ class Debt::VosController < Ygg::Hel::VosBaseController
         end
 
         payment = obj.payments.create!(
+          member: session.auth_person.acao_member,
           amount: body[:amount],
           payment_method: body[:method],
         )
@@ -71,8 +72,8 @@ class Debt::VosController < Ygg::Hel::VosBaseController
 
       payment = Ygg::Acao::Payment.create!(
         member: member,
-        debt: self,
-        obj: self,
+        debt: obj,
+        obj: obj,
         amount: obj.total_due,
         payment_method: 'SATISPAY',
       )

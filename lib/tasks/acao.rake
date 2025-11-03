@@ -60,6 +60,14 @@ namespace :acao do
     end
   end
 
+  namespace :payments do
+    task(:chores => :environment) do
+      TimeoutActor.new(tout: 100).do do
+        Ygg::Acao::Payment.run_chores!
+      end
+    end
+  end
+
   namespace :roster do
     task(print_daily_form: :environment) do
       TimeoutActor.new(tout: 100).do do
