@@ -1,0 +1,28 @@
+class RemoveUnusedColumns < ActiveRecord::Migration[8.0]
+  def up
+    remove_column 'acao.aircrafts', 'fn_owner_name'
+    remove_column 'acao.aircrafts', 'fn_home_airport'
+    remove_column 'acao.aircrafts', 'fn_type_name'
+    remove_column 'acao.aircrafts', 'fn_common_radio_frequency'
+    remove_column 'acao.aircrafts', 'mdb_id'
+    remove_column 'acao.aircrafts', 'owner_id'
+    remove_column 'acao.members', 'is_tug_pilot'
+    remove_column 'acao.members', 'is_student'
+    remove_column 'acao.members', 'is_instructor'
+    remove_column 'acao.members', 'is_board_member'
+    remove_column 'acao.members', 'is_fireman'
+    remove_column 'acao.memberships', 'possible_roster_chief'
+    remove_column 'acao.memberships', 'student'
+    remove_column 'acao.memberships', 'tug_pilot'
+    remove_column 'acao.memberships', 'board_member'
+    remove_column 'acao.memberships', 'instructor'
+    remove_column 'acao.memberships', 'fireman'
+    remove_column 'acao.memberships', 'payment_id'
+    remove_column 'acao.payments', 'amount_paid'
+    remove_column 'acao.medicals', 'pilot_id'
+    remove_column 'acao.licenses', 'pilot_id'
+    remove_column 'acao.member_services', 'person_id'
+    remove_column 'acao.invoices', 'payment_state'
+    remove_column 'acao.invoices', 'state'
+  end
+end
