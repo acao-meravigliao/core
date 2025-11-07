@@ -20,6 +20,10 @@ class Payment < Ygg::PublicModel
              class_name: 'Ygg::Acao::Debt',
              optional: true
 
+  belongs_to :invoice,
+             class_name: 'Ygg::Acao::Invoice',
+             optional: true
+
   belongs_to :obj,
              polymorphic: true,
              optional: true
@@ -39,6 +43,7 @@ class Payment < Ygg::PublicModel
 
   gs_rel_map << { from: :payment, to: :member, to_cls: '::Ygg::Acao::Member', from_key: 'member_id' }
   gs_rel_map << { from: :payment, to: :debt, to_cls: '::Ygg::Acao::Debt', from_key: 'debt_id' }
+  gs_rel_map << { from: :payment, to: :invoice, to_cls: '::Ygg::Acao::Invoice', from_key: 'debt_id' }
 # TODO: implement polymorphic
 #  gs_rel_map << { from: :payment, to: :obj, from_key: 'debt_id' }
   gs_rel_map << { from: :payment, to: :sp_sender, to_cls: '::Ygg::Acao::SatispayEntity', from_key: 'sp_sender_id' }

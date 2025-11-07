@@ -202,15 +202,10 @@ CREATE TABLE acao.aircrafts (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    fn_owner_name character varying(255),
-    fn_home_airport character varying(255),
-    fn_type_name character varying(255),
     race_registration character varying(255),
     registration character varying(255),
-    fn_common_radio_frequency character varying(255),
     flarm_identifier character varying(16),
     icao_identifier character varying(16),
-    mdb_id integer,
     hangar boolean DEFAULT false NOT NULL,
     notes text,
     club_id uuid,
@@ -222,7 +217,6 @@ CREATE TABLE acao.aircrafts (
     is_towplane boolean DEFAULT false NOT NULL,
     owner_id_old uuid,
     aircraft_type_id uuid,
-    owner_id uuid,
     source_id integer
 );
 
@@ -494,8 +488,6 @@ CREATE TABLE acao.invoices (
     created_at timestamp without time zone,
     notes text,
     payment_method character varying(32) NOT NULL,
-    state character varying DEFAULT 'NEW'::character varying NOT NULL,
-    payment_state character varying DEFAULT 'UNPAID'::character varying NOT NULL,
     person_id uuid,
     member_id uuid,
     source_id integer,
@@ -508,7 +500,9 @@ CREATE TABLE acao.invoices (
     amount numeric(14,6) DEFAULT 0.0 NOT NULL,
     identifier character varying,
     year integer,
-    document_type character varying
+    document_type character varying,
+    debt_id uuid,
+    our_reference character varying
 );
 
 
@@ -555,7 +549,6 @@ CREATE TABLE acao.licenses (
     issued_at timestamp with time zone,
     valid_to2 timestamp with time zone,
     identifier character varying(32),
-    pilot_id uuid,
     member_id uuid NOT NULL
 );
 
@@ -570,7 +563,6 @@ CREATE TABLE acao.medicals (
     issued_at timestamp with time zone,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     identifier character varying(32),
-    pilot_id uuid,
     member_id uuid NOT NULL
 );
 
@@ -615,7 +607,6 @@ CREATE TABLE acao.member_services (
     invoice_detail_id uuid,
     service_type_id uuid NOT NULL,
     payment_id uuid,
-    person_id uuid,
     member_id uuid
 );
 
@@ -635,11 +626,6 @@ CREATE TABLE acao.members (
     bollini numeric(14,6) DEFAULT 0.0 NOT NULL,
     roster_chief boolean DEFAULT false NOT NULL,
     roster_allowed boolean DEFAULT false NOT NULL,
-    is_student boolean DEFAULT false NOT NULL,
-    is_tug_pilot boolean DEFAULT false NOT NULL,
-    is_board_member boolean DEFAULT false NOT NULL,
-    is_instructor boolean DEFAULT false NOT NULL,
-    is_fireman boolean DEFAULT false NOT NULL,
     has_disability boolean DEFAULT false NOT NULL,
     email_allowed boolean DEFAULT false NOT NULL,
     debtor boolean DEFAULT false NOT NULL,
@@ -676,17 +662,10 @@ CREATE TABLE acao.memberships (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     status character varying(32),
     email_allowed boolean DEFAULT true NOT NULL,
-    tug_pilot boolean DEFAULT false,
-    board_member boolean DEFAULT false,
-    instructor boolean DEFAULT false,
-    fireman boolean DEFAULT false,
-    possible_roster_chief boolean DEFAULT false NOT NULL,
     valid_from timestamp with time zone NOT NULL,
     valid_to timestamp with time zone NOT NULL,
     invoice_detail_id uuid,
-    student boolean DEFAULT false,
     person_id uuid,
-    payment_id uuid,
     reference_year_id uuid NOT NULL,
     member_id uuid NOT NULL
 );
@@ -809,7 +788,8 @@ CREATE TABLE acao.onda_invoice_exports (
     last_chore timestamp without time zone,
     synced_at timestamp(6) without time zone DEFAULT now() NOT NULL,
     reject_cause character varying,
-    debt_id uuid
+    debt_id uuid,
+    our_reference character varying
 );
 
 
@@ -845,7 +825,6 @@ CREATE TABLE acao.payments (
     wire_value_date timestamp without time zone,
     receipt_code character varying(255) DEFAULT NULL::character varying,
     debt_id uuid,
-    amount_paid numeric(14,6),
     sp_idempotency_key character varying,
     sp_id character varying,
     sp_code character varying,
@@ -864,7 +843,8 @@ CREATE TABLE acao.payments (
     sp_external_code character varying,
     obj_id uuid,
     obj_type character varying,
-    member_id uuid
+    member_id uuid,
+    invoice_id uuid
 );
 
 
@@ -1051,7 +1031,8 @@ CREATE TABLE acao.service_types (
     onda_2_cnt integer,
     onda_1_type integer,
     onda_2_type integer,
-    is_association boolean
+    is_association boolean DEFAULT false NOT NULL,
+    is_cav boolean DEFAULT false NOT NULL
 );
 
 
@@ -2925,10 +2906,10 @@ CREATE TABLE i18n.translations (
 
 
 --
--- Name: address_validation_tokens; Type: TABLE; Schema: ml; Owner: -
+-- Name: address_validations; Type: TABLE; Schema: ml; Owner: -
 --
 
-CREATE TABLE ml.address_validation_tokens (
+CREATE TABLE ml.address_validations (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     address_id uuid NOT NULL,
     code character varying NOT NULL,
@@ -5377,11 +5358,11 @@ ALTER TABLE ONLY i18n.translations
 
 
 --
--- Name: address_validation_tokens address_validation_tokens_pkey; Type: CONSTRAINT; Schema: ml; Owner: -
+-- Name: address_validations address_validations_pkey; Type: CONSTRAINT; Schema: ml; Owner: -
 --
 
-ALTER TABLE ONLY ml.address_validation_tokens
-    ADD CONSTRAINT address_validation_tokens_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY ml.address_validations
+    ADD CONSTRAINT address_validations_pkey PRIMARY KEY (id);
 
 
 --
@@ -5898,13 +5879,6 @@ CREATE INDEX index_aircrafts_on_club_owner_id ON acao.aircrafts USING btree (clu
 
 
 --
--- Name: index_aircrafts_on_owner_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_aircrafts_on_owner_id ON acao.aircrafts USING btree (owner_id);
-
-
---
 -- Name: index_aircrafts_on_registration; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -6122,6 +6096,13 @@ CREATE INDEX index_invoice_details_on_invoice_id ON acao.invoice_details USING b
 
 
 --
+-- Name: index_invoices_on_debt_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_invoices_on_debt_id ON acao.invoices USING btree (debt_id);
+
+
+--
 -- Name: index_invoices_on_document_type_and_year_and_identifier; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -6140,6 +6121,13 @@ CREATE INDEX index_invoices_on_identifier ON acao.invoices USING btree (identifi
 --
 
 CREATE INDEX index_invoices_on_member_id ON acao.invoices USING btree (member_id);
+
+
+--
+-- Name: index_invoices_on_our_reference; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_invoices_on_our_reference ON acao.invoices USING btree (our_reference);
 
 
 --
@@ -6413,6 +6401,13 @@ CREATE INDEX index_payments_on_debt_id ON acao.payments USING btree (debt_id);
 --
 
 CREATE UNIQUE INDEX index_payments_on_identifier ON acao.payments USING btree (identifier);
+
+
+--
+-- Name: index_payments_on_invoice_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_payments_on_invoice_id ON acao.payments USING btree (invoice_id);
 
 
 --
@@ -6749,13 +6744,6 @@ CREATE UNIQUE INDEX index_years_on_uuid ON acao.years USING btree (id);
 --
 
 CREATE UNIQUE INDEX index_years_on_year ON acao.years USING btree (year);
-
-
---
--- Name: memberships_on_payment_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX memberships_on_payment_id ON acao.memberships USING btree (payment_id);
 
 
 --
@@ -7634,17 +7622,17 @@ CREATE UNIQUE INDEX index_translations_on_uuid ON i18n.translations USING btree 
 
 
 --
--- Name: index_address_validation_tokens_on_address_id; Type: INDEX; Schema: ml; Owner: -
+-- Name: index_address_validations_on_address_id; Type: INDEX; Schema: ml; Owner: -
 --
 
-CREATE INDEX index_address_validation_tokens_on_address_id ON ml.address_validation_tokens USING btree (address_id);
+CREATE INDEX index_address_validations_on_address_id ON ml.address_validations USING btree (address_id);
 
 
 --
--- Name: index_address_validation_tokens_on_code; Type: INDEX; Schema: ml; Owner: -
+-- Name: index_address_validations_on_code; Type: INDEX; Schema: ml; Owner: -
 --
 
-CREATE UNIQUE INDEX index_address_validation_tokens_on_code ON ml.address_validation_tokens USING btree (code);
+CREATE UNIQUE INDEX index_address_validations_on_code ON ml.address_validations USING btree (code);
 
 
 --
@@ -8215,14 +8203,6 @@ CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING b
 
 
 --
--- Name: aircrafts fk_rails_046f51b292; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.aircrafts
-    ADD CONSTRAINT fk_rails_046f51b292 FOREIGN KEY (owner_id) REFERENCES acao.members(id);
-
-
---
 -- Name: roster_entries fk_rails_078cdcc4f0; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8687,6 +8667,14 @@ ALTER TABLE ONLY acao.meter_measures
 
 
 --
+-- Name: invoices fk_rails_c11b767881; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.invoices
+    ADD CONSTRAINT fk_rails_c11b767881 FOREIGN KEY (debt_id) REFERENCES acao.debts(id) ON DELETE SET NULL;
+
+
+--
 -- Name: timetable_entries fk_rails_c231a7ad67; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8767,14 +8755,6 @@ ALTER TABLE ONLY acao.timetable_entries
 
 
 --
--- Name: memberships fk_rails_e04a443b4d; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.memberships
-    ADD CONSTRAINT fk_rails_e04a443b4d FOREIGN KEY (payment_id) REFERENCES acao.payments(id);
-
-
---
 -- Name: tows fk_rails_e424eb5a3e; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8812,6 +8792,14 @@ ALTER TABLE ONLY acao.meters
 
 ALTER TABLE ONLY acao.tickets
     ADD CONSTRAINT fk_rails_f0d0f92a56 FOREIGN KEY (pilot2_id) REFERENCES acao.members(id) ON DELETE SET NULL;
+
+
+--
+-- Name: payments fk_rails_f28f139829; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.payments
+    ADD CONSTRAINT fk_rails_f28f139829 FOREIGN KEY (invoice_id) REFERENCES acao.invoices(id) ON DELETE SET NULL;
 
 
 --
@@ -9231,10 +9219,10 @@ ALTER TABLE ONLY ml.msg_objects
 
 
 --
--- Name: address_validation_tokens fk_rails_5fa823855f; Type: FK CONSTRAINT; Schema: ml; Owner: -
+-- Name: address_validations fk_rails_5fa823855f; Type: FK CONSTRAINT; Schema: ml; Owner: -
 --
 
-ALTER TABLE ONLY ml.address_validation_tokens
+ALTER TABLE ONLY ml.address_validations
     ADD CONSTRAINT fk_rails_5fa823855f FOREIGN KEY (address_id) REFERENCES ml.addresses(id) ON DELETE CASCADE;
 
 
@@ -9317,6 +9305,9 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251106170534'),
+('20251105214637'),
+('20251104161028'),
 ('20251103124817'),
 ('20251031172144'),
 ('20251031170811'),
@@ -9333,6 +9324,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20251001150720'),
 ('20250930090714'),
 ('20250929161248'),
+('20250929134940'),
 ('20250929131033'),
 ('20250929123504'),
 ('20250928000213'),

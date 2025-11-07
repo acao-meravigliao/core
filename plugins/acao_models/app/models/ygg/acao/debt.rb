@@ -24,6 +24,9 @@ class Debt < Ygg::PublicModel
            dependent: :destroy,
            autosave: true
 
+  has_one :invoice,
+          class_name: 'Ygg::Acao::Invoice'
+
   has_many :onda_invoice_exports,
            class_name: 'Ygg::Acao::OndaInvoiceExport'
 
@@ -38,6 +41,7 @@ class Debt < Ygg::PublicModel
   gs_rel_map << { from: :debt, to: :member, to_cls: '::Ygg::Acao::Member', from_key: 'member_id' }
   gs_rel_map << { from: :debt, to: :detail, to_cls: '::Ygg::Acao::Debt::Detail', to_key: 'debt_id' }
   gs_rel_map << { from: :debt, to: :payment, to_cls: '::Ygg::Acao::Payment', to_key: 'debt_id' }
+  gs_rel_map << { from: :debt, to: :invoice, to_cls: '::Ygg::Acao::Invoice', to_key: 'debt_id' }
   gs_rel_map << { from: :debt, to: :onda_invoice_export, to_cls: '::Ygg::Acao::OndaInvoiceExport', to_key: 'debt_id' }
 
   def self.readables_relation(person_id:)
@@ -46,7 +50,7 @@ class Debt < Ygg::PublicModel
   ########################################### ^^^^^^^^^
 
   after_initialize do
-    if new_record?
+    if new_record? && !identifier
       assign_identifier!
     end
   end
@@ -114,6 +118,7 @@ class Debt < Ygg::PublicModel
       onda_export = onda_invoice_exports.create!(
         member: member,
         identifier: "#{identifier}_#{cnt}",
+        our_reference: identifier,
         descr: descr,
         notes: notes,
         payment_method: payments.first.payment_method,
