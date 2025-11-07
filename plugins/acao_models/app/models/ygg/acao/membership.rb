@@ -279,7 +279,7 @@ class Membership < Ygg::PublicModel
 
       # Services
 
-      services.each do |service|
+      services.each_with_index do |service, index|
         service_type = Ygg::Acao::ServiceType.find(service[:service_type_id])
 
         if service[:enabled]
@@ -292,6 +292,7 @@ class Membership < Ygg::PublicModel
             data: service[:extra_info],
             service_type: service_type,
             obj: service_type.is_association ? membership : nil,
+            row_index: index,
           )
           debt.details << debt_detail
 
