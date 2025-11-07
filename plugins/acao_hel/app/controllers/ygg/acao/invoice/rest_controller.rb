@@ -30,7 +30,6 @@ class Invoice::RestController < Ygg::Hel::RestController
     attribute(:first_name) { show! }
     attribute(:last_name) { show! }
     attribute(:state) { show! }
-    attribute(:payment_state) { show! }
     attribute(:total) { show! }
   end
 
