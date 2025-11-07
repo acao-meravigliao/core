@@ -32,13 +32,19 @@ class Invoice < Ygg::PublicModel
   has_one :token_transaction,
           class_name: 'Ygg::Acao::TokenTransaction'
 
+  belongs_to :debt,
+             class_name: 'Ygg::Acao::Debt',
+             optional: true
+
+  has_many :payments,
+           class_name: 'Ygg::Acao::Payment'
+
   gs_rel_map << { from: :invoice, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
   gs_rel_map << { from: :invoice, to: :person, to_cls: 'Ygg::Core::Person', from_key: 'person_id', }
+  gs_rel_map << { from: :invoice, to: :debt, to_cls: 'Ygg::Acao::Debt', from_key: 'debt_id', }
+  gs_rel_map << { from: :invoice, to: :payment, to_cls: 'Ygg::Acao::Payment', to_key: 'invoice_id', }
   gs_rel_map << { from: :invoice, to: :detail, to_cls: 'Ygg::Acao::Invoice::Detail', to_key: 'invoice_id', }
   gs_rel_map << { from: :invoice, to: :token_transaction, to_cls: 'Ygg::Acao::TokenTransaction', to_key: 'invoice_id', }
-
-#  has_many :payments,
-#           class_name: 'Ygg::Acao::Payment'
 
   include Ygg::Core::Loggable
   define_default_log_controller(self)
@@ -85,6 +91,8 @@ class Invoice < Ygg::PublicModel
       mdb_socio = Ygg::Acao::MainDb::Socio.find_by(codice_socio_dati_generale: anagrafica_cliente.RifInterno)
       member = mdb_socio ? Ygg::Acao::Member.find_by!(ext_id: mdb_socio.id_soci_dati_generale) : nil
       year = l.DataDocumento.year
+      debt = Ygg::Acao::Debt.find_by(identifier: l.NostroRif) ||
+             Ygg::Acao::Debt.find_by(identifier: l.NostroRif[0...5])
 
       invoice = Ygg::Acao::Invoice.new(
         member: member,
@@ -103,6 +111,9 @@ class Invoice < Ygg::PublicModel
         partita_iva: anagrafica.PartitaIva,
         email: anagrafica.E_mail,
         amount: l.TotDocumento,
+        our_reference: l.NostroRif,
+        debt: debt,
+        payments: debt ? debt.payments : [],
       )
 
       l.righe.each do |riga|
@@ -138,6 +149,8 @@ class Invoice < Ygg::PublicModel
       mdb_socio = Ygg::Acao::MainDb::Socio.find_by(codice_socio_dati_generale: anagrafica_cliente.RifInterno)
       member = mdb_socio ? Ygg::Acao::Member.find_by!(ext_id: mdb_socio.id_soci_dati_generale) : nil
       year = l.DataDocumento.year
+      debt = Ygg::Acao::Debt.find_by(identifier: l.NostroRif) ||
+             Ygg::Acao::Debt.find_by(identifier: l.NostroRif[0...5])
 
       r.assign_attributes(
         member: member,
@@ -155,6 +168,9 @@ class Invoice < Ygg::PublicModel
         partita_iva: anagrafica.PartitaIva,
         email: anagrafica.E_mail,
         amount: l.TotDocumento,
+        our_reference: l.NostroRif,
+        debt: debt,
+        payments: debt ? debt.payments : [],
       )
 
       # TODO: Associate TokenTransactions with this invoice

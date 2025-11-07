@@ -48,6 +48,10 @@ class Msg < Ygg::PublicModel
   has_many :bounces,
            class_name: 'Ygg::Ml::Bounce'
 
+  gs_rel_map << { from: :message, to: :recipient, to_cls: '::Ygg::Ml::Address', from_key: 'recipient_id' }
+  gs_rel_map << { from: :message, to: :sender, to_cls: '::Ygg::Ml::Sender', from_key: 'sender_id' }
+  gs_rel_map << { from: :message, to: :person, to_cls: '::Ygg::Core::Person', from_key: 'person_id' }
+
   validates :message, presence: true
 
   before_create do

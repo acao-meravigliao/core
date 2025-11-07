@@ -156,6 +156,7 @@ class Member < Ygg::PublicModel
              optional: true
 
   gs_rel_map << { from: :member, to: :role, to_cls: 'Ygg::Acao::Member::Role', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :service, to_cls: 'Ygg::Acao::MemberService', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :medical, to_cls: 'Ygg::Acao::Medical', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :license, to_cls: 'Ygg::Acao::License', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :membership, to_cls: 'Ygg::Acao::Membership', to_key: 'member_id', }
@@ -305,7 +306,6 @@ class Member < Ygg::PublicModel
     }
   end
 
-
   def active?(time: Time.now)
     memberships.any? { |x| x.active?(time: time) }
   end
@@ -313,6 +313,64 @@ class Member < Ygg::PublicModel
   def active_to(time: Time.now)
     m = memberships.select { |x| x.active?(time: time) }.max { |x| x.valid_to }
     m ? m.valid_to : nil
+  end
+
+  def active_services(time: Time.now)
+    services.where('valid_to IS NULL OR valid_to > ?', time).where('valid_from IS NULL OR valid_from < ?', time)
+  end
+
+  def compute_currency(time: Time.now)
+    services = active_services(time: time).joins(:service_type)
+
+    asses = services.where(service_type: { is_association: true })
+    ass_ranges = RangeArray.new(asses.map { |x| (x.valid_from)..(x.valid_to) })
+    ass_valid = ass_ranges.any?
+    ass_until = ass_ranges.map(&:end).max
+
+    cavs = services.where(service_type: { is_cav: true })
+    cav_ranges = RangeArray.new(cavs.map { |x| (x.valid_from)..(x.valid_to) })
+    cav_valid = cav_ranges.any?
+    cav_until = cav_ranges.map(&:end).max
+
+    caas = services.where(service_type: { symbol: 'CAA' })
+    caa_ranges = RangeArray.new(caas.map { |x| (x.valid_from)..(x.valid_to) })
+    caa_valid = caa_ranges.any?
+    caa_until = caa_ranges.map(&:end).max
+
+    caps = services.where(service_type: { symbol: 'CAP' })
+    cap_ranges = RangeArray.new(caps.map { |x| (x.valid_from)..(x.valid_to) })
+    cap_valid = cap_ranges.any?
+    cap_until = cap_ranges.map(&:end).max
+
+    spl_medical = medicals.where(type: 'IT class 2')
+
+    currency = {
+      ass: {
+        ranges: ass_ranges.to_a,
+        valid: ass_valid,
+        until: ass_until,
+      },
+      cav: {
+        ranges: cav_ranges.to_a,
+        valid: cav_valid,
+        until: cav_until,
+      },
+      caa: {
+        ranges: caa_ranges.to_a,
+        valid: caa_valid,
+        until: caa_until,
+      },
+      cap: {
+        ranges: cap_ranges.to_a,
+        valid: cap_valid,
+        until: cap_until,
+      },
+      spl: {
+        medical: spl_medical,
+      }
+    }
+
+    currency
   end
 
   def send_initial_password!

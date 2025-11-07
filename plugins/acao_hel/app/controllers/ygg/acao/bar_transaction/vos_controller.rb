@@ -39,7 +39,7 @@ class BarTransaction::VosController < Ygg::Hel::VosBaseController
         )
 
         sp_payment = payment.sp_initiate!(
-          description: "Pagamento BAR #{identifier}",
+          description: "Ricarica BAR #{identifier}",
           redirect_url: Rails.application.config.acao.bar_satispay_redirect_url + "/#{payment.id}",
         )
       end

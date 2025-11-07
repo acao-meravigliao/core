@@ -26,10 +26,11 @@ class Debt::VosController < Ygg::Hel::VosBaseController
         obj.save!
 
         if obj.total_due <= 0
-          raise  AlreadyPaid
+          raise AlreadyPaid
         end
 
         payment = obj.payments.create!(
+          member: obj.member,
           amount: body[:amount],
           payment_method: body[:method],
         )
@@ -71,8 +72,8 @@ class Debt::VosController < Ygg::Hel::VosBaseController
 
       payment = Ygg::Acao::Payment.create!(
         member: member,
-        debt: self,
-        obj: self,
+        debt: obj,
+        obj: obj,
         amount: obj.total_due,
         payment_method: 'SATISPAY',
       )

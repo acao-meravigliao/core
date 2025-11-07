@@ -279,7 +279,7 @@ class Membership < Ygg::PublicModel
 
       # Services
 
-      services.each do |service|
+      services.each_with_index do |service, index|
         service_type = Ygg::Acao::ServiceType.find(service[:service_type_id])
 
         if service[:enabled]
@@ -292,6 +292,7 @@ class Membership < Ygg::PublicModel
             data: service[:extra_info],
             service_type: service_type,
             obj: service_type.is_association ? membership : nil,
+            row_index: index,
           )
           debt.details << debt_detail
 
@@ -358,7 +359,7 @@ EOF
       if !si
         si = mdb_socio.iscrizioni.create!(
           anno_iscrizione: reference_year.year,
-          tipo_iscr: roles.find_by(symbol: 'SPL_STUDENT') ? 1 : 2,
+          tipo_iscr: member.roles.find_by(symbol: 'SPL_STUDENT') ? 1 : 2,
           data_scadenza: Time.local(reference_year.year).end_of_year,
           euro_pagati: debt.total,
           note: "Pagamento #{debt.identifier}",
@@ -389,7 +390,7 @@ EOF
       if (Time.now.year == reference_year.year - 1) && !si_prev
         si = mdb_socio.iscrizioni.create!(
           anno_iscrizione: reference_year.year - 1,
-          tipo_iscr: roles.find_by(symbol: 'SPL_PILOT') ? 2 : 1,
+          tipo_iscr: member.roles.find_by(symbol: 'SPL_PILOT') ? 2 : 1,
           data_scadenza: (Time.local(reference_year.year - 1).end_of_year + 31.days).end_of_day,
           euro_pagati: debt.total,
           note: "Pagamento #{debt.identifier}",

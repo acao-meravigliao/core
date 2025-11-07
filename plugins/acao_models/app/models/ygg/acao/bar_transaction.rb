@@ -57,7 +57,7 @@ class BarTransaction < Ygg::PublicModel
           data_reg: Time.now,
           avere_cassa_bar_locale: payment.amount,
           dare_cassa_bar_locale: 0,
-          causale: "Accredito da pagamento SatiSpay #{payment.identifier}",
+          causale: "Accredito SatiSpay #{payment.identifier}",
           codice: payment.member.code,
           note: "Pagamento con SatisPay #{payment.identifier}",
         )

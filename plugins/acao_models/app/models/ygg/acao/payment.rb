@@ -20,8 +20,20 @@ class Payment < Ygg::PublicModel
              class_name: 'Ygg::Acao::Debt',
              optional: true
 
+  belongs_to :invoice,
+             class_name: 'Ygg::Acao::Invoice',
+             optional: true
+
   belongs_to :obj,
              polymorphic: true,
+             optional: true
+
+  belongs_to :sp_sender,
+             class_name: '::Ygg::Acao::SatispayEntity',
+             optional: true
+
+  belongs_to :sp_receiver,
+             class_name: '::Ygg::Acao::SatispayEntity',
              optional: true
 
   include Ygg::Core::Loggable
@@ -31,8 +43,11 @@ class Payment < Ygg::PublicModel
 
   gs_rel_map << { from: :payment, to: :member, to_cls: '::Ygg::Acao::Member', from_key: 'member_id' }
   gs_rel_map << { from: :payment, to: :debt, to_cls: '::Ygg::Acao::Debt', from_key: 'debt_id' }
+  gs_rel_map << { from: :payment, to: :invoice, to_cls: '::Ygg::Acao::Invoice', from_key: 'debt_id' }
 # TODO: implement polymorphic
 #  gs_rel_map << { from: :payment, to: :obj, from_key: 'debt_id' }
+  gs_rel_map << { from: :payment, to: :sp_sender, to_cls: '::Ygg::Acao::SatispayEntity', from_key: 'sp_sender_id' }
+  gs_rel_map << { from: :payment, to: :sp_receiver, to_cls: '::Ygg::Acao::SatispayEntity', from_key: 'sp_receiver_id' }
 
   after_initialize do
     if new_record? && !identifier
@@ -150,12 +165,10 @@ puts "SP_PAYMENT=#{sp_payment}"
     self.sp_status = sp_payment[:status]
     self.sp_status_ownership = sp_payment[:status_ownership]
     self.sp_expired = sp_payment[:expired]
-    self.sp_sender_id = sp_payment[:sender] && sp_payment[:sender][:id]
-    self.sp_sender_type = sp_payment[:sender] && sp_payment[:sender][:type]
-    self.sp_sender_name = sp_payment[:sender] && sp_payment[:sender][:name]
-    self.sp_sender_profile_picture = sp_payment[:sender] && sp_payment[:sender][:profile_pictures] && sp_payment[:sender][:profile_pictures][:data]
-    self.sp_receiver_id = sp_payment[:receiver] && sp_payment[:receiver][:id]
-    self.sp_receiver_type = sp_payment[:receiver] && sp_payment[:receiver][:type]
+
+    sp_update_sender(sp_payment)
+    sp_update_receiver(sp_payment)
+
     self.sp_daily_closure_id = sp_payment[:daily_closure] && sp_payment[:daily_closure][:id]
     self.sp_daily_closure_date = sp_payment[:daily_closure] && sp_payment[:daily_closure][:date]
     self.sp_insert_date = sp_payment[:insert_date]
@@ -163,7 +176,6 @@ puts "SP_PAYMENT=#{sp_payment}"
     self.sp_description = sp_payment[:description]
     self.sp_flow = sp_payment[:flow]
     self.sp_external_code = sp_payment[:external_code]
-    self.sp_redirect_url = sp_payment[:redirect_url]
 
     save!
 
@@ -175,20 +187,22 @@ puts "SP_PAYMENT=#{sp_payment}"
       return 'Nothing to do'
     end
 
+    lock!
+
     sp_payment = sp_client.payment_get(sp_id)
 
 puts "SP_UPDATE SP_PAYMENT=#{sp_payment}"
 
     transaction do
+      orig_sp_status = sp_status
+
       self.sp_status = sp_payment[:status]
       self.sp_status_ownership = sp_payment[:status_ownership]
       self.sp_expired = sp_payment[:expired]
-      self.sp_sender_id ||= sp_payment[:sender] && sp_payment[:sender][:id]
-      self.sp_sender_type ||= sp_payment[:sender] && sp_payment[:sender][:type]
-      self.sp_sender_name ||= sp_payment[:sender] && sp_payment[:sender][:name]
-      self.sp_sender_profile_picture ||= sp_payment[:sender] && sp_payment[:sender][:profile_pictures] && sp_payment[:sender][:profile_pictures][:data]
-      self.sp_receiver_id ||= sp_payment[:receiver] && sp_payment[:receiver][:id]
-      self.sp_receiver_type ||= sp_payment[:receiver] && sp_payment[:receiver][:type]
+
+      sp_update_sender(sp_payment)
+      sp_update_receiver(sp_payment)
+
       self.sp_daily_closure_id ||= sp_payment[:daily_closure] && sp_payment[:daily_closure][:id]
       self.sp_daily_closure_date ||= sp_payment[:daily_closure] && sp_payment[:daily_closure][:date]
       self.sp_insert_date ||= sp_payment[:insert_date]
@@ -196,13 +210,14 @@ puts "SP_UPDATE SP_PAYMENT=#{sp_payment}"
       self.sp_description = sp_payment[:description]
       self.sp_flow ||= sp_payment[:flow]
       self.sp_external_code = sp_payment[:external_code]
-      self.sp_redirect_url ||= sp_payment[:redirect_url]
 
-      case sp_status
-      when 'ACCEPTED'
-        completed!
-      when 'CANCELED'
-        cancel!
+      if orig_sp_status == 'PENDING'
+        case sp_status
+        when 'ACCEPTED'
+          completed!
+        when 'CANCELED'
+          cancel!
+        end
       end
 
       save!
@@ -211,10 +226,49 @@ puts "SP_UPDATE SP_PAYMENT=#{sp_payment}"
     sp_payment
   end
 
+  def sp_update_sender(sp_payment)
+    if sp_payment[:sender] && sp_payment[:sender][:id]
+      self.sp_sender ||= Ygg::Acao::SatispayEntity.find_or_create_by!(id: sp_payment[:sender][:id]) do |s|
+        s.type = sp_payment[:sender][:type]
+        s.name = sp_payment[:sender][:name]
+      end
+
+      if sp_payment[:sender][:profile_pictures]
+        sp_sync_profile_pictures(sp_sender, sp_payment[:sender][:profile_pictures])
+      end
+    end
+  end
+
+  def sp_update_receiver(sp_payment)
+    if sp_payment[:receiver] && sp_payment[:receiver][:id]
+      self.sp_receiver ||= Ygg::Acao::SatispayEntity.find_or_create_by!(id: sp_payment[:receiver][:id]) do |s|
+        s.type = sp_payment[:receiver][:type]
+        s.name = sp_payment[:receiver][:name]
+      end
+    end
+  end
+
+  def sp_sync_profile_pictures(entity, pictures)
+    if pictures[:data]
+      pictures[:data].each do |pp|
+        entity.profile_pictures.find_or_create_by!(id: pp[:id]) do |ppm|
+          ppm.source = 'SATISPAY'
+          ppm.url = pp[:url]
+          ppm.width = pp[:width]
+          ppm.height = pp[:height]
+          ppm.is_original = pp[:is_original]
+        end
+      end
+    end
+  end
+
   def self.run_chores!
     transaction do
-      where(payment_method: 'SATISPAY', sp_status: 'PENDING') do |payment|
-        payment.sp_update!
+      where(payment_method: 'SATISPAY', sp_status: 'PENDING').each do |payment|
+        transaction do
+          payment.lock!
+          payment.sp_update!
+        end
       end
     end
   end

@@ -1,12 +1,4 @@
 PATH
-  remote: ../am-satispay
-  specs:
-    am-satispay (0.2.0)
-      activesupport
-      am-http (~> 0.7)
-      sys-uname (~> 1.2.2)
-
-PATH
   remote: plugins/acao_hel
   specs:
     acao_hel (1.0.0)
@@ -161,6 +153,10 @@ GEM
       am-sockets (~> 0.17)
       sqlite3 (~> 1.7)
     am-io-buffer (0.4.0)
+    am-satispay (0.2.0)
+      activesupport
+      am-http (~> 0.7)
+      sys-uname (~> 1.2.2)
     am-session-manager (0.0.5)
       actor_model
       sqlite3
@@ -348,7 +344,7 @@ GEM
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     io-console (0.8.1)
-    irb (1.15.2)
+    irb (1.15.3)
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
@@ -380,7 +376,7 @@ GEM
     mini_portile2 (2.8.9)
     minitest (5.26.0)
     msgpack (1.8.0)
-    net-http (0.6.0)
+    net-http (0.7.0)
       uri
     net-imap (0.5.12)
       date
@@ -394,7 +390,7 @@ GEM
       timeout
     net-smtp (0.5.1)
       net-protocol
-    nio4r (2.7.4)
+    nio4r (2.7.5)
     nokogiri (1.18.10)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
@@ -449,7 +445,7 @@ GEM
     puma (7.1.0)
       nio4r (~> 2.0)
     racc (1.8.1)
-    rack (3.2.3)
+    rack (3.2.4)
     rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -480,7 +476,7 @@ GEM
       msgpack (>= 0.4.3)
       optimist (>= 3.0.0)
     rbtree3 (0.7.1)
-    rdoc (6.15.0)
+    rdoc (6.15.1)
       erb
       psych (>= 4.0.0)
       tsort
@@ -522,7 +518,7 @@ GEM
       concurrent-ruby (~> 1.0)
     uber (0.0.15)
     unindent (1.0)
-    uri (1.0.4)
+    uri (1.1.1)
     useragent (0.16.11)
     uuidtools (3.0.0)
     zeitwerk (2.7.3)
@@ -557,7 +553,7 @@ DEPENDENCIES
   airbrake
   am-auth-manager!
   am-http!
-  am-satispay!
+  am-satispay (>= 0.2.0)!
   am-smtp!
   am-ssh!
   am-vos!

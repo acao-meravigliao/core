@@ -23,6 +23,10 @@ class MemberService < Ygg::PublicModel
   belongs_to :service_type,
              class_name: 'Ygg::Acao::ServiceType'
 
+  gs_rel_map << { from: :service, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
+  gs_rel_map << { from: :service, to: :service_type, to_cls: 'Ygg::Acao::ServiceType', from_key: 'service_type_id', }
+  gs_rel_map << { from: :service, to: :invoice, to_cls: 'Ygg::Acao::Invoice', from_key: 'invoice_id', }
+
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 
