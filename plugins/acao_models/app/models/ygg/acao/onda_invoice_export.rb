@@ -91,11 +91,11 @@ class OndaInvoiceExport < Ygg::PublicModel
           testa.cod_pagamento = cod_pagamento
           testa.commento = no_reg ? 'NO-REG' : ''
           testa.contrassegno = 0
-          testa.nostro_rif = identifier
+          testa.nostro_rif = our_reference
           testa.tot_documento = 0
           testa.tot_imponibile = 0
           testa.tot_imposta = 0
-          testa.vostro_rif = identifier
+          testa.vostro_rif = our_reference
           testa.dati_controparte = XmlInterface::RicFisc::Docu::Testa::DatiControparte.new
           testa.dati_controparte.citta = person.residence_location.city
           testa.dati_controparte.codice_fiscale = person.italian_fiscal_code || person.vat_number
@@ -138,7 +138,7 @@ class OndaInvoiceExport < Ygg::PublicModel
             riga.cod_art = ''
             riga.cod_iva = ''
             riga.cod_un_mis = ''
-            riga.descrizione = "Acquisto online, codice #{identifier}"
+            riga.descrizione = "Acquisto online, codice #{debt.identifier}"
             riga.imponibile = ''
             riga.importo_sconto = 0
             riga.imposta = ''
