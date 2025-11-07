@@ -67,7 +67,7 @@ class Debt < Ygg::PublicModel
     self.identifier = identifier
   end
 
-  def one_payment_has_been_completed!(payment)
+  def one_payment_has_been_completed!(payment:)
     if total_paid >= total
       paid_in_full!
     end
@@ -153,6 +153,10 @@ class Debt < Ygg::PublicModel
 
   def total_paid
     payments.reduce(0) { |a,x| (x.state == 'COMPLETED') ? a + x.amount : 0 }
+  end
+
+  def total_due
+    total - total_paid
   end
 
   def self.run_chores!

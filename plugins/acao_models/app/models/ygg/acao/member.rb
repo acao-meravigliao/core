@@ -56,6 +56,9 @@ class Member < Ygg::PublicModel
   has_many :debts,
            class_name: '::Ygg::Acao::Debt'
 
+  has_many :payments,
+           class_name: '::Ygg::Acao::Payment'
+
   has_many :aircraft_owners,
            class_name: '::Ygg::Acao::Aircraft::Owner'
 
@@ -162,6 +165,7 @@ class Member < Ygg::PublicModel
   gs_rel_map << { from: :member, to: :bar_transaction, to_cls: 'Ygg::Acao::BarTransaction', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :token_transaction, to_cls: 'Ygg::Acao::TokenTransaction', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :debt, to_cls: 'Ygg::Acao::Debt', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :payment, to_cls: 'Ygg::Acao::Payment', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :invoice, to_cls: 'Ygg::Acao::Invoice', to_key: 'member_id', }
   gs_rel_map << { from: :owner, to: :aircraft, to_cls: 'Ygg::Acao::Aircraft', to_key: 'owner_id', }
   gs_rel_map << { from: :acao_member, to: :person, to_cls: 'Ygg::Core::Person', from_key: 'person_id', }

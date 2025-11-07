@@ -814,26 +814,6 @@ CREATE TABLE acao.onda_invoice_exports (
 
 
 --
--- Name: payment_satispay_charges; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.payment_satispay_charges (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    user_id character varying(64),
-    user_phone_number character varying(64),
-    status character varying(64),
-    status_details character varying,
-    user_short_name character varying,
-    charge_date timestamp with time zone,
-    amount numeric(8,2),
-    idempotency_key character varying(32),
-    description character varying,
-    charge_id character varying(64),
-    payment_id uuid
-);
-
-
---
 -- Name: payment_services; Type: TABLE; Schema: acao; Owner: -
 --
 
@@ -864,7 +844,33 @@ CREATE TABLE acao.payments (
     amount numeric(14,6) DEFAULT NULL::numeric,
     wire_value_date timestamp without time zone,
     receipt_code character varying(255) DEFAULT NULL::character varying,
-    debt_id uuid
+    debt_id uuid,
+    amount_paid numeric(14,6),
+    sp_idempotency_key character varying,
+    sp_id character varying,
+    sp_code character varying,
+    sp_type character varying,
+    sp_status character varying,
+    sp_status_ownership boolean,
+    sp_expired boolean,
+    sp_sender_id character varying,
+    sp_sender_type character varying,
+    sp_sender_name character varying,
+    sp_sender_profile_picture character varying,
+    sp_receiver_id character varying,
+    sp_receiver_type character varying,
+    sp_daily_closure_id character varying,
+    sp_daily_closure_date timestamp without time zone,
+    sp_insert_date timestamp without time zone,
+    sp_expire_date timestamp without time zone,
+    sp_description character varying,
+    sp_flow character varying,
+    sp_external_code character varying,
+    sp_redirect_url character varying,
+    sp_status_code integer,
+    obj_id uuid,
+    obj_type character varying,
+    member_id uuid
 );
 
 
@@ -4651,14 +4657,6 @@ ALTER TABLE ONLY acao.onda_invoice_exports
 
 
 --
--- Name: payment_satispay_charges payment_satispay_charges_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.payment_satispay_charges
-    ADD CONSTRAINT payment_satispay_charges_pkey PRIMARY KEY (id);
-
-
---
 -- Name: payment_services payment_services_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -5727,13 +5725,6 @@ CREATE UNIQUE INDEX acao_licenses_type_identifier_idx ON acao.licenses USING btr
 
 
 --
--- Name: acao_payment_satispay_charges_charge_id_idx; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE UNIQUE INDEX acao_payment_satispay_charges_charge_id_idx ON acao.payment_satispay_charges USING btree (charge_id);
-
-
---
 -- Name: acao_roster_days_date_idx; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -6357,34 +6348,6 @@ CREATE INDEX index_onda_invoice_exports_on_state ON acao.onda_invoice_exports US
 
 
 --
--- Name: index_payment_satispay_charges_on_payment_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_payment_satispay_charges_on_payment_id ON acao.payment_satispay_charges USING btree (payment_id);
-
-
---
--- Name: index_payment_satispay_charges_on_user_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_payment_satispay_charges_on_user_id ON acao.payment_satispay_charges USING btree (user_id);
-
-
---
--- Name: index_payment_satispay_charges_on_user_phone_number; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_payment_satispay_charges_on_user_phone_number ON acao.payment_satispay_charges USING btree (user_phone_number);
-
-
---
--- Name: index_payment_satispay_charges_on_uuid; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE UNIQUE INDEX index_payment_satispay_charges_on_uuid ON acao.payment_satispay_charges USING btree (id);
-
-
---
 -- Name: index_payment_services_on_payment_id; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -6410,6 +6373,13 @@ CREATE INDEX index_payments_on_debt_id ON acao.payments USING btree (debt_id);
 --
 
 CREATE UNIQUE INDEX index_payments_on_identifier ON acao.payments USING btree (identifier);
+
+
+--
+-- Name: index_payments_on_member_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_payments_on_member_id ON acao.payments USING btree (member_id);
 
 
 --
@@ -8544,14 +8514,6 @@ ALTER TABLE ONLY acao.memberships
 
 
 --
--- Name: payment_satispay_charges fk_rails_ab93ceba83; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.payment_satispay_charges
-    ADD CONSTRAINT fk_rails_ab93ceba83 FOREIGN KEY (payment_id) REFERENCES acao.payments(id);
-
-
---
 -- Name: timetable_entries fk_rails_ac4afa262e; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8589,6 +8551,14 @@ ALTER TABLE ONLY acao.bar_transactions
 
 ALTER TABLE ONLY acao.airfields
     ADD CONSTRAINT fk_rails_b744cff7d3 FOREIGN KEY (location_id) REFERENCES core.locations(id);
+
+
+--
+-- Name: payments fk_rails_b924af1212; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.payments
+    ADD CONSTRAINT fk_rails_b924af1212 FOREIGN KEY (member_id) REFERENCES acao.members(id);
 
 
 --
@@ -9262,6 +9232,9 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251031172144'),
+('20251031170811'),
+('20251030175317'),
 ('20251026124251'),
 ('20251025144510'),
 ('20251025111127'),

@@ -12,15 +12,22 @@ module Ygg
 module Acao
 
 class Debt::VosController < Ygg::Hel::VosBaseController
+
+  class AlreadyPaid < Ygg::Exception ; end
+
   def create_payment(obj:, body:, **)
     ensure_authenticated!
     raise AuthorizationError unless session.has_global_roles?(:superuser)
 
     ActiveRecord::Base.connection_pool.with_connection do
-      ActiveRecord::Base.transaction do
+      hel_transaction('Payment received') do
         obj.onda_export = body.has_key?(:onda_export) ? body[:onda_export] : true
         obj.onda_export_no_reg = body.has_key?(:onda_export_no_reg) ? body[:onda_export_no_reg] : false
         obj.save!
+
+        if obj.total_due <= 0
+          raise  AlreadyPaid
+        end
 
         payment = obj.payments.create!(
           amount: body[:amount],
@@ -43,54 +50,42 @@ class Debt::VosController < Ygg::Hel::VosBaseController
 #    ))
   end
 
-  def move(obj:, to_day_id:, **)
-    old_day_id = obj.roster_day_id
-
-    obj.roster_day_id = to_day_id
-    obj.save!
-
-    ds.tell(::AM::GrafoStore::Store::MsgRelationDestroy.new(
-      a_as: :entry, a: obj.id,
-      b_as: :day, b: old_day_id,
-    ))
-
-    ds.tell(::AM::GrafoStore::Store::MsgRelationCreate.new(
-      a_as: :entry, a: obj.id,
-      b_as: :day, b: to_day_id,
-    ))
-  end
-
-  def destroy(obj:, **)
-    ds.tell(::AM::GrafoStore::Store::MsgObjectDestroy.new(id: obj.id))
-
-    obj.destroy!
-  end
-
-  def compute_status(**)
-    member = session.auth_person.acao_member
-
-    current_year = Ygg::Acao::Year.find_by(year: Time.new.year)
-    next_year = Ygg::Acao::Year.renewal_year
-
-    res = {}
-
-    if current_year
-      res[:current] = Ygg::Acao::RosterEntry.status_for_year(member: member, year: current_year)
-    end
-
-    if next_year && next_year != current_year
-      res[:next] = Ygg::Acao::RosterEntry.status_for_year(member: member, year: next_year)
-    end
-
-    res
-  end
-
   def onda_retry(obj:, **)
     ensure_authenticated!
     raise AuthorizationError unless session.has_global_roles?(:superuser)
 
     obj.export_to_onda!
   end
+
+  def pay_with_satispay(obj:, **)
+    ensure_authenticated!
+
+    sp_payment = nil
+
+    hel_transaction('Payment received') do
+      if obj.total_due <= 0
+        raise AlreadyPaid
+      end
+
+      member = session.auth_person.acao_member
+
+      payment = Ygg::Acao::Payment.create!(
+        member: member,
+        debt: self,
+        obj: self,
+        amount: obj.total_due,
+        payment_method: 'SATISPAY',
+      )
+
+      sp_payment = payment.sp_initiate!
+    end
+
+    return {
+      success: true,
+      redirect_url: sp_payment[:redirect_url],
+    }
+  end
+
 end
 
 end

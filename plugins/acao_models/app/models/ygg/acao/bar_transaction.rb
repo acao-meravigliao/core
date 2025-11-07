@@ -37,6 +37,55 @@ class BarTransaction < Ygg::PublicModel
     :person_id,
   ]
 
+  def self.one_payment_has_been_completed!(payment:)
+    if Rails.application.config.acao.bar_add_maindb_transaction
+      Ygg::Acao::MainDb::LogBar2.transaction do
+        mdb = Ygg::Acao::MainDb::Socio.find_by!(codice_socio_dati_generale: payment.member.code)
+        visita = mdb.visita
+        visita.lock!
+
+        #Ygg::Acao::MainDb::LogBar2.create!(
+        #  data_reg: Time.now,
+        #  descrizione: "Accredito da pagamento SatiSpay #{payment.identifier}",
+        #  codice_socio: payment.member.code,
+        #  prezzo: payment.amount,
+        #  credito_prec: visita.acconto_bar_euro,
+        #  credito_rim: visita.acconto_bar_euro + payment.amount,
+        #)
+
+        Ygg::Acao::MainDb::CassettaBarLocale.create!(
+          data_reg: Time.now,
+          avere_cassa_bar_locale: payment.amount,
+          dare_cassa_bar_locale: 0,
+          causale: "Accredito da pagamento SatiSpay #{payment.identifier}",
+          codice: payment.member.code,
+          note: "Pagamento con SatisPay #{payment.identifier}",
+        )
+
+        visita.acconto_bar_euro = visita.acconto_bar_euro + payment.amount,
+        visita.save!
+      end
+    else
+      transaction do
+        payment.member.lock!
+
+        create!(
+          member: payment.member,
+          recorded_at: Time.now,
+          descr: "Accredito da pagamento SatiSpay #{payment.identifier}",
+          prev_credit: payment.member.bar_credit,
+          credit: payment.member.bar_credit + payment.amount,
+          amount: payment.amount,
+          cnt: 1,
+          unit: '€',
+        )
+
+        payment.member.bar_credit += payment.amount
+        payment.member.save!
+      end
+    end
+  end
+
   def self.sync_from_maindb!(from_time: nil, start: nil, stop: nil, debug: 0)
     if from_time
       ff = Ygg::Acao::MainDb::LogBar2.order(data_reg: :asc).where('data_reg > ?', from_time).first

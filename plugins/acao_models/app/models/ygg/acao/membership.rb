@@ -352,14 +352,14 @@ EOF
       # Membership on old database
 
       mdb_socio = Ygg::Acao::MainDb::Socio.find_by!(codice_socio_dati_generale: member.code)
+      si = mdb_socio.iscrizioni.find_by(anno_iscrizione: reference_year.year)
       si_prev = mdb_socio.iscrizioni.find_by(anno_iscrizione: reference_year.year - 1)
 
-      si = mdb_socio.iscrizioni.find_by(anno_iscrizione: reference_year.year)
       if !si
         si = mdb_socio.iscrizioni.create!(
           anno_iscrizione: reference_year.year,
-          tipo_iscr: si_prev ? si_prev.tipo_iscr : 1,
-          data_scadenza: (Time.local(reference_year.year).end_of_year + 31.days).end_of_day,
+          tipo_iscr: roles.find_by(symbol: 'SPL_STUDENT') ? 1 : 2,
+          data_scadenza: Time.local(reference_year.year).end_of_year,
           euro_pagati: debt.total,
           note: "Pagamento #{debt.identifier}",
           linea1: time,
@@ -383,29 +383,23 @@ EOF
             )
           end
         end
+      end
 
-        # Moved into trigger replacement
-
-#        invoice_detail.invoice.details.each do |detail|
-#          mdb_servizio = mdb_socio.servizi.find_by(codice_servizio: detail.service_type.onda_1_code)
-#          if !mdb_servizio && detail.service_type.onda_1_code && detail.service_type.onda_1_code != ''
-#            mdb_servizio = mdb_socio.servizi.build(codice_servizio: detail.service_type.onda_1_code, anno: reference_year.year)
-#          end
-#
-#          mdb_servizio.pagato = true
-#          mdb_servizio.data_pagamento = Time.now
-#          mdb_servizio.numero_ricevuta = invoice_detail.invoice.identifier
-#          mdb_servizio.save!
-#
-#          if !mdb_servizio && detail.service_type.onda_2_code && detail.service_type.onda_2_code != ''
-#            mdb_servizio = mdb_socio.servizi.build(codice_servizio: detail.service_type.onda_2_code, anno: reference_year.year)
-#          end
-#
-#          mdb_servizio.pagato = true
-#          mdb_servizio.data_pagamento = Time.now
-#          mdb_servizio.numero_ricevuta = invoice_detail.invoice.identifier
-#          mdb_servizio.save!
-#        end
+      # If we are still in the previous year and there is no membership yet, create a fake membership for current year
+      if (Time.now.year == reference_year.year - 1) && !si_prev
+        si = mdb_socio.iscrizioni.create!(
+          anno_iscrizione: reference_year.year - 1,
+          tipo_iscr: roles.find_by(symbol: 'SPL_PILOT') ? 2 : 1,
+          data_scadenza: (Time.local(reference_year.year - 1).end_of_year + 31.days).end_of_day,
+          euro_pagati: debt.total,
+          note: "Pagamento #{debt.identifier}",
+          linea1: time,
+          linea2: time,
+          firma_regolamento: true,
+          riceve_email: member.email_allowed,
+          temporanea: false,
+          data_iscrizione: time,
+        )
       end
 
       save!
