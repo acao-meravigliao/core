@@ -14,8 +14,6 @@ module Acao
 class RadarPoint < ActiveRecord::Base
   self.table_name = 'acao.radar_points'
 
-  include Ygg::Core::HasPornMigration
-
   belongs_to :aircraft,
              class_name: 'Ygg::Acao::Aircraft'
 end

@@ -12,8 +12,6 @@ module Core
 class Replica < ActiveRecord::Base
   self.table_name = 'core.replicas'
 
-  include Ygg::Core::HasPornMigration
-
   belongs_to :obj,
              polymorphic: true,
              autosave: false,

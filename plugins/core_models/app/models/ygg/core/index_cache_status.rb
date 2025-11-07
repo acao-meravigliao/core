@@ -12,8 +12,6 @@ module Core
 class IndexCacheStatus < ActiveRecord::Base
   self.table_name = 'idxc_statuses'
 
-  include Ygg::Core::HasPornMigration
-
   belongs_to :person,
              class_name: '::Ygg::Core::Person'
 end

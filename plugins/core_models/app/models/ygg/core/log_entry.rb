@@ -14,7 +14,6 @@ class LogEntry < ActiveRecord::Base
 
   # Cannot be a BasicModel otherwise we include Loggable and thus we log the log too so we have to include all the needed mixins
   # by hand
-  include Ygg::Core::HasPornMigration
 
   belongs_to :person,
              class_name: '::Ygg::Core::Person',

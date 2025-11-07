@@ -20,7 +20,6 @@ class BasicModel < ActiveRecord::Base
   include ActiveRest::Model
   include Ygg::Core::DeepDirty
 
-  include Ygg::Core::HasPornMigration
   include Ygg::Core::HasMetaClass
   include Ygg::Core::HasAcl
   include Ygg::Core::HasIndexCache
