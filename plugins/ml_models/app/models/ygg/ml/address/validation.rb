@@ -10,13 +10,13 @@ module Ygg
 module Ml
 class Address < Ygg::PublicModel
 
-class ValidationToken < Ygg::PublicModel
-  self.table_name = 'ml.address_validation_tokens'
+class Validation < Ygg::PublicModel
+  self.table_name = 'ml.address_validations'
 
   belongs_to :address,
              class_name: '::Ygg::Ml::Address'
 
-  gs_rel_map << { from: :validation_token, to: :address, to_cls: '::Ygg::Ml::Address', from_key: 'address_id' }
+  gs_rel_map << { from: :validation, to: :address, to_cls: '::Ygg::Ml::Address', from_key: 'address_id' }
 
   after_initialize do
     if new_record?

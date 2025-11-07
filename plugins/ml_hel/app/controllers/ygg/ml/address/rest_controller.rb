@@ -13,8 +13,8 @@ class Address::RestController < Ygg::Hel::RestController
   ar_controller_for Address
 
   def validate
-    tok = Ygg::Ml::Address::ValidationToken.find_by(code: params[:code])
-    if !tok
+    validation = Ygg::Ml::Address::Validation.find_by(code: params[:code])
+    if !validation
       respond_to do |format|
         format.json { render :json => { success: false, error: 'TokenNotFound' } }
       end
@@ -22,7 +22,7 @@ class Address::RestController < Ygg::Hel::RestController
       return
     end
 
-    if (tok.expires_at && Time.now > tok.expires_at)
+    if (validation.expires_at && Time.now > validation.expires_at)
       respond_to do |format|
         format.json { render :json => { success: false, error: 'TokenExpired' } }
       end
@@ -30,7 +30,7 @@ class Address::RestController < Ygg::Hel::RestController
       return
     end
 
-    if (tok.used_at)
+    if (validation.used_at)
       respond_to do |format|
         format.json { render :json => { success: false, error: 'TokenAlreadyUsed' } }
       end
@@ -38,7 +38,7 @@ class Address::RestController < Ygg::Hel::RestController
       return
     end
 
-    tok.update!(
+    validation.update!(
       http_remote_addr: request.env['REMOTE_ADDR'],
       http_remote_port: request.env['REMOTE_PORT'],
       http_x_forwarded_for: request.env['HTTP_X_FORWARDED_FOR'],
@@ -51,12 +51,12 @@ class Address::RestController < Ygg::Hel::RestController
       http_request_uri: request.env['REQUEST_URI'],
     )
 
-    tok.validated!
+    validation.validated!
 
     respond_to do |format|
       format.json { render :json => {
         success: true,
-        address: tok.address.addr,
+        address: validation.address.addr,
       } }
     end
   end

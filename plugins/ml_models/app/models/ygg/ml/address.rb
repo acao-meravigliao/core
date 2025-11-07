@@ -23,15 +23,18 @@ class Address < Ygg::PublicModel
            class_name: '::Ygg::Ml::List',
            through: :list_members
 
-  has_many :messages,
-           class_name: '::Ygg::Ml::Msg::Rcpt',
+  has_many :messages_as_recipient,
+           class_name: '::Ygg::Ml::Msg',
+           foreign_key: :recipient_id,
+           dependent: :nullify
+
+  has_many :validations,
+           class_name: '::Ygg::Ml::Address::Validation',
            dependent: :destroy
 
-  has_many :validation_tokens,
-           class_name: '::Ygg::Ml::Address::ValidationToken',
-           dependent: :destroy
-
-  gs_rel_map << { from: :address, to: :validation_token, to_cls: '::Ygg::Ml::Address::ValidationToken', to_key: 'address_id' }
+  gs_rel_map << { from: :ml_address, to: :person_email, to_cls: '::Ygg::Core::Person::Email', to_key: 'ml_address_id' }
+  gs_rel_map << { from: :address, to: :validation, to_cls: '::Ygg::Ml::Address::Validation', to_key: 'address_id' }
+  gs_rel_map << { from: :recipient, to: :message, to_cls: '::Ygg::Ml::Message', to_key: 'recipient_id' }
 
   def bounce_received!
     self.failed_deliveries += 1
@@ -44,7 +47,7 @@ class Address < Ygg::PublicModel
 
   def start_validation!(person:)
     transaction do
-      vt = validation_tokens.create!(expires_at: Time.now + 1.hour)
+      vt = validations.create!(expires_at: Time.now + 1.hour)
 
       tpl = Ygg::Ml::Template.find_by(symbol: 'ML_EMAIL_VALIDATION', language: person.preferred_language) ||
             Ygg::Ml::Template.find_by(symbol: 'ML_EMAIL_VALIDATION')
