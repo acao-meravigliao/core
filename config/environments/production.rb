@@ -114,30 +114,4 @@ Rails.application.configure do
       },
     })
   end
-
-  if config.respond_to?(:amqp_ws_gw)
-    config.amqp_ws_gw.allowed_request_origins = [
-      'https://lino.acao.it',
-      'https://servizi.acao.it',
-      'https://servizi-lilc.acao.it',
-      'https://servizi-staging.acao.it',
-      'https://pub.acao.it',
-      'https://dash.acao.it',
-    ]
-
-    config.amqp_ws_gw.routes.merge!({
-      'ygg.glideradar.processed_traffic.live': {
-        type: :topic,
-        durable: true,
-        auto_delete: false,
-        anonymous_access: true,
-      },
-      'ygg.autocam.state': {
-        type: :topic,
-        durable: true,
-        auto_delete: false,
-        anonymous_access: true,
-      },
-    })
-  end
 end

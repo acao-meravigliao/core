@@ -96,13 +96,9 @@ module AcaoCore
         },
       }
 
+      config.rails_vos.object_event_endpoint = 'ygg.model.events'
+
       config.rails_vos.routes = {
-        'ygg.model.events': {
-          handler: :model,
-          type: :topic,
-          durable: true,
-          auto_delete: false,
-        },
         'ygg.asgard.wall': {
           type: :topic,
           durable: true,
@@ -125,39 +121,5 @@ module AcaoCore
       }
     end
 
-    if config.respond_to?(:amqp_ws_gw)
-      config.amqp_ws_gw.debug = 2
-      config.amqp_ws_gw.authentication_needed = false
-
-      config.amqp_ws_gw.shared_queue = {
-        name: 'ygg.acao_core.' + Socket.gethostname,
-        durable: false,
-        auto_delete: true,
-        arguments: {
-          'x-message-ttl': 30000,
-        },
-      }
-
-      config.amqp_ws_gw.routes = {
-        'ygg.model.events': {
-          handler: :model,
-          type: :topic,
-          durable: true,
-          auto_delete: false,
-        },
-        'ygg.asgard.wall': {
-          type: :topic,
-          durable: true,
-          auto_delete: false,
-        },
-
-        'ygg.meteo.updates': {
-          type: :topic,
-          anonymous_access: true,
-          durable: true,
-          auto_delete: false,
-        },
-      }
-    end
   end
 end

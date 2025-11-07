@@ -55,8 +55,8 @@ Rails.application.configure do
   config.rails_amqp.url = 'amqp://agent@linobis.acao.it'
   config.rails_amqp.debug = 1
 
-  config.core.lc_enabled = false
-  #config.core.lc_exchange = ''
+  config.core.lc_enabled = true
+  config.core.lc_exchange = 'ygg.model.events'
 
   config.ml.email_disabled = false
   config.ml.email_redirect_to = 'daniele@orlandi.com'
@@ -104,37 +104,6 @@ Rails.application.configure do
     config.rails_vos.safe_receiver = true
 
     config.rails_vos.routes.merge!({
-      'ygg.glideradar.processed_traffic.live.linobis': {
-        type: :topic,
-        durable: true,
-        auto_delete: false,
-        anonymous_access: true,
-      },
-      'ygg.autocam.state.linobis': {
-        type: :topic,
-        durable: true,
-        auto_delete: false,
-        anonymous_access: true,
-      },
-    })
-  end
-
-  if config.respond_to?(:amqp_ws_gw)
-    config.amqp_ws_gw.allowed_request_origins = [
-      'http://linobis.acao.it:3330',
-      'http://linobis.acao.it:3331',
-      'http://linobis.acao.it:3332',
-      'http://linobis.acao.it:4200',
-      'http://linobis.acao.it:4201',
-      'http://linobis.acao.it:4242',
-      'https://servizi-dev.acao.it',
-      'https://servizi-dev-lilc.acao.it',
-      'https://servizi-dev.lilc.acao.it',
-    ]
-
-    config.amqp_ws_gw.safe_receiver = true
-
-    config.amqp_ws_gw.routes.merge!({
       'ygg.glideradar.processed_traffic.live.linobis': {
         type: :topic,
         durable: true,
