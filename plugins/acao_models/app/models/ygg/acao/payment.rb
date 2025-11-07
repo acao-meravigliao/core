@@ -83,7 +83,7 @@ class Payment < Ygg::PublicModel
     end
   end
 
-#  require 'am/satispay/client'
+  require 'am/satispay/client'
 
   def satispay_initiate(phone_number:)
     satispay_charges.each do |c|

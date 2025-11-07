@@ -43,7 +43,7 @@ source 'https://gems.vihai.it/' do
 
   gem 'am-http'
   gem 'am-smtp'
-  gem 'am-satispay'
+  gem 'am-satispay', path: '../am-satispay'
   gem 'am-ssh'
   gem 'am-ws'
   gem 'am-vos'
