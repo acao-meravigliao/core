@@ -18,6 +18,15 @@ class Member::VosController < Ygg::Hel::VosBaseController
 
     res
   end
+
+  def currency(**)
+    ensure_authenticated!
+    member = session.auth_person.acao_member
+
+    res = member.compute_currency(time: Time.now)
+
+    res
+  end
 end
 
 end
