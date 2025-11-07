@@ -14,39 +14,6 @@ class Organization < OrgaPerson
   self.table_name = 'core.organizations'
   self.inheritance_column = false
 
-  self.porn_migration += [
-    [ :must_have_column, { name: 'id', type: :uuid, null: false, default_function: 'gen_random_uuid()' } ],
-    [ :must_have_column, { name: 'type', type: :string, limit: 3 } ],
-    [ :must_have_column, { name: 'name', type: :string, } ],
-    [ :must_have_column, { name: 'headquarters_location_id', type: :integer, } ],
-    [ :must_have_column, { name: 'registered_office_location_id', type: :integer, } ],
-    [ :must_have_column, { name: 'invoicing_location_id', type: :integer, } ],
-    [ :must_have_column, { name: 'vat_number', type: :string, limit: 16 } ],
-    [ :must_have_column, { name: 'italian_fiscal_code', type: :string, limit: 16 } ],
-    [ :must_have_column, { name: 'notes', type: :text, } ],
-    [ :must_have_column, { name: 'old_src_id', type: :integer, } ],
-    [ :must_have_column, { name: 'old_first_name', type: :text, } ],
-    [ :must_have_column, { name: 'old_last_name', type: :text, } ],
-    [ :must_have_column, { name: 'old_gender', type: :text, } ],
-    [ :must_have_column, { name: 'old_birth_date', type: :date, } ],
-    [ :must_have_column, { name: 'handle', type: :string, limit: 16 } ],
-    [ :must_have_column, { name: 'reseller_id', type: :integer, } ],
-    [ :must_have_column, { name: 'old_birth_location_id', type: :integer, } ],
-    [ :must_have_column, { name: 'admin_group_id', type: :integer, } ],
-    [ :must_have_column, { name: 'invoice_profile_id', type: :integer, } ],
-    [ :must_have_column, { name: 'invoice_last', type: :datetime, } ],
-    [ :must_have_column, { name: 'invoice_months', type: :integer, } ],
-    [ :must_have_column, { name: 'invoice_ceiling', type: :decimal, scale: 6, precision: 14 } ],
-    [ :must_have_column, { name: 'invoice_floor', type: :decimal, scale: 6, precision: 14 } ],
-
-    [ :must_have_fk, {to_table: "core.groups", column: "admin_group_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core.locations", column: "headquarters_location_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core.locations", column: "invoicing_location_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core.locations", column: "registered_office_location_id", primary_key: "id", on_delete: nil, on_update: nil}],
-#    [ :must_have_fk, {to_table: "shop_resellers", column: "reseller_id", primary_key: "id", on_delete: nil, on_update: nil}],
-#    ^^^ This should be moved to shop_models in some way FIXME TODO
-  ]
-
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 

@@ -13,39 +13,6 @@ class Person < OrgaPerson
   self.table_name = 'core.people'
   self.inheritance_column = false
 
-  self.porn_migration += [
-    [ :must_have_column, { name: 'id', type: :uuid, null: false, default_function: 'gen_random_uuid()' } ],
-    [ :must_have_column, { name: 'first_name',  type: :string, limit: 64, null: false } ],
-    [ :must_have_column, { name: 'last_name',   type: :string, limit: 64, null: false } ],
-    [ :must_have_column, { name: 'middle_name', type: :string, limit: 64 } ],
-    [ :must_have_column, { name: 'nickname', type: :string, limit: 32 } ],
-    [ :must_have_column, { name: 'gender', type: :string, limit: 1 } ],
-    [ :must_have_column, { name: 'residence_location_id', type: :integer } ],
-    [ :must_have_column, { name: 'birth_date', type: :datetime } ],
-    [ :must_have_column, { name: 'birth_location_id', type: :integer } ],
-    [ :must_have_column, { name: 'id_document_type', type: :string } ],
-    [ :must_have_column, { name: 'id_document_number', type: :string } ],
-    [ :must_have_column, { name: 'invoicing_location_id', type: :integer } ],
-    [ :must_have_column, { name: 'vat_number', type: :string, limit: 16 } ],
-    [ :must_have_column, { name: 'italian_fiscal_code', type: :string, limit: 16 } ],
-    [ :must_have_column, { name: 'sdi_code', type: :string, limit: 32 } ],
-    [ :must_have_column, { name: 'notes', type: :text } ],
-    [ :must_have_column, { name: 'title', type: :string, limit: 16 } ],
-    [ :must_have_column, { name: 'handle', type: :string, limit: 16 } ],
-    [ :must_have_column, { name: 'reseller_id', type: :integer } ],
-    [ :must_have_column, { name: 'preferred_language_id', type: :integer } ],
-    [ :must_have_column, { name: 'invoice_profile_id', type: :integer } ],
-    [ :must_have_column, { name: 'invoice_last', type: :datetime } ],
-    [ :must_have_column, { name: 'invoice_months', type: :integer } ],
-    [ :must_have_column, { name: 'invoice_ceiling', type: :decimal, scale: 6, precision: 14 } ],
-    [ :must_have_column, { name: 'invoice_floor', type: :decimal, scale: 6, precision: 14 } ],
-
-    [ :must_have_fk, {to_table: "core.locations", column: "birth_location_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core.locations", column: "invoicing_location_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "i18n_languages", column: "preferred_language_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "core.locations", column: "residence_location_id", primary_key: "id", on_delete: nil, on_update: nil}],
-  ]
-
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 

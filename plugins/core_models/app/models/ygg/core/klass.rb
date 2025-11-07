@@ -12,13 +12,6 @@ module Core
 class Klass < Ygg::PublicModel
   self.table_name = 'core.klasses'
 
-  self.porn_migration += [
-    [ :must_have_column, { name: 'id', type: :uuid, null: false, default_function: 'gen_random_uuid()' } ],
-    [ :must_have_column, { name: 'name', type: :string, null: false, limit: 128 } ],
-
-    [ :must_have_index, {:columns=>["name"], :unique=>true}],
-  ]
-
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 

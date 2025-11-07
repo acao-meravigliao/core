@@ -12,30 +12,6 @@ module Ca
 class Certificate < Ygg::PublicModel
   self.table_name = 'ca.certificates'
 
-  self.porn_migration += [
-    [ :must_have_column, {name: "id", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-    [ :must_have_column, {name: "cn", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "email", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "notes", type: :text, default: nil, null: true}],
-    [ :must_have_column, {name: "pem", type: :text, default: nil, null: true}],
-    [ :must_have_column, {name: "key_pair_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "valid_from", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "valid_to", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "serial", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "issuer_cn", type: :string, default: nil, limit: 255, null: true}],
-    [ :must_have_column, {name: "subject_dn", type: :text, default: nil, null: true}],
-    [ :must_have_column, {name: "issuer_dn", type: :text, default: nil, null: true}],
-    [ :must_have_column, {name: "le_uri", type: :string, default: nil, null: true}],
-
-    [ :must_have_index, {columns: ["issuer_dn"], unique: false}],
-    [ :must_have_index, {columns: "md5(pem)", unique: true}],
-    [ :must_have_index, {columns: ["subject_dn"], unique: false}],
-    [ :must_have_index, {columns: ["cn"], unique: false}],
-    [ :must_have_index, {columns: ["key_pair_id"], unique: false}],
-
-    [ :must_have_fk, {to_table: "ca_key_pairs", column: "key_pair_id", primary_key: "id", on_delete: nil, on_update: nil}],
-  ]
-
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 
@@ -54,18 +30,6 @@ class Certificate < Ygg::PublicModel
   class AltName < Ygg::BasicModel
     self.table_name = 'ca.certificate_altnames'
     self.inheritance_column = false
-
-    self.porn_migration += [
-      [ :must_have_column, {name: "id", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-      [ :must_have_column, {name: "certificate_id", type: :integer, default: nil, limit: 4, null: false}],
-      [ :must_have_column, {name: "type", type: :string, default: nil, limit: 32, null: true}],
-      [ :must_have_column, {name: "name", type: :string, default: nil, null: true}],
-
-      [ :must_have_index, {columns: ["certificate_id"], unique: false}],
-      [ :must_have_index, {columns: ["certificate_id","type","name"], unique: true, name: 'ca_certificate_altnames_ctn'}],
-
-      [ :must_have_fk, {to_table: "ca_certificates", column: "certificate_id", primary_key: "id", on_delete: :cascade, on_update: nil}],
-    ]
 
     belongs_to :certificate,
                class_name: '::Ygg::Ca::Certificate'

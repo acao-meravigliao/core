@@ -12,18 +12,6 @@ module Ca
 class KeyPair < Ygg::PublicModel
   self.table_name = 'ca.key_pairs'
 
-  self.porn_migration += [
-    [ :must_have_column, {name: "id", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-    [ :must_have_column, {name: "key_type", type: :string, default: nil, limit: 32, null: true}],
-    [ :must_have_column, {name: "key_length", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "notes", type: :text, default: nil, null: true}],
-    [ :must_have_column, {name: "descr", type: :text, default: nil, null: true}],
-    [ :must_have_column, {name: "public_key_hash", type: :string, default: nil, limit: 64, null: false}],
-    [ :must_have_column, {name: "public_key", type: :text, default: nil, null: false}],
-
-    [ :must_have_index, {columns: ["public_key_hash"], unique: true}],
-  ]
-
   include Ygg::Core::Loggable
   define_default_log_controller(self)
   define_default_provisioning_controller(self)

@@ -17,7 +17,6 @@ module HasMetaClass
 
   module ClassMethods
     def has_meta_class
-      self.porn_migration << [ :must_have_record, { klass: 'Ygg::Core::Klass', attrs: { name: name } } ]
     end
 
     def meta_class

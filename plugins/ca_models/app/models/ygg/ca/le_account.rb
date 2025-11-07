@@ -19,20 +19,6 @@ module Ca
 class LeAccount < Ygg::PublicModel
   self.table_name = 'ca.le_accounts'
 
-  self.porn_migration += [
-    [ :must_have_column, {name: "id", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: true}],
-    [ :must_have_column, {name: "key_pair_id", type: :integer, default: nil, limit: 4, null: false}],
-    [ :must_have_column, {name: "email_contact", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "endpoint", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "symbol", type: :string, default: nil, limit: 32, null: true}],
-    [ :must_have_column, {name: "descr", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "account_url", type: :string, default: nil, null: true}],
-
-    [ :must_have_index, {columns: ["key_pair_id"], unique: false}],
-
-    [ :must_have_fk, {to_table: "ca_key_pairs", column: "key_pair_id", primary_key: "id", on_delete: nil, on_update: nil}],
-  ]
-
   include Ygg::Core::Loggable
   define_default_log_controller(self)
   define_default_provisioning_controller(self)

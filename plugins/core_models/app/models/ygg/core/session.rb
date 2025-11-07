@@ -16,20 +16,6 @@ class Session < Ygg::PublicModel
   self.table_name = 'core.sessions'
   self.inheritance_column = :sti_type
 
-  self.porn_migration += [
-    [ :must_have_column, { name: 'id', type: :uuid, null: false, default_function: 'gen_random_uuid()' } ],
-    [ :must_have_column, { name: 'sti_type', type: :string, limit: 255, null: false } ],
-    [ :must_have_column, { name: 'auth_credential_id', type: :integer } ],
-    [ :must_have_column, { name: 'auth_person_id', type: :integer } ],
-    [ :must_have_column, { name: 'auth_method', type: :string, limit: 32 } ],
-    [ :must_have_column, { name: 'auth_confidence', type: :string, limit: 16 } ],
-    [ :must_have_column, { name: 'close_reason', type: :string, limit: 32 } ],
-    [ :must_have_column, { name: 'close_time', type: :datetime } ],
-    [ :must_have_column, { name: 'status', type: :string, limit: 32 } ],
-    [ :must_have_column, { name: 'language_id', type: :integer } ],
-#    [ :must_have_column, { name: 'sev_realm_id', type: :string } ],  ### MOVE TO SEVIO
-  ]
-
   belongs_to :auth_credential,
              class_name: 'Ygg::Core::Person::Credential',
              optional: true

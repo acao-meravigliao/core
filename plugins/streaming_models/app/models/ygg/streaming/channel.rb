@@ -13,19 +13,6 @@ module Streaming
 class Channel < Ygg::PublicModel
   self.table_name = 'str_channels'
 
-  self.porn_migration += [
-    [ :must_have_column, {name: "id", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: true}],
-    [ :must_have_column, {name: "name", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "descr", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "poster", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "symbol", type: :string, default: nil, limit: 32, null: false}],
-    [ :must_have_column, {name: "agent_id", type: :integer, default: nil, limit: 4, null: true}],
-
-    [ :must_have_index, {columns: ["agent_id"], unique: false}],
-
-    [ :must_have_fk, {to_table: "core_agents", column: "agent_id", primary_key: "id", on_delete: nil, on_update: nil}],
-  ]
-
   belongs_to :agent,
              class_name: 'Ygg::Core::Agent',
              optional: true

@@ -12,9 +12,6 @@ module Ca
 class LeSlot < Ygg::PublicModel
   self.table_name = 'ca.le_slots'
 
-#  self.porn_migration += [
-#  ]
-
   include Ygg::Core::Loggable
   define_default_log_controller(self)
   define_default_provisioning_controller(self)

@@ -12,13 +12,6 @@ module Core
 class Group < Ygg::PublicModel
   self.table_name = 'core.groups'
 
-  self.porn_migration += [
-    [ :must_have_column, { name: 'id', type: :uuid, null: false, default_function: 'gen_random_uuid()' } ],
-    [ :must_have_column, { name: 'name', type: :string } ],
-    [ :must_have_column, { name: 'description', type: :text } ],
-    [ :must_have_column, { name: 'symbol', type: :string } ],
-  ]
-
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 

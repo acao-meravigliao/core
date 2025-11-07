@@ -14,20 +14,6 @@ class Replica < ActiveRecord::Base
 
   include Ygg::Core::HasPornMigration
 
-  self.porn_migration += [
-    [ :must_have_column, { name: 'id', type: :uuid, null: false, default_function: 'gen_random_uuid()' } ],
-    [ :must_have_column, { name: 'obj_type', type: :string, null: false } ],
-    [ :must_have_column, { name: 'obj_id', type: :integer, null: false } ],
-    [ :must_have_column, { name: 'identifier', type: :string, null: false } ],
-    [ :must_have_column, { name: 'state', type: :string, null: false, limit: 32, default: 'UNKNOWN' } ],
-    [ :must_have_column, { name: 'version_needed', type: :integer, null: false } ],
-    [ :must_have_column, { name: 'version_pending', type: :integer, null: false } ],
-    [ :must_have_column, { name: 'version_done', type: :integer, null: false } ],
-    [ :must_have_column, { name: 'function', type: :string, limit: 32, null: true } ],
-    [ :must_have_column, { name: 'descr', type: :string } ],
-    [ :must_have_column, { name: 'data', type: :json } ],
-  ]
-
   belongs_to :obj,
              polymorphic: true,
              autosave: false,

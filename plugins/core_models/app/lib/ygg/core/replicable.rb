@@ -18,8 +18,6 @@ module Replicable
   include Ygg::Core::ReplicaNotifiable
 
   included do
-    self.porn_migration << [ :must_have_column, { name: 'condemned', type: :boolean, null: false, default: false } ]
-
     before_save do
       # If this is a new record wait in after_create for the id to be assigned
       if !new_record? && Rails.application.config.core.replicas_enabled

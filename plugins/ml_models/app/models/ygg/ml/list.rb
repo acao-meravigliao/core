@@ -12,15 +12,6 @@ module Ml
 class List < Ygg::PublicModel
   self.table_name = 'ml.lists'
 
-  self.porn_migration += [
-    [ :must_have_column, {name: "id", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-    [ :must_have_column, {name: "name", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "descr", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "symbol", type: :string, default: nil, limit: 32, null: true}],
-
-    [ :must_have_index, {columns: ["symbol"], unique: true}],
-  ]
-
   has_many :members,
            class_name: '::Ygg::Ml::List::Member',
            dependent: :destroy

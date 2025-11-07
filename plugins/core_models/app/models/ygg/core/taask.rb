@@ -12,29 +12,6 @@ module Core
 class Taask < Ygg::PublicModel
   self.table_name = 'core.tasks'
 
-  self.porn_migration += [
-    [ :must_have_column, { name: 'id', type: :integer, null: false } ],
-    [ :must_have_column, { name: 'created_at', type: :datetime } ],
-    [ :must_have_column, { name: 'expected_completion', type: :datetime } ],
-    [ :must_have_column, { name: 'completed_at', type: :datetime } ],
-    [ :must_have_column, { name: 'status', type: :string, null: false, limit: 32 } ],
-    [ :must_have_column, { name: 'description', type: :string } ],
-    [ :must_have_column, { name: 'depends_on_id', type: :integer } ],
-    [ :must_have_column, { name: 'agent', type: :string, limit: 64 } ],
-    [ :must_have_column, { name: 'operation', type: :string } ],
-    [ :must_have_column, { name: 'request_data', type: :json } ],
-    [ :must_have_column, { name: 'result_data', type: :json } ],
-    [ :must_have_column, { name: 'log', type: :text, null: false } ],
-    [ :must_have_column, { name: 'deferred_to', type: :datetime } ],
-    [ :must_have_column, { name: 'percent', type: :float } ],
-    [ :must_have_column, { name: 'deadline', type: :datetime } ],
-    [ :must_have_column, { name: 'updated_at', type: :datetime, } ],
-    [ :must_have_column, { name: 'awaited_event', type: :string, limit: 32 } ],
-    [ :must_have_column, { name: 'scheduler', type: :string, limit: 32 } ],
-    [ :must_have_column, { name: 'obj_type', type: :string, } ],
-    [ :must_have_column, { name: 'obj_id', type: :integer } ],
-  ]
-
   belongs_to :depends_on,
              class_name: '::Ygg::Core::Taask',
              optional: true

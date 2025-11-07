@@ -13,20 +13,6 @@ class Location < Ygg::BasicModel
 
   self.table_name = 'core.locations'
 
-  self.porn_migration += [
-    [ :must_have_column, { name: 'id', type: :uuid, null: false, default_function: 'gen_random_uuid()' } ],
-    [ :must_have_column, { name: 'city', type: :string, limit: 64 } ],
-    [ :must_have_column, { name: 'state', type: :string, limit: 64 } ],
-    [ :must_have_column, { name: 'country_code', type: :string, limit: 2 } ],
-    [ :must_have_column, { name: 'zip', type: :string, limit: 12 } ],
-    [ :must_have_column, { name: 'lat', type: :float } ],
-    [ :must_have_column, { name: 'lng', type: :float } ],
-    [ :must_have_column, { name: 'provider', type: :string, limit: 16 } ],
-    [ :must_have_column, { name: 'accuracy', type: :float } ],
-    [ :must_have_column, { name: 'location_type', type: :string, limit: 32 } ],
-    [ :must_have_column, { name: 'region', type: :string, limit: 128 } ],
-  ]
-
   define_default_log_controller(self)
 
   geocoded_by :full_address, latitude: :lat, longitude: :lng

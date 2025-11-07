@@ -12,28 +12,6 @@ module Ca
 class LeOrder < Ygg::PublicModel
   self.table_name = 'ca.le_orders'
 
-  self.porn_migration += [
-    [ :must_have_column, { name: 'id', type: :integer, null: false } ],
-    [ :must_have_column, {name: "id", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-    [ :must_have_column, {name: "not_before", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "not_after", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "expires", type: :datetime, default: nil, null: true}],
-    [ :must_have_column, {name: "finalize_url", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "status", type: :string, default: nil, limit: 32, null: true}],
-    [ :must_have_column, {name: "account_id", type: :integer, default: nil, limit: 4, null: false}],
-    [ :must_have_column, {name: "url", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "csr", type: :text, default: nil, null: true}],
-    [ :must_have_column, {name: "certificate_id", type: :integer, default: nil, limit: 4, null: true}],
-    [ :must_have_column, {name: "certificate_url", type: :string, default: nil, null: true}],
-    [ :must_have_column, {name: "created_at", type: :datetime, default: nil, null: true}],
-
-    [ :must_have_index, {columns: ["account_id"], unique: false}],
-    [ :must_have_index, {columns: ["certificate_id"], unique: false}],
-
-    [ :must_have_fk, {to_table: "ca_le_accounts", column: "account_id", primary_key: "id", on_delete: nil, on_update: nil}],
-    [ :must_have_fk, {to_table: "ca_certificates", column: "certificate_id", primary_key: "id", on_delete: nil, on_update: nil}],
-  ]
-
   include Ygg::Core::Loggable
   define_default_log_controller(self)
   define_default_provisioning_controller(self)

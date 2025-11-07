@@ -12,16 +12,6 @@ module I18n
 class Language < Ygg::PublicModel
   self.table_name = 'i18n.languages'
 
-  self.porn_migration += [
-    [ :must_have_column, {name: "id", type: :uuid, default: nil, default_function: "gen_random_uuid()", null: false}],
-    [ :must_have_column, {name: "iso_639_1", type: :string, default: nil, limit: 2, null: true}],
-    [ :must_have_column, {name: "iso_639_3", type: :string, default: nil, limit: 3, null: false}],
-    [ :must_have_column, {name: "descr", type: :string, default: nil, null: false}],
-
-    [ :must_have_index, {columns: ["iso_639_1"], unique: false}],
-    [ :must_have_index, {columns: ["iso_639_3"], unique: true}],
-  ]
-
   has_many :translations,
            class_name: '::Ygg::I18n::Phrase::Translation'
 

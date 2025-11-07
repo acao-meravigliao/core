@@ -19,8 +19,6 @@ module Versioned
       :version,
     ]
 
-    self.porn_migration << [ :must_have_column, { name: 'version', type: :integer, null: false, default: 0 } ]
-
     before_save do
       if versioning_version_changed?
         self.version += 1

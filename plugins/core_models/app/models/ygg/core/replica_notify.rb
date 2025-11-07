@@ -12,17 +12,6 @@ module Core
 class ReplicaNotify < Ygg::PublicModel
   self.table_name = 'core.replica_notifies'
 
-  self.porn_migration += [
-    [ :must_have_column, { name: 'id', type: :uuid, null: false, default_function: 'gen_random_uuid()' } ],
-    [ :must_have_column, { name: 'obj_type', type: :string, null: false } ],
-    [ :must_have_column, { name: 'obj_id', type: :integer, null: false } ],
-    [ :must_have_column, { name: 'version_needed', type: :integer, null: false } ],
-    [ :must_have_column, { name: 'notify_obj_type', type: :string, null: false } ],
-    [ :must_have_column, { name: 'notify_obj_id', type: :integer, null: false } ],
-    [ :must_have_column, { name: 'data', type: :string } ],
-    [ :must_have_column, { name: 'identifier', type: :string, limit: 32 } ],
-  ]
-
   belongs_to :obj,
              polymorphic: true
 

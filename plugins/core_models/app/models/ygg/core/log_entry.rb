@@ -16,17 +16,6 @@ class LogEntry < ActiveRecord::Base
   # by hand
   include Ygg::Core::HasPornMigration
 
-  self.porn_migration += [
-    [ :must_have_column, { name: 'id', type: :uuid, null: false, default_function: 'gen_random_uuid()' } ],
-    [ :must_have_column, { name: 'timestamp', type: :datetime, null: false } ],
-    [ :must_have_column, { name: 'transaction_id', type: :uuid } ],
-    [ :must_have_column, { name: 'person_id', type: :integer } ],
-    [ :must_have_column, { name: 'description', type: :text, null: false } ],
-    [ :must_have_column, { name: 'notes', type: :text } ],
-    [ :must_have_column, { name: 'extra_info', type: :text } ],
-    [ :must_have_column, { name: 'http_session_id', type: :integer } ],
-  ]
-
   belongs_to :person,
              class_name: '::Ygg::Core::Person',
              optional: true
