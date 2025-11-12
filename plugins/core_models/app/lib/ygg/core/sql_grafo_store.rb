@@ -88,7 +88,7 @@ class SqlGrafoStore < GrafoStore::Basic
           v.symbolize_keys!
 
           if v.has_key?(:between)
-            rel = rel.where(k => v[:between][0]...v[:between][1])
+            rel = rel.where(k => v[:between][0]..v[:between][1])
           elsif v.has_key?(:gt)
             rel = rel.where(k => v[:gt]...)
           elsif v.has_key?(:gte)
