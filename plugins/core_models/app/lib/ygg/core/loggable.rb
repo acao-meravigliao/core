@@ -33,13 +33,13 @@ module Loggable
     #const_set 'LogController', cls
   end
 
-  def log!(transaction_id: nil, description:, person: nil, extra_info: nil, http_session_id: nil, operation: nil)
+  def log!(transaction_id: nil, description:, person: nil, extra_info: nil, session_id: nil, operation: nil)
     log_entry = Ygg::Core::LogEntry.create(
       transaction_id: transaction_id,
       description: description,
       person: person,
       extra_info: extra_info,
-      http_session_id: http_session_id,
+      http_session_id: session_id,
     )
 
     log_detail!(log_entry: log_entry, operation: operation)

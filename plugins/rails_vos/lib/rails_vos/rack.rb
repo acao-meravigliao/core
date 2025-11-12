@@ -22,7 +22,7 @@ module Rack
 
     req = ActionDispatch::Request.new(env)
 
-    sess = Ygg::Core::HttpSession.find_by(id: req.cookies['Session-Id'])
+    sess = Ygg::Core::Session.find_by(id: req.cookies['Session-Id'])
     if !sess && Rails.application.config.rails_vos.authentication_needed
       Rails.logger.error("Session '#{req.cookies['Session-Id']}' not found")
 

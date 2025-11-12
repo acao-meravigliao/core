@@ -76,7 +76,7 @@ class SessionController < Ygg::Hel::BaseController
     end
 
     if request.method == 'POST' && (!aaa_context || !aaa_context.active?)
-      aaa_context = create_http_session_from_http_connection
+      aaa_context = create_session_from_http_connection
       aaa_context.save!
     end
 
@@ -91,7 +91,7 @@ class SessionController < Ygg::Hel::BaseController
   # Should be only invoked via POST verb as has side effects
   #
   def create
-    aaa_context = create_http_session_from_http_connection
+    aaa_context = create_session_from_http_connection
     aaa_context.save!
 
     respond_with_session(aaa_context)
@@ -177,7 +177,7 @@ class SessionController < Ygg::Hel::BaseController
       end
 
       if !aaa_context
-        aaa_context = create_http_session_from_http_connection
+        aaa_context = create_session_from_http_connection
         aaa_context.save!
       end
 
@@ -238,7 +238,7 @@ class SessionController < Ygg::Hel::BaseController
       end
 
       if !aaa_context
-        aaa_context = create_http_session_from_http_connection
+        aaa_context = create_session_from_http_connection
         aaa_context.save!
       end
 
@@ -351,7 +351,7 @@ class SessionController < Ygg::Hel::BaseController
       end
 
       if !aaa_context
-        aaa_context = create_http_session_from_http_connection
+        aaa_context = create_session_from_http_connection
         aaa_context.save!
       end
 
@@ -437,7 +437,7 @@ class SessionController < Ygg::Hel::BaseController
     raise 'No language available' if !lang
 
     sess = find_session(json_request[:other_session_id]) if json_request[:other_session_id]
-    sess ||= Ygg::Core::HttpSession.create(
+    sess ||= Ygg::Core::Session.create(
                language: lang,
                http_server_addr: json_request[:server_addr],
                http_server_port: json_request[:server_port],
@@ -533,7 +533,7 @@ class SessionController < Ygg::Hel::BaseController
     languages
   end
 
-  def create_http_session_from_http_connection
+  def create_session_from_http_connection
     if cookies['Language']
       lang = Ygg::I18n::Language.find_by(iso_639_1: cookies['Language'])
     else
@@ -565,7 +565,7 @@ class SessionController < Ygg::Hel::BaseController
       language: lang,
     }
 
-    Ygg::Core::HttpSession.create!(env)
+    Ygg::Core::Session.create!(env)
   end
 
   protected

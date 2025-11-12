@@ -19,8 +19,8 @@ class LogEntry < ActiveRecord::Base
              class_name: '::Ygg::Core::Person',
              optional: true
 
-  belongs_to :http_session,
-             class_name: '::Ygg::Core::HttpSession',
+  belongs_to :session,
+             class_name: '::Ygg::Core::Session',
              optional: true
 
   has_many :details,

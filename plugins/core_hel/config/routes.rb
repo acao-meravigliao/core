@@ -68,7 +68,7 @@ Rails.application.routes.draw do
       hel_resources :log_entries, controller: 'log_entry/rest' do
       end
 
-      hel_resources :http_sessions, controller: 'http_session/rest' do
+      hel_resources :sessions, controller: 'session/rest' do
       end
 
       hel_resources :taasks, controller: 'taask/rest' do

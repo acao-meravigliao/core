@@ -9,9 +9,9 @@
 module Ygg
 module Core
 
-class HttpSession::RestController < Ygg::Hel::RestController
+class Session::RestController < Ygg::Hel::RestController
 
-  ar_controller_for HttpSession
+  ar_controller_for Session
 
   view :grid do
     empty!

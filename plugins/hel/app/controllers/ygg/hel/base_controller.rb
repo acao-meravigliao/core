@@ -68,7 +68,7 @@ class BaseController < ActionController::Base
 
   def find_session(id)
     if (id =~ /^[\da-z]{8}-[\da-z]{4}-[\da-z]{4}-[\da-z]{4}-[\da-z]{12}$/i)
-      sess = Ygg::Core::HttpSession.find_by(id: id)
+      sess = Ygg::Core::Session.find_by(id: id)
       raise AAAContextNotFoundError if !sess
       sess
 #    elsif matches oauth token?

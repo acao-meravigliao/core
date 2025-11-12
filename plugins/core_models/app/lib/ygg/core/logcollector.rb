@@ -55,7 +55,7 @@ module Logcollector
 
     if xact.params[:aaa_context]
       xact.params[:person] = xact.params[:aaa_context].auth_person
-      xact.params[:http_session_id] = xact.params[:aaa_context].id
+      xact.params[:session_id] = xact.params[:aaa_context].id
     end
 
     log_entry = Ygg::Core::LogEntry.create(
@@ -63,7 +63,7 @@ module Logcollector
       transaction_id: transaction.id,
       description: xact.descr,
       extra_info: xact.params[:extra_info],
-      http_session_id: xact.params[:http_session_id]
+      http_session_id: xact.params[:session_id]
     )
 
     if xact.store[:log_collector_touched_objects]
