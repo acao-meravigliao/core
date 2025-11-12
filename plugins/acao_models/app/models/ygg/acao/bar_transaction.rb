@@ -62,7 +62,7 @@ class BarTransaction < Ygg::PublicModel
           note: "Pagamento con SatisPay #{payment.identifier}",
         )
 
-        visita.acconto_bar_euro = visita.acconto_bar_euro + payment.amount,
+        visita.acconto_bar_euro += payment.amount
         visita.save!
       end
     else
