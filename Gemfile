@@ -1,15 +1,15 @@
 source 'https://rubygems.org'
 
-gem 'activerecord', '~> 8.0'
-gem 'activemodel', '~> 8.0'
-gem 'actionpack', '~> 8.0'
-gem 'actionview', '~> 8.0'
-gem 'activesupport', '~> 8.0'
-gem 'railties', '~> 8.0'
+gem 'activerecord', '~> 8.1'
+gem 'activemodel', '~> 8.1'
+gem 'actionpack', '~> 8.1'
+gem 'actionview', '~> 8.1'
+gem 'activesupport', '~> 8.1'
+gem 'railties', '~> 8.1'
 
 gem 'pg'
 gem 'tiny_tds'
-gem 'activerecord-sqlserver-adapter', '~> 8.0'
+gem 'activerecord-sqlserver-adapter', '~> 8.1'
 
 gem 'puma'
 
@@ -46,7 +46,7 @@ source 'https://gems.vihai.it/' do
   gem 'am-satispay', '>= 0.2.0'
   gem 'am-ssh'
   gem 'am-ws'
-  gem 'am-vos'
+  gem 'am-vos', '>= 3'
   gem 'am-auth-manager'
   gem 'ygg-diffable'
   gem 'iarray'

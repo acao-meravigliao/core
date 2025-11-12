@@ -142,9 +142,9 @@ GEM
       sqlite3
       vihai-password
       ygg-exception
-    am-grafo-store (2.6.3)
+    am-grafo-store (3.0.0)
       actor_model
-      grafo-store (~> 2)
+      grafo-store (~> 3)
       iarray
       ygg-diffable
     am-http (0.31.1)
@@ -178,10 +178,10 @@ GEM
       amazing_print
       rubynary
       ygg-exception
-    am-vos (2.6.0)
+    am-vos (3.0.0)
       activesupport
       am-auth-manager
-      am-grafo-store
+      am-grafo-store (>= 3)
       am-http (>= 0.25)
       am-session-manager
       am-ws (>= 1.3)
@@ -196,7 +196,7 @@ GEM
       am-io-buffer
       am-sockets (>= 0.18)
     deep_open_struct (2.0.2)
-    grafo-store (2.7.1)
+    grafo-store (3.1.0)
       activesupport
       iarray
       ygg-exception
@@ -255,9 +255,9 @@ GEM
 GEM
   remote: https://rubygems.org/
   specs:
-    actionpack (8.0.4)
-      actionview (= 8.0.4)
-      activesupport (= 8.0.4)
+    actionpack (8.1.1)
+      actionview (= 8.1.1)
+      activesupport (= 8.1.1)
       nokogiri (>= 1.8.5)
       rack (>= 2.2.4)
       rack-session (>= 1.0.1)
@@ -265,29 +265,29 @@ GEM
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
       useragent (~> 0.16)
-    actionview (8.0.4)
-      activesupport (= 8.0.4)
+    actionview (8.1.1)
+      activesupport (= 8.1.1)
       builder (~> 3.1)
       erubi (~> 1.11)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
-    activemodel (8.0.4)
-      activesupport (= 8.0.4)
-    activerecord (8.0.4)
-      activemodel (= 8.0.4)
-      activesupport (= 8.0.4)
+    activemodel (8.1.1)
+      activesupport (= 8.1.1)
+    activerecord (8.1.1)
+      activemodel (= 8.1.1)
+      activesupport (= 8.1.1)
       timeout (>= 0.4.0)
-    activerecord-sqlserver-adapter (8.0.9)
-      activerecord (~> 8.0.0)
-      tiny_tds
-    activesupport (8.0.4)
+    activerecord-sqlserver-adapter (8.1.1)
+      activerecord (~> 8.1.0)
+      tiny_tds (~> 3.0)
+    activesupport (8.1.1)
       base64
-      benchmark (>= 0.3)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.3.1)
       connection_pool (>= 2.2.5)
       drb
       i18n (>= 1.6, < 2)
+      json
       logger (>= 1.4.2)
       minitest (>= 5.1)
       securerandom (>= 0.3)
@@ -302,7 +302,6 @@ GEM
       rbtree3 (~> 0.6)
     amazing_print (2.0.0)
     base64 (0.3.0)
-    benchmark (0.5.0)
     bigdecimal (3.3.1)
     bindata (2.5.1)
     builder (3.3.0)
@@ -316,7 +315,7 @@ GEM
     date (3.5.0)
     dkim (1.1.0)
     drb (2.2.3)
-    erb (5.1.3)
+    erb (6.0.0)
     erubi (1.13.1)
     faraday (2.14.0)
       faraday-net_http (>= 2.0, < 3.5)
@@ -324,8 +323,8 @@ GEM
       logger
     faraday-follow_redirects (0.4.0)
       faraday (>= 1, < 3)
-    faraday-net_http (3.4.1)
-      net-http (>= 0.5.0)
+    faraday-net_http (3.4.2)
+      net-http (~> 0.5)
     ffi (1.17.2-aarch64-linux-gnu)
     ffi (1.17.2-aarch64-linux-musl)
     ffi (1.17.2-arm-linux-gnu)
@@ -348,7 +347,7 @@ GEM
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    json (2.15.2)
+    json (2.16.0)
     json-jwt (1.17.0)
       activesupport (>= 4.2)
       aes_key_wrap
@@ -374,7 +373,7 @@ GEM
     mime-types-data (3.2025.0924)
     mini_mime (1.1.5)
     mini_portile2 (2.8.9)
-    minitest (5.26.0)
+    minitest (5.26.1)
     msgpack (1.8.0)
     net-http (0.7.0)
       uri
@@ -460,9 +459,9 @@ GEM
     rails-html-sanitizer (1.6.2)
       loofah (~> 2.21)
       nokogiri (>= 1.15.7, != 1.16.7, != 1.16.6, != 1.16.5, != 1.16.4, != 1.16.3, != 1.16.2, != 1.16.1, != 1.16.0.rc1, != 1.16.0)
-    railties (8.0.4)
-      actionpack (= 8.0.4)
-      activesupport (= 8.0.4)
+    railties (8.1.1)
+      actionpack (= 8.1.1)
+      activesupport (= 8.1.1)
       irb (~> 1.13)
       rackup (>= 1.0.0)
       rake (>= 12.2)
@@ -480,7 +479,7 @@ GEM
       erb
       psych (>= 4.0.0)
       tsort
-    reline (0.6.2)
+    reline (0.6.3)
       io-console (~> 0.5)
     roxml (4.2.0)
       activesupport (>= 4.0)
@@ -495,7 +494,7 @@ GEM
     sqlite3 (1.7.3-x86-linux)
     sqlite3 (1.7.3-x86_64-darwin)
     sqlite3 (1.7.3-x86_64-linux)
-    stringio (3.1.7)
+    stringio (3.1.8)
     structured_warnings (0.5.0)
     sys-uname (1.2.3)
       ffi (~> 1.1)
@@ -543,20 +542,20 @@ DEPENDENCIES
   acao_heltog!
   acao_maindb_models!
   acao_models!
-  actionpack (~> 8.0)
-  actionview (~> 8.0)
+  actionpack (~> 8.1)
+  actionview (~> 8.1)
   active_rest (~> 10.0)!
-  activemodel (~> 8.0)
-  activerecord (~> 8.0)
-  activerecord-sqlserver-adapter (~> 8.0)
-  activesupport (~> 8.0)
+  activemodel (~> 8.1)
+  activerecord (~> 8.1)
+  activerecord-sqlserver-adapter (~> 8.1)
+  activesupport (~> 8.1)
   airbrake
   am-auth-manager!
   am-http!
   am-satispay (>= 0.2.0)!
   am-smtp!
   am-ssh!
-  am-vos!
+  am-vos (>= 3)!
   am-ws!
   amazing_print
   byebug
@@ -592,7 +591,7 @@ DEPENDENCIES
   rails_actor_model!
   rails_amqp!
   rails_vos!
-  railties (~> 8.0)
+  railties (~> 8.1)
   rb-readline
   rbtrace
   rszr
