@@ -37,7 +37,7 @@ class MemberAccessRemote < Ygg::PublicModel
 
   def self.sync_from_maindb!(debug: 0)
     Ygg::Toolkit.merge(
-      l: Ygg::Acao::MainDb::Tessera.where('len(tag) < 10').order('LOWER(tag)').lock,
+      l: Ygg::Acao::MainDb::Tessera.where('len(tag) > 0').where('len(tag) < 10').order('LOWER(tag)').lock,
       r: self.joins(:remote).merge(Ygg::Acao::AccessRemote.order(symbol: :asc )).lock,
       l_cmp_r: lambda { |l,r| l.tag.downcase <=> r.remote.symbol },
       l_to_r: lambda { |l|
