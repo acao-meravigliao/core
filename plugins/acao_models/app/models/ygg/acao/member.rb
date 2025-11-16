@@ -264,6 +264,10 @@ class Member < Ygg::PublicModel
         needed[:total] = 2
         needed[:high_season] = 1
       end
+    else
+      # FALLBACK if there are no roles, REMOVE ME
+      needed[:total] = 2
+      needed[:high_season] = 1
     end
 
     needed
