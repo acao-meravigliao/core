@@ -11,8 +11,8 @@ module Routing #:nodoc:
 class Mapper #:nodoc:
 
 module Resources
-  def hel_resources(*resources, &block)
-    aresources(*resources) do
+  def hel_resources(*resources, **opts, &block)
+    aresources(*resources, **opts) do
       member do
         get :log_entries
         get :notifications
