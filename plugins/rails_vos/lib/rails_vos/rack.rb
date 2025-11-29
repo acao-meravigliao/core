@@ -36,6 +36,10 @@ module Rack
     end
 
     srv = AM::Registry[:rails_vos_server]
+    if !srv
+      Process.kill('HUP', Process.pid)
+      return [500, {'Content-Type' => 'text/plain'}, ["Server error"]]
+    end
 
     env['rack.hijack'].call
     socket = env['rack.hijack_io']

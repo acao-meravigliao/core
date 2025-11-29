@@ -21,13 +21,15 @@ module RailsVos
   end
 
   def self.start
+    class_map = ClassMap.new(definitions: Rails.application.config.rails_vos.class_map)
+
     routes = Rails.application.config.rails_vos.routes
     routes.each do |ex_name, ex|
       ex[:queue] ||= Rails.application.config.rails_vos.shared_queue
     end
 
     begin
-      Server.new(routes_config: routes.deep_dup)
+      Server.new(class_map: class_map, routes_config: routes.deep_dup)
     rescue Exception => e
       puts "EXCEPTION: #{e}"
     end

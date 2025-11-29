@@ -25,16 +25,18 @@ class SqlGrafoStore < GrafoStore::Basic
   end
 
   def select(query, **params)
-    begin
-      sel = sql_select(query)
-    rescue SelectFailure => e
-      puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e}"
-      puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e.backtrace}"
-      raise ::GrafoStore::Selection::SelectError.new
-    rescue StandardError => e
-      puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e}"
-      puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e.backtrace}"
-      raise ::GrafoStore::Selection::SelectError.new
+    if !params || !params[:sql_dont_fetch]
+      begin
+        sel = sql_select(query)
+      rescue SelectFailure => e
+        puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e}"
+        puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e.backtrace}"
+        raise ::GrafoStore::Selection::SelectError.new
+      rescue StandardError => e
+        puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e}"
+        puts "EEEEEEEEEEEEEEEEEEEEEEEEEEEEE #{e.backtrace}"
+        raise ::GrafoStore::Selection::SelectError.new
+      end
     end
 
     res = super(query, **params)
@@ -56,21 +58,24 @@ class SqlGrafoStore < GrafoStore::Basic
   end
 
   def select_collect_sub(node, parent_node, parent_cls, parent_objs)
-    to_cls = nil
+    to_gs_cls = nil
+    to_ar_cls = nil
     reldef = nil
 
     if parent_node
-      reldef = parent_cls.gs_rel_map.find { |x| x[:from] == node.from && x[:to] == node.to }
+      reldef = parent_cls.ar_class.gs_rel_map.find { |x| x[:from] == node.from && x[:to] == node.to }
       if !reldef
         raise MissingRelDef.new(title: "Missing rel #{node.from} => #{node.to}")
       end
 
-      to_cls = to_cls.is_a?(Class) ? to_cls : Object.const_get(reldef[:to_cls], false)
+      to_ar_cls = Object.const_get(reldef[:to_cls], false)
+      to_gs_cls = to_ar_cls.gs_class
     else
-      to_cls = node.cls.all
+      to_gs_cls = node.cls
+      to_ar_cls = to_gs_cls.ar_class
     end
 
-    rel = to_cls.all
+    rel = to_ar_cls.all
 
     if parent_objs
       if reldef[:to_key]
@@ -110,18 +115,22 @@ class SqlGrafoStore < GrafoStore::Basic
       rel = rel.order(node.order).offset(node.start).limit(node.limit)
     end
 
-    node_objs = rel.to_a
+    node_ar_objs = rel.to_a
+    node_gs_objs = Set.new
 
-    node_objs.each do |obj|
-      @objs[obj.id] = obj
+    node_ar_objs.each do |ar_obj|
+      gs_obj = ar_obj.class.gs_class.new(**ar_obj.attributes)
+
+      node_gs_objs << gs_obj
+      @objs[ar_obj.id] = gs_obj.freeze
     end
 
     if parent_objs
       parent_objs.each do |from_obj|
-        node_objs.each do |to_obj|
-          if (reldef[:to_key] && to_obj.send(reldef[:to_key]) == from_obj.id) ||
-             (reldef[:from_key] && from_obj.send(reldef[:from_key]) == to_obj.id)
-            @rels << ::GrafoStore::Rel.new(a: from_obj.id, a_as: node.from, b: to_obj.id, b_as: node.to)
+        node_ar_objs.each do |to_ar_obj|
+          if (reldef[:to_key] && to_ar_obj.send(reldef[:to_key]) == from_obj.id) ||
+             (reldef[:from_key] && from_obj.send(reldef[:from_key]) == to_ar_obj.id)
+            @rels << ::GrafoStore::Rel.new(a: from_obj.id, a_as: node.from, b: to_ar_obj.id, b_as: node.to)
           end
         end
       end
@@ -129,7 +138,7 @@ class SqlGrafoStore < GrafoStore::Basic
 
     if node.dig
       node.dig.each do |dig|
-        select_collect_sub(dig, node, to_cls, node_objs)
+        select_collect_sub(dig, node, to_gs_cls, node_gs_objs)
       end
     end
   end

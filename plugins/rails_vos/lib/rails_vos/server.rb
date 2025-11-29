@@ -15,6 +15,9 @@ require 'rails_vos/server/connection'
 require 'am/vos/server'
 require 'am/auth_manager'
 
+module Vos
+end
+
 module RailsVos
 
 class AuthManager
@@ -27,7 +30,7 @@ class AuthManager
       session = nil
 
       ActiveRecord::Base.connection_pool.with_connection do
-        session = Ygg::Core::HttpSession.find_by(id: msg.id)
+        session = Ygg::Core::Session.find_by(id: msg.id)
       end
 
       if !session
@@ -50,77 +53,90 @@ class AuthManager
   end
 end
 
+class ClassMap
+  class Entry
+    attr_accessor :vos_name
+    attr_accessor :ar_class
+    attr_accessor :gs_class
+  end
+
+  def initialize(definitions:)
+    @by_vos_name = {}
+    @by_ar_class = {}
+    @by_gs_class = {}
+
+    definitions.sort_by(&:length).each do |df|
+      entry = Entry.new
+
+      entry.vos_name = class_name_to_jsonapi(df)
+      entry.ar_class = Object.const_get(df)
+
+      comps = entry.ar_class.name.split('::')
+      lastmod = comps[0..-2].reduce(::Vos) { |a,x| a.const_defined?(x, false) ? a.const_get(x, false) :  a.const_set(x, Module.new) }
+
+      if lastmod.const_defined?(comps.last, false)
+        entry.gs_class = lastmod.const_get(comps.last, false)
+      else
+        entry.gs_class = Class.new(GrafoStore::Obj) do
+          entry.ar_class.attribute_names.each do |attr|
+            gs_attr_accessor attr if attr != 'id'
+          end
+
+          define_singleton_method :ar_class do
+            entry.ar_class
+          end
+        end
+
+        entry.ar_class.define_singleton_method :gs_class do
+          entry.gs_class
+        end
+
+        lastmod.const_set(comps.last, entry.gs_class)
+      end
+
+      @by_vos_name[entry.vos_name] = entry
+      @by_ar_class[entry.ar_class] = entry
+      @by_gs_class[entry.gs_class] = entry
+    end
+
+  end
+
+  def by_gs_class(cls)
+    @by_gs_class[cls]
+  end
+
+  def by_ar_class(cls)
+    @by_ar_class[cls]
+  end
+
+  def by_vos_name(vos_name)
+    @by_vos_name[vos_name]
+  end
+
+  def jsonapi_to_class_name(str)
+    str = str.to_s
+    str.gsub!(/--/, '/')
+    str.gsub!(/-/, '_')
+    str.camelize
+  end
+
+  def class_name_to_jsonapi(str)
+    str = str.to_s.underscore
+    str.gsub!(/^\//, '')
+    str.gsub!(/\//, '--')
+    str.gsub!(/_/, '-')
+    str
+  end
+end
+
 class Server
   include AM::Actor
 
-  class Ref < AM::ActorRef
-    def get_connections
-      ask(MsgGetConnections.new).value
-    end
-  end
+  attr_reader :instance_id
 
-  self.actor_ref_class = Ref
-
-##  class MsgNewConnection < AM::Msg
-##    attr_accessor :env
-##    attr_accessor :session
-##    attr_accessor :headers
-##    attr_accessor :socket
-##    attr_accessor :routes_config
-##    attr_accessor :debug
-##  end
-
-#  class MsgCall < AM::Msg
-#    attr_accessor :object_id
-#    attr_accessor :method
-#    attr_accessor :params
-#    attr_accessor :body
-#    attr_accessor :session_id
-#    attr_accessor :person_id
-#    attr_accessor :object
-#  end
-#  class MsgCallOk < AM::Msg
-#    attr_accessor :body
-#  end
-#  class MsgCallFail < AM::MsgException
-#  end
-
-#  # Sent from Connection(s) to subscribe to an exchange
-#  #
-#  class MsgSub < AM::Msg
-#    attr_accessor :exchange
-#  end
-#
-#  class MsgUnsub < AM::Msg
-#    attr_accessor :exchange
-#  end
-
-
-  class MsgGetConnections < AM::Msg
-  end
-  class MsgGetConnectionsReply < AM::Msg
-    attr_accessor :connections
-  end
-
-  class MsgGetState < AM::Msg
-  end
-  class MsgGetStateResponse < AM::Msg
-    attr_accessor :idle_state
-  end
-
-  module DS
-  end
-
-#  class MsgSubscribe < AM::Msg
-#    attr_accessor :exchange_name
-#  end
-#
-#  class MsgUnsubscribe < AM::Msg
-#    attr_accessor :exchange_name
-#  end
-
-  def initialize(routes_config:)
+  def initialize(routes_config:, class_map:)
     @routes_config = DeepOpenStruct.new(routes_config)
+    @class_map = class_map
 
     super(actor_id: :rails_vos_server)
   end
@@ -138,12 +154,13 @@ class Server
     @ds = actor_supervise_new(AM::GrafoStore::Store, config: {
       actor_id: :ds,
       store_class: ::Ygg::Core::SqlGrafoStore,
+      grafo_events_to: actor_ref,
       debug: 2,
     }, shut_order: 1000)
 
     @vos = actor_supervise_new(AM::VOS::Server, config: {
       actor_id: :vos,
-      class_base: ::Object, ####################################### FIMXE
+      class_map: @class_map,
       welcome_extra_params: {
         app_version: '0.0.0',
         server_identifier: Rails.application.class.module_parent_name,
@@ -178,6 +195,7 @@ class Server
       open_channels
     rescue StandardError => e
       log.fatal "Permanent failure while initializing AMPQ: #{e}"
+      log.fatal "Permanent failure while initializing AMPQ: #{e.backtrace}"
 
 #      Airbrake[:default].notify("Permanent failure while initializing AMPQ: #{e}") do |notice|
 #        notice[:context][:component] = self.class.name
@@ -199,48 +217,83 @@ class Server
     @amqp_chan = @amqp.ask(AM::AMQP::Client::MsgChannelOpen.new).value.channel_id
     @amqp.ask(AM::AMQP::Client::MsgConfirmSelect.new(channel_id: @amqp_chan)).value
 
-    @routes_config.each do |ex_name, ex|
+    queue_name = @amqp.ask(AM::AMQP::Client::MsgQueueDeclare.new(
+      channel_id: @amqp_chan,
+      name: "#{Rails.application.config.rails_vos.object_event_endpoint}.#{Process.pid}",
+      passive: false,
+      durable: false,
+      exclusive: true,
+      auto_delete: true,
+      arguments: {},
+    )).value.name
 
-      if ex.queue && !@queues[ex.queue.name]
-        queue_name = @amqp.ask(AM::AMQP::Client::MsgQueueDeclare.new(
-          channel_id: @amqp_chan,
-          name: "#{ex.queue.name}.#{Process.pid}",
-          passive: ex.queue.passive || false,
-          durable: ex.queue.durable || false,
-          exclusive: ex.queue.exclusive || true,
-          auto_delete: ex.queue.auto_delete || true,
-          arguments: ex.queue.arguments.to_h || {},
-        )).value.name
+    @amqp.ask(AM::AMQP::Client::MsgExchangeDeclare.new(
+      channel_id: @amqp_chan,
+      name: Rails.application.config.rails_vos.object_event_endpoint,
+      type: :topic,
+      passive: false,
+      durable: true,
+      auto_delete: false,
+      internal: false,
+      arguments: {},
+    )).value
 
-        @queues[queue_name] = true
-      end
+    @amqp.ask(AM::AMQP::Client::MsgQueueBind.new(
+      channel_id: @amqp_chan,
+      queue_name: queue_name,
+      exchange_name: Rails.application.config.rails_vos.object_event_endpoint,
+      routing_key: '#',
+    )).value
 
-      @amqp.ask(AM::AMQP::Client::MsgExchangeDeclare.new(
-        channel_id: @amqp_chan,
-        name: ex_name.to_s,
-        type: ex.type || :topic,
-        passive: ex.passive || false,
-        durable: ex.durable || true,
-        auto_delete: ex.auto_delete || false,
-        internal: ex.internal || false,
-        arguments: ex.arguments.to_h || {},
-      )).value
+    consumer_tag  = @amqp.ask(AM::AMQP::Client::MsgConsume.new(
+      channel_id: @amqp_chan,
+      queue_name: queue_name,
+      send_to: actor_ref)
+    ).value.consumer_tag
 
-      consumer_tag  = @amqp.ask(AM::AMQP::Client::MsgConsume.new(
-        channel_id: @amqp_chan,
-        queue_name: queue_name,
-        send_to: actor_ref)
-      ).value.consumer_tag
 
-      @routes[ex_name.to_s] = {
-        queue: queue_name,
-        exchange: ex_name.to_s,
-        handler: ex.handler,
-        consumer_tag: consumer_tag,
-        routing_key: ex.routing_key || '#',
-        refcount: 0,
-      }
-    end
+
+#    @routes_config.each do |ex_name, ex|
+#      if ex.queue && !@queues[ex.queue.name]
+#        queue_name = @amqp.ask(AM::AMQP::Client::MsgQueueDeclare.new(
+#          channel_id: @amqp_chan,
+#          name: "#{ex.queue.name}.#{Process.pid}",
+#          passive: ex.queue.passive || false,
+#          durable: ex.queue.durable || false,
+#          exclusive: ex.queue.exclusive || true,
+#          auto_delete: ex.queue.auto_delete || true,
+#          arguments: ex.queue.arguments.to_h || {},
+#        )).value.name
+#
+#        @queues[queue_name] = true
+#      end
+#
+#      @amqp.ask(AM::AMQP::Client::MsgExchangeDeclare.new(
+#        channel_id: @amqp_chan,
+#        name: ex_name.to_s,
+#        type: ex.type || :topic,
+#        passive: ex.passive || false,
+#        durable: ex.durable || true,
+#        auto_delete: ex.auto_delete || false,
+#        internal: ex.internal || false,
+#        arguments: ex.arguments.to_h || {},
+#      )).value
+#
+#      consumer_tag  = @amqp.ask(AM::AMQP::Client::MsgConsume.new(
+#        channel_id: @amqp_chan,
+#        queue_name: queue_name,
+#        send_to: actor_ref)
+#      ).value.consumer_tag
+#
+#      @routes[ex_name.to_s] = {
+#        queue: queue_name,
+#        exchange: ex_name.to_s,
+#        handler: ex.handler,
+#        consumer_tag: consumer_tag,
+#        routing_key: ex.routing_key || '#',
+#        refcount: 0,
+#      }
+#    end
   end
 
   class ControllerNotFound < Ygg::Exception ; end
@@ -251,7 +304,7 @@ class Server
     case msg
     when AM::VOS::Server::MsgClassCall
 
-      session = Ygg::Core::HttpSession.find_by(id: msg.session_id)
+      session = Ygg::Core::Session.find_by(id: msg.session_id)
       if !session
         actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: AAAContextNotFoundError.new))
         return
@@ -259,7 +312,7 @@ class Server
 
       ctr_cls = nil
       begin
-        ctr_cls = msg.cls.const_get('VosController', false)
+        ctr_cls = msg.cls.ar_class.const_get('VosController', false)
       rescue NameError
         actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: ControllerNotFound.new))
         return
@@ -292,7 +345,7 @@ class Server
       end
 
     when AM::VOS::Server::MsgCall
-      session = Ygg::Core::HttpSession.find_by(id: msg.session_id)
+      session = Ygg::Core::Session.find_by(id: msg.session_id)
       if !session
         actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: AAAContextNotFoundError.new))
         return
@@ -335,22 +388,6 @@ class Server
     when AM::HTTP::Server::MsgRequest
       actor_redirect(msg, @vos)
 
-#      conn = actor_supervise_new(Connection, config: {
-#        server: self.actor_ref,
-#        socket: msg.socket,
-#        remote_endpoint_real: AM::Sockets::Endpoint.from_addrinfo(msg.socket.remote_address),
-#        instance_id: @instance_id,
-#        welcome_extra_params: {},
-#        headers: msg.headers,
-#        session: msg.session,
-#        calls_to: @calls_to,
-#        events_to: @events_to,
-#        monitored_by: self,
-#        debug: @debug,
-#      }, crash_action: :none, exit_action: :none)
-
-#      @conns << conn
-
 #    when MsgSub
 #      route = @routes[msg.exchange]
 #      return if !route
@@ -391,55 +428,172 @@ class Server
         conn.tell(Connection::MsgSetOnline.new(online: @online, offline_reason: 'AMQP Not Available'))
       end
 
+    when AM::GrafoStore::Store::MsgTransactionBegin
+      puts "TRANSACTION BEGIN"
+
+      if @xact
+        raise 'Overlapping transaction???'
+      end
+
+      @xact = []
+
+    when AM::GrafoStore::Store::MsgObjectCreated,
+         AM::GrafoStore::Store::MsgObjectUpdated,
+         AM::GrafoStore::Store::MsgObjectDestroyed,
+         AM::GrafoStore::Store::MsgRelationCreated,
+         AM::GrafoStore::Store::MsgRelationDestroyed
+      @xact << msg
+
+    when AM::GrafoStore::Store::MsgTransactionCommit
+      puts "TRANSACTION COMMIT"
+
+      ar_objs = {}
+      ar_objs_to_save = Set.new
+
+      Ygg::Core::Transaction.new('Web Operation') do
+        @xact.each do |xm|
+          case xm
+          when AM::GrafoStore::Store::MsgObjectCreated
+            puts "OBJ CREATED #{xm.obj.id}"
+
+            ar_obj = xm.obj.class.ar_class.new(id: xm.obj.id, **xm.obj.attrs_hash)
+            ar_objs[xm.obj.id] = ar_obj
+            ar_objs_to_save << ar_obj
+
+          when AM::GrafoStore::Store::MsgObjectUpdated
+            puts "OBJ UPDATED #{xm.obj.id}"
+
+            ar_obj = ar_objs[xm.obj.id] || xm.obj.class.ar_class.find_by(id: xm.obj.id)
+            if ar_obj
+              ar_obj.attributes = xm.obj.attrs_hash
+              ar_objs[xm.obj.id] = ar_obj
+              ar_objs_to_save << ar_obj
+            end
+
+          when AM::GrafoStore::Store::MsgObjectDestroyed
+            puts "OBJ DESTROYED #{xm.obj.id}"
+
+            ar_obj = ar_objs[xm.obj.id] || xm.obj.class.ar_class.find_by(id: xm.obj.id)
+            if ar_obj
+              ar_objs_to_save.delete(ar_obj)
+              ar_obj.destroy
+            end
+
+          when AM::GrafoStore::Store::MsgRelationCreated
+            puts "REL CREATED #{xm.rel}"
+
+            ar_obj_a = ar_objs[xm.rel.a] ||= xm.a.class.ar_class.find(xm.rel.a)
+            ar_obj_b = ar_objs[xm.rel.b] ||= xm.b.class.ar_class.find(xm.rel.b)
+
+            [ ar_obj_a, ar_obj_b ].compact.each do |ar_obj|
+              # We should now search into gs_rel_map(s) to find if this relation matches any of them
+
+              reldef = ar_obj.class.gs_rel_map.find { |x|
+                xm.rel.match?(a: ar_obj.id, a_as: x[:from], b_as: x[:to])
+              }
+
+              if reldef
+                if reldef[:from_key]
+                  ar_obj.send("#{reldef[:from_key]}=", xm.rel.orient(a_as: reldef[:from]).b)
+                  ar_objs_to_save << ar_obj
+                  break
+                else
+                  fk = xm.rel.orient(b_as: reldef[:to]).b
+                  oth_model = ar_objs[fk] ||= reldef[:to_cls].constantize.find(fk)
+                  oth_model.send("#{reldef[:to_key]}=", xm.rel.orient(a_as: reldef[:from]).a);
+                  ar_objs_to_save << oth_model
+                  break
+                end
+              end
+            end
+
+          when AM::GrafoStore::Store::MsgRelationDestroyed
+            puts "REL DESTROYED #{xm.rel}"
+
+            # Take relation endpoint objects from cache
+
+            ar_obj_a = ar_objs[xm.rel.a] ||= xm.a.class.ar_class.find(xm.rel.a)
+            ar_obj_b = ar_objs[xm.rel.b] ||= xm.b.class.ar_class.find(xm.rel.b)
+
+            [ ar_obj_a, ar_obj_b ].compact.each do |ar_obj|
+              # We should now search into gs_rel_map(s) to find if this relation matches any of them
+
+              reldef = ar_obj.class.gs_rel_map.find { |x|
+                xm.rel.match?(a: ar_obj.id, a_as: x[:from], b_as: x[:to])
+              }
+
+              if reldef
+                if reldef[:from_key]
+                  ar_obj.send("#{reldef[:from_key]}=", nil)
+                  ar_objs_to_save << ar_obj
+                  break
+                else
+                  fk = xm.rel.orient(b_as: reldef[:to]).b
+                  oth_model = ar_objs[fk] ||= reldef[:to_cls].constantize.find(fk)
+                  oth_model.send("#{reldef[:to_key]}=", nil);
+                  ar_objs_to_save << oth_model
+                  break
+                end
+              end
+            end
+          end
+        end
+
+        ar_objs_to_save.each do |obj|
+          obj.save!
+        end
+      end
+
+      @xact = nil
+
     when AM::Actor::MsgExited
       conn = @conns.delete(msg.sender)
       if conn
 #        pubsub_unsub_by_actor(msg.sender)
       end
 
-#    when AM::AMQP::Client::MsgDelivery
-#      route = @routes[msg.exchange]
-#      return if !route
-#
-#      if route[:handler] == :model
-#        payload = JSON.parse(msg.payload)
-#
-#        obj = nil
-#        begin
-##          ActiveRecord::Base.connection_pool.with_connection do
-#            obj = payload['model'].constantize.find(payload['object_id'])
-##          end
-#        rescue NameError, ActiveRecord::RecordNotFound
-#          obj = nil
-#        end
+    when AM::AMQP::Client::MsgDelivery
 
-###        @conns.each do |conn|
-###          conn.tell(Connection::MsgModelPublish.new(
-###            routing_key: msg.routing_key,
-###            exchange: msg.exchange,
-###            headers: msg.headers,
-###            object: obj.freeze,
-###            object_type: payload['model'],
-###            object_id: payload['object_id'],
-###            events: payload['events'],
-###            xact_id: payload['xact_id'],
-###            person_id: payload['person_id'],
-###            credential_id: payload['credential_id'],
-###            http_request_id: payload['http_request_id'],
-###          ))
-###        end
-#      else
-#        @conns.each do |conn|
-#          conn.tell(Connection::MsgDeliver.new(
-#            routing_key: msg.routing_key,
-#            exchange: msg.exchange,
-#            headers: msg.headers,
-#            payload: JSON.parse(msg.payload).deep_symbolize_keys,
-#          ))
-#        end
-#      end
-#
-#      @amqp.tell AM::AMQP::Client::MsgAck.new(channel_id: msg.channel_id, delivery_tag: msg.delivery_tag)
+puts "DELIVERY #{msg}"
+
+      case msg.headers[:type]
+      when 'LIFECYCLE_UPDATE'
+        payload = JSON.parse(msg.payload, symbolize_names: true)
+
+        if payload[:store_id] != @instance_id
+          events = payload[:events]
+
+          if events.include?('C')
+            obj = Object.const_get(payload[:model], false).find_by(id: payload[:object_id])
+            if obj
+              @ds.tell(::AM::GrafoStore::Store::MsgObjectCreate.new(
+                id: obj.id,
+                vals: obj.attributes,
+              ))
+            end
+
+          elsif events.include?('U')
+            obj = Object.const_get(payload[:model], false).find_by(id: payload[:object_id])
+            if obj
+              @ds.tell(::AM::GrafoStore::Store::MsgObjectUpdate.new(
+                id: obj.id,
+                vals: obj.attributes,
+              ))
+            end
+
+          elsif events.include?('D')
+            obj = Object.const_get(payload[:model], false).find_by(id: payload[:object_id])
+            if obj
+              @ds.tell(::AM::GrafoStore::Store::MsgObjectDestroy.new(
+                id: obj.id,
+              ))
+            end
+          end
+        end
+      end
+
+      @amqp.tell AM::AMQP::Client::MsgAck.new(channel_id: msg.channel_id, delivery_tag: msg.delivery_tag)
+
     else
       super
     end

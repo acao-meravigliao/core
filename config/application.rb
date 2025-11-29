@@ -98,6 +98,46 @@ module AcaoCore
 
       config.rails_vos.object_event_endpoint = 'ygg.model.events'
 
+      config.rails_vos.class_map = [
+        'Ygg::Acao::Aircraft',
+        'Ygg::Acao::Aircraft::Owner',
+        'Ygg::Acao::AircraftSyncStatus',
+        'Ygg::Acao::AircraftType',
+        'Ygg::Acao::Airfield',
+        'Ygg::Acao::Club',
+        'Ygg::Acao::Debt::Detail',
+        'Ygg::Acao::Debt',
+        'Ygg::Acao::FlarmnetEntry',
+        'Ygg::Acao::Flight',
+        'Ygg::Acao::Invoice::Detail',
+        'Ygg::Acao::Invoice',
+        'Ygg::Acao::KeyFob',
+        'Ygg::Acao::License',
+        'Ygg::Acao::Medical',
+        'Ygg::Acao::Member',
+        'Ygg::Acao::Member::Role',
+        'Ygg::Acao::MemberService',
+        'Ygg::Acao::OgnDdbEntry',
+        'Ygg::Acao::OndaInvoiceExport::Detail',
+        'Ygg::Acao::OndaInvoiceExport',
+        'Ygg::Acao::Payment',
+        'Ygg::Acao::Role',
+        'Ygg::Acao::RosterDay',
+        'Ygg::Acao::RosterEntry',
+        'Ygg::Acao::SatispayEntity',
+        'Ygg::Acao::SatispayProfilePicture',
+        'Ygg::Acao::ServiceType',
+        'Ygg::Acao::WolTarget',
+        'Ygg::Core::Location',
+        'Ygg::Core::Person::Contact',
+        'Ygg::Core::Person::Email',
+        'Ygg::Core::Person',
+        'Ygg::Core::Session',
+        'Ygg::Ml::Address',
+        'Ygg::Ml::Address::Validation',
+        'Ygg::Ml::Msg',
+      ]
+
       config.rails_vos.routes = {
         'ygg.asgard.wall': {
           type: :topic,

@@ -9,49 +9,17 @@
 require 'active_rest/controller'
 require 'grafo_store/obj'
 
-module Ygg
 
-#
-# main parent class for Ygg models
-#
-class BasicModel < ActiveRecord::Base
-  self.abstract_class = true
-
-  include ActiveRest::Model
-  include Ygg::Core::DeepDirty
-
-  include Ygg::Core::HasMetaClass
-  include Ygg::Core::HasAcl
-  include Ygg::Core::HasIndexCache
-
-  include Ygg::Core::Lifecycle
-  include Ygg::Core::Logcollector
-
- ##############
-  include GrafoStore::StorableAsObject
-
-  def attrs_hash
-    attributes.symbolize_keys!
-  end
-
-  def self.attrs
-    attribute_names.map(&:to_sym)
-  end
-
-  class_attribute :gs_rel_map
-  self.gs_rel_map = []
-
-  class FilterSyntaxError < RuntimeError ; end
-
-  def calls_to
-    AM::Registry[:rails_vos_server]
-  end
-
+class GrafoStore::Obj
   def match_filter?(filter)
     filter.all? { |k,v|
+      raise FilterAttrNotFound if !respond_to?(k)
+
       val = send(k)
 
       if v.is_a?(Hash)
+        v.symbolize_keys!
+
         v.all? { |ft, fv|
           case ft
           when :between
@@ -94,6 +62,38 @@ class BasicModel < ActiveRecord::Base
       end
     }
   end
+end
+
+module Ygg
+
+#
+# main parent class for Ygg models
+#
+class BasicModel < ActiveRecord::Base
+  self.abstract_class = true
+
+  include ActiveRest::Model
+  include Ygg::Core::DeepDirty
+
+  include Ygg::Core::HasMetaClass
+  include Ygg::Core::HasAcl
+  include Ygg::Core::HasIndexCache
+
+  include Ygg::Core::Lifecycle
+  include Ygg::Core::Logcollector
+
+ ##############
+  attr_accessor :gs_obj
+
+  class_attribute :gs_rel_map
+  self.gs_rel_map = []
+
+  def self.inherited(child)
+    super(child)
+
+    child.gs_rel_map = []
+  end
+
 
   def multifield_compare(other, sort_order)
     sort_order = { sort_order => :asc } unless sort_order.is_a?(Hash)
@@ -108,6 +108,10 @@ class BasicModel < ActiveRecord::Base
     }
 
     0
+  end
+
+  def gs_save!
+    save!
   end
 
 #############
