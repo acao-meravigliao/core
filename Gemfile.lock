@@ -142,7 +142,7 @@ GEM
       sqlite3
       vihai-password
       ygg-exception
-    am-grafo-store (3.0.0)
+    am-grafo-store (3.2.0)
       actor_model
       grafo-store (~> 3)
       iarray
@@ -178,7 +178,7 @@ GEM
       amazing_print
       rubynary
       ygg-exception
-    am-vos (3.0.0)
+    am-vos (3.1.0)
       activesupport
       am-auth-manager
       am-grafo-store (>= 3)
@@ -190,13 +190,13 @@ GEM
       json
       ygg-diffable
       ygg-exception
-    am-ws (1.7.1)
+    am-ws (1.7.2)
       actor_model (~> 1.6)
       am-http
       am-io-buffer
       am-sockets (>= 0.18)
     deep_open_struct (2.0.2)
-    grafo-store (3.1.0)
+    grafo-store (3.2.0)
       activesupport
       iarray
       ygg-exception
@@ -277,7 +277,7 @@ GEM
       activemodel (= 8.1.1)
       activesupport (= 8.1.1)
       timeout (>= 0.4.0)
-    activerecord-sqlserver-adapter (8.1.1)
+    activerecord-sqlserver-adapter (8.1.2)
       activerecord (~> 8.1.0)
       tiny_tds (~> 3.0)
     activesupport (8.1.1)
@@ -293,8 +293,8 @@ GEM
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
       uri (>= 0.13.1)
-    addressable (2.8.7)
-      public_suffix (>= 2.0.2, < 7.0)
+    addressable (2.8.8)
+      public_suffix (>= 2.0.2, < 8.0)
     aes_key_wrap (1.1.0)
     airbrake (13.0.5)
       airbrake-ruby (~> 6.0)
@@ -309,7 +309,7 @@ GEM
     coderay (1.1.3)
     colorize (1.1.0)
     concurrent-ruby (1.3.4)
-    connection_pool (2.5.4)
+    connection_pool (2.5.5)
     crass (1.0.6)
     csv (3.3.5)
     date (3.5.0)
@@ -373,10 +373,10 @@ GEM
     mime-types-data (3.2025.0924)
     mini_mime (1.1.5)
     mini_portile2 (2.8.9)
-    minitest (5.26.1)
+    minitest (5.26.2)
     msgpack (1.8.0)
-    net-http (0.7.0)
-      uri
+    net-http (0.8.0)
+      uri (>= 0.11.1)
     net-imap (0.5.12)
       date
       net-protocol
@@ -440,7 +440,7 @@ GEM
     psych (5.2.6)
       date
       stringio
-    public_suffix (6.0.2)
+    public_suffix (7.0.0)
     puma (7.1.0)
       nio4r (~> 2.0)
     racc (1.8.1)
@@ -475,7 +475,7 @@ GEM
       msgpack (>= 0.4.3)
       optimist (>= 3.0.0)
     rbtree3 (0.7.1)
-    rdoc (6.15.1)
+    rdoc (6.16.1)
       erb
       psych (>= 4.0.0)
       tsort
