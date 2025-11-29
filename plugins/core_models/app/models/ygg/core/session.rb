@@ -30,6 +30,9 @@ class Session < Ygg::PublicModel
                optional: true
   end
 
+  gs_rel_map << { from: :session, to: :person, to_cls: '::Ygg::Core::Person', from_key: 'auth_person_id' }
+  gs_rel_map << { from: :session, to: :credential, to_cls: '::Ygg::Core::Person::Credential', from_key: 'auth_credential_id' }
+
   after_initialize do
     if !new_record? && active? && expires && Time.now > expires
       close!(:expired)
