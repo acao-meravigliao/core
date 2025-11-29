@@ -69,6 +69,12 @@ module Lifecycle
       object_id: id,
     }
 
+    srv = AM::Registry[:rails_vos_server]
+    if srv
+      # MEH
+      msg[:store_id] = srv.send(:actor).instance_id
+    end
+
     if Ygg::Core::Transaction.current
       params = Ygg::Core::Transaction.current.params
 
