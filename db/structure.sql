@@ -1032,7 +1032,8 @@ CREATE TABLE acao.service_types (
     onda_1_type integer,
     onda_2_type integer,
     is_association boolean DEFAULT false NOT NULL,
-    is_cav boolean DEFAULT false NOT NULL
+    is_cav boolean DEFAULT false NOT NULL,
+    vat numeric(14,6) DEFAULT 0.0 NOT NULL
 );
 
 
@@ -1931,7 +1932,6 @@ CREATE TABLE core.sessions (
     status character varying(32) DEFAULT 'new'::character varying NOT NULL,
     close_reason character varying(32),
     close_time timestamp without time zone,
-    sti_type character varying(255) NOT NULL,
     auth_person_id uuid,
     auth_credential_id uuid,
     language_id uuid,
@@ -9302,9 +9302,11 @@ ALTER TABLE ONLY public.str_channel_variants
 -- PostgreSQL database dump complete
 --
 
-SET search_path TO public;
+SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251117001749'),
+('20251111141725'),
 ('20251106170534'),
 ('20251105214637'),
 ('20251104161028'),
