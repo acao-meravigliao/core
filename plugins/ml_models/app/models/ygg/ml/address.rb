@@ -34,7 +34,7 @@ class Address < Ygg::PublicModel
 
   gs_rel_map << { from: :ml_address, to: :person_email, to_cls: '::Ygg::Core::Person::Email', to_key: 'ml_address_id' }
   gs_rel_map << { from: :address, to: :validation, to_cls: '::Ygg::Ml::Address::Validation', to_key: 'address_id' }
-  gs_rel_map << { from: :recipient, to: :message, to_cls: '::Ygg::Ml::Message', to_key: 'recipient_id' }
+  gs_rel_map << { from: :recipient, to: :message, to_cls: '::Ygg::Ml::Msg', to_key: 'recipient_id' }
 
   def bounce_received!
     self.failed_deliveries += 1
