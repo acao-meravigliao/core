@@ -80,7 +80,7 @@ Rails.application.configure do
 
     config.acao.satispay_endpoint = 'https://staging.authservices.satispay.com/'
     config.acao.satispay_callback_url = 'http://linobis.acao.it:4201/ygg/acao/payments/satispay_callback?payment_id={uuid}'
-    config.acao.bar_satispay_redirect_url = 'http://linobis.acao.it:4201/authen/payment/redirect-back'
+    config.acao.satispay_redirect_url = 'http://linobis.acao.it:4201/authen/payment/redirect-back'
     config.acao.bar_add_maindb_transaction = false
 
     config.acao.wp_sync_disabled = false
