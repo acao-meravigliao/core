@@ -63,7 +63,7 @@ class Debt::VosController < Ygg::Hel::VosBaseController
 
     sp_payment = nil
 
-    hel_transaction('Payment received') do
+    hel_transaction('Payment') do
       if obj.total_due <= 0
         raise AlreadyPaid
       end
@@ -78,7 +78,10 @@ class Debt::VosController < Ygg::Hel::VosBaseController
         payment_method: 'SATISPAY',
       )
 
-      sp_payment = payment.sp_initiate!
+      sp_payment = payment.sp_initiate!(
+        description: "Pagamento #{debt.identifier}",
+        redirect_url: Rails.application.config.acao.satispay_redirect_url + "/#{payment.id}",
+      )
     end
 
     return {
