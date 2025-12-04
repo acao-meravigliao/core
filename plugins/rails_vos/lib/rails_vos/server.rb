@@ -10,8 +10,6 @@
 require 'actor_model'
 require 'deep_open_struct'
 
-require 'rails_vos/server/connection'
-
 require 'am/vos/server'
 require 'am/auth_manager'
 
@@ -353,7 +351,7 @@ class Server
 
       ctr_cls = nil
       begin
-        ctr_cls = msg.obj.class.const_get('VosController', false)
+        ctr_cls = msg.obj.class.ar_class.const_get('VosController', false)
       rescue NameError
         actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: ControllerNotFound.new))
         return
@@ -374,8 +372,10 @@ class Server
         return
       end
 
+      ar_obj = msg.obj.class.ar_class.find(msg.obj.id)
+
       begin
-        body = meth.call(obj: msg.obj, body: msg.body, **(msg.params || {}))
+        body = meth.call(obj: ar_obj, gs_obj: msg.obj, body: msg.body, **(msg.params || {}))
       rescue StandardError => e
         actor_reply(msg, AM::VOS::Server::MsgCallFail.new(cause: e))
 
@@ -566,26 +566,41 @@ puts "DELIVERY #{msg}"
           if events.include?('C')
             obj = Object.const_get(payload[:model], false).find_by(id: payload[:object_id])
             if obj
+              gs_obj = obj.class.gs_class.new(**obj.attributes)
+
               @ds.tell(::AM::GrafoStore::Store::MsgObjectCreate.new(
-                id: obj.id,
-                vals: obj.attributes,
+                obj: gs_obj,
+                from_backend: true,
+                quiet: true,
               ))
             end
+
+            # XXX TODO implement relations
 
           elsif events.include?('U')
             obj = Object.const_get(payload[:model], false).find_by(id: payload[:object_id])
             if obj
+              attrs = obj.attributes
+              attrs.symbolize_keys!
+              attrs.delete(:id)
+
               @ds.tell(::AM::GrafoStore::Store::MsgObjectUpdate.new(
                 id: obj.id,
-                vals: obj.attributes,
+                vals: attrs,
+                from_backend: true,
+                quiet: true,
               ))
             end
+
+            # XXX TODO implement relations
 
           elsif events.include?('D')
             obj = Object.const_get(payload[:model], false).find_by(id: payload[:object_id])
             if obj
               @ds.tell(::AM::GrafoStore::Store::MsgObjectDestroy.new(
                 id: obj.id,
+                from_backend: true,
+                quiet: true,
               ))
             end
           end
