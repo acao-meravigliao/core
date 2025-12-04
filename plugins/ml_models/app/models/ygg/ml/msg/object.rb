@@ -9,7 +9,6 @@ class Object < Ygg::BasicModel
              class_name: '::Ygg::Ml::Msg'
 
   belongs_to :object,
-             class_name: '::Ygg::Ml::Object',
              polymorphic: true
 
   define_default_log_controller(self)
