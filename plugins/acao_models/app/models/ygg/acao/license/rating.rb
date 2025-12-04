@@ -11,12 +11,18 @@ module Ygg
 module Acao
 class License < Ygg::PublicModel
 
-class Rating < Ygg::BasicModel
+class Rating < Ygg::PublicModel
   self.table_name = 'acao.license_ratings'
   self.inheritance_column = false
 
   belongs_to :license,
              class_name: '::Ygg::Acao::License'
+
+  belongs_to :rating_type,
+             class_name: '::Ygg::Acao::RatingType'
+
+  gs_rel_map << { from: :rating, to: :license, to_cls: 'Ygg::Acao::License', from_key: 'license_id', }
+  gs_rel_map << { from: :rating, to: :rating_type, to_cls: 'Ygg::Acao::RatingType', from_key: 'rating_type_id', }
 end
 
 end

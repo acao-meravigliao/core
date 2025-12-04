@@ -24,6 +24,7 @@ class License < Ygg::PublicModel
            dependent: :destroy
 
   gs_rel_map << { from: :license, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
+  gs_rel_map << { from: :license, to: :rating, to_cls: 'Ygg::Acao::License::Rating', to_key: 'license_id', }
 
   include Ygg::Core::Loggable
   define_default_log_controller(self)

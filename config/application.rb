@@ -40,7 +40,7 @@ module AcaoCore
     # These settings can be overridden in specific environments using the files
     # in config/environments, which are processed later.
     #
-    config.time_zone = "UTC"
+    config.time_zone = 'UTC'
     config.active_record.default_timezone = :utc
     TinyTds::Client.default_query_options[:timezone] = :utc
 
@@ -104,29 +104,36 @@ module AcaoCore
         'Ygg::Acao::AircraftSyncStatus',
         'Ygg::Acao::AircraftType',
         'Ygg::Acao::Airfield',
+        'Ygg::Acao::BarTransaction',
         'Ygg::Acao::Club',
         'Ygg::Acao::Debt::Detail',
         'Ygg::Acao::Debt',
+        'Ygg::Acao::FaiCard',
         'Ygg::Acao::FlarmnetEntry',
         'Ygg::Acao::Flight',
         'Ygg::Acao::Invoice::Detail',
         'Ygg::Acao::Invoice',
+        'Ygg::Acao::Year',
         'Ygg::Acao::KeyFob',
         'Ygg::Acao::License',
+        'Ygg::Acao::License::Rating',
         'Ygg::Acao::Medical',
         'Ygg::Acao::Member',
         'Ygg::Acao::Member::Role',
+        'Ygg::Acao::Membership',
         'Ygg::Acao::MemberService',
         'Ygg::Acao::OgnDdbEntry',
         'Ygg::Acao::OndaInvoiceExport::Detail',
         'Ygg::Acao::OndaInvoiceExport',
         'Ygg::Acao::Payment',
+        'Ygg::Acao::RatingType',
         'Ygg::Acao::Role',
         'Ygg::Acao::RosterDay',
         'Ygg::Acao::RosterEntry',
         'Ygg::Acao::SatispayEntity',
         'Ygg::Acao::SatispayProfilePicture',
         'Ygg::Acao::ServiceType',
+        'Ygg::Acao::TokenTransaction',
         'Ygg::Acao::WolTarget',
         'Ygg::Core::Location',
         'Ygg::Core::Person::Contact',

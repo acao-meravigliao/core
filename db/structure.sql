@@ -530,11 +530,11 @@ CREATE TABLE acao.key_fobs (
 --
 
 CREATE TABLE acao.license_ratings (
-    type character varying(32) NOT NULL,
     valid_to timestamp with time zone,
     issued_at timestamp with time zone,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    license_id uuid NOT NULL
+    license_id uuid NOT NULL,
+    rating_type_id uuid NOT NULL
 );
 
 
@@ -933,6 +933,19 @@ CREATE TABLE acao.radar_raw_points (
     tr double precision,
     cr double precision,
     aircraft_id uuid NOT NULL
+);
+
+
+--
+-- Name: rating_types; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.rating_types (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    symbol character varying(16) NOT NULL,
+    name character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -4702,6 +4715,14 @@ ALTER TABLE ONLY acao.radar_events
 
 
 --
+-- Name: rating_types rating_types_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.rating_types
+    ADD CONSTRAINT rating_types_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: roles roles_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -6159,6 +6180,13 @@ CREATE INDEX index_license_ratings_on_license_id ON acao.license_ratings USING b
 
 
 --
+-- Name: index_license_ratings_on_rating_type_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_license_ratings_on_rating_type_id ON acao.license_ratings USING btree (rating_type_id);
+
+
+--
 -- Name: index_licenses_on_member_id; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -6457,6 +6485,13 @@ CREATE INDEX index_planes_on_registration ON acao.planes USING btree (registrati
 --
 
 CREATE UNIQUE INDEX index_planes_on_uuid ON acao.planes USING btree (id);
+
+
+--
+-- Name: index_rating_types_on_symbol; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE UNIQUE INDEX index_rating_types_on_symbol ON acao.rating_types USING btree (symbol);
 
 
 --
@@ -8443,6 +8478,14 @@ ALTER TABLE ONLY acao.member_services
 
 
 --
+-- Name: license_ratings fk_rails_5651f51a07; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.license_ratings
+    ADD CONSTRAINT fk_rails_5651f51a07 FOREIGN KEY (rating_type_id) REFERENCES acao.rating_types(id);
+
+
+--
 -- Name: tickets fk_rails_56af1c6c67; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -9305,6 +9348,7 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251203172127'),
 ('20251117001749'),
 ('20251111141725'),
 ('20251106170534'),
