@@ -37,3 +37,10 @@ development:
   database: acao_dev
   username:
   password:
+
+test:
+  adapter: postgresql
+  encoding: unicode
+  database: acao_test
+  username:
+  password:

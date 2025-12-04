@@ -58,7 +58,8 @@ class Flight < Ygg::PublicModel
 
   belongs_to :volo,
              class_name: 'Ygg::Acao::MainDb::Volo',
-             foreign_key: :source_id
+             foreign_key: :source_id,
+             optional: true
 
   idxc_cached
   self.idxc_sensitive_attributes = [
