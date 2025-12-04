@@ -159,6 +159,7 @@ class Member < Ygg::PublicModel
   gs_rel_map << { from: :member, to: :service, to_cls: 'Ygg::Acao::MemberService', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :medical, to_cls: 'Ygg::Acao::Medical', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :license, to_cls: 'Ygg::Acao::License', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :fai_card, to_cls: 'Ygg::Acao::FaiCard', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :membership, to_cls: 'Ygg::Acao::Membership', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :aircraft_owner, to_cls: 'Ygg::Acao::Aircraft::Owner', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :keyfob, to_cls: 'Ygg::Acao::KeyFob', to_key: 'member_id', }
@@ -324,31 +325,604 @@ class Member < Ygg::PublicModel
   end
 
   def compute_currency(time: Time.now)
+    # TODO: Blocco volo
+    # TODO: Esente CAV
+    # TODO: TMG
+    # TODO: FI
+    # TODO: PPL
+
+    mship_ranges = RangeArray.new(memberships.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
+    mship_franges = mship_ranges.flatten
+    mship_valid = mship_franges.any? { |x| x.include?(time) }
+    mship_until = mship_franges.find { |x| x.include?(time) }.max
+
     services = active_services(time: time).joins(:service_type)
 
     asses = services.where(service_type: { is_association: true })
-    ass_ranges = RangeArray.new(asses.map { |x| (x.valid_from)..(x.valid_to) })
-    ass_valid = ass_ranges.any?
-    ass_until = ass_ranges.map(&:end).max
+    ass_ranges = RangeArray.new(asses.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
+    ass_franges = ass_ranges.flatten
+    ass_valid = ass_franges.any? { |x| x.include?(time) }
+    ass_until = ass_franges.find { |x| x.include?(time) }.try(:max)
 
     cavs = services.where(service_type: { is_cav: true })
-    cav_ranges = RangeArray.new(cavs.map { |x| (x.valid_from)..(x.valid_to) })
-    cav_valid = cav_ranges.any?
-    cav_until = cav_ranges.map(&:end).max
+    cav_ranges = RangeArray.new(cavs.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
+    cav_franges = cav_ranges.flatten
+    cav_valid = cav_franges.any? { |x| x.include?(time) }
+    cav_until = cav_franges.find { |x| x.include?(time) }.try(:max)
 
     caas = services.where(service_type: { symbol: 'CAA' })
-    caa_ranges = RangeArray.new(caas.map { |x| (x.valid_from)..(x.valid_to) })
-    caa_valid = caa_ranges.any?
-    caa_until = caa_ranges.map(&:end).max
+    caa_ranges = RangeArray.new(caas.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
+    caa_franges = caa_ranges.flatten
+    caa_valid = caa_franges.any? { |x| x.include?(time) }
+    caa_until = caa_franges.find { |x| x.include?(time) }.try(:max)
 
     caps = services.where(service_type: { symbol: 'CAP' })
-    cap_ranges = RangeArray.new(caps.map { |x| (x.valid_from)..(x.valid_to) })
-    cap_valid = cap_ranges.any?
-    cap_until = cap_ranges.map(&:end).max
+    cap_ranges = RangeArray.new(caps.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
+    cap_franges = cap_ranges.flatten
+    cap_valid = cap_franges.any? { |x| x.include?(time) }
+    cap_until = cap_franges.find { |x| x.include?(time) }.try(:max)
 
-    spl_medical = medicals.where(type: 'IT class 2')
+    our_medicals = medicals.where(type: [ 'IT class 2', 'IT class 1', 'LAPL' ])
+    medical_valid = our_medicals.any?
+    medical_until = our_medicals.map(&:valid_to).max
+
+    # SFCL.160(a)(1) specifies that hours/launches have 24 month window
+    # AMC1 SFCL.160(a)(1)(ii) specifies that FI training flights have a 24 month window from the last day of the month in which
+    #   the flight has been performed.
+    #
+    # Thus we retrieve all the flights from now to the beginning of the 24th month before current. Then we apply the specific criteria
+
+    calendar_24_month_window = (time - 24.months).beginning_of_day
+    currency_months_start_from = (time - 24.months).beginning_of_month
+    ninety_days_window = (time - 90.days).beginning_of_day
+
+    # Select all the relevant flights
+    pic_or_dual_flights_in_enlarged_24_months =
+      flights.where('takeoff_time > ?', currency_months_start_from).
+              where(pilot1_role: [ 'PIC', 'PICUS', 'DUAL', 'FI', 'FE' ]).
+              order(takeoff_time: 'DESC')
+
+    # Compute specific selections
+    pic_or_dual_flights_in_24_months =
+      pic_or_dual_flights_in_enlarged_24_months.select { |x| x.takeoff_time > calendar_24_month_window }
+
+    pic_or_dual_gld_flights_in_enlarged_24_months =
+      pic_or_dual_flights_in_enlarged_24_months.select { |x| x.aircraft_class == 'GLD' }
+
+    pic_or_dual_gld_flights_in_24_months =
+      pic_or_dual_gld_flights_in_enlarged_24_months.select { |x| x.takeoff_time > calendar_24_month_window }
+
+    pic_or_dual_tmg_flights_in_24_months =
+      pic_or_dual_flights_in_enlarged_24_months.select { |x| x.aircraft_class == 'TMG' }
+
+    # Some stats
+    gld_hours_in_24_months = pic_or_dual_gld_flights_in_24_months.sum { |x| x.landing_time - x.takeoff_time }
+    gld_launches_in_24_months = pic_or_dual_gld_flights_in_24_months.count
+
+    tmg_hours_in_24_months = pic_or_dual_tmg_flights_in_24_months.sum { |x| x.landing_time - x.takeoff_time }
+    tmg_launches_in_24_months = pic_or_dual_tmg_flights_in_24_months.count
+
+    # SFCL.160(a)
+    flights_amounting_5_gld_hours_in_24_months = []
+    sum = 0
+    pic_or_dual_gld_flights_in_24_months.each do |flight|
+      if sum < 5.hours
+        sum += flight.landing_time - flight.takeoff_time
+        flights_amounting_5_gld_hours_in_24_months << flight
+      else
+        break
+      end
+    end
+
+    five_gld_hours_in_24_months =
+      gld_hours_in_24_months >= 5.hours
+    five_gld_hours_in_24_months_until =
+      five_gld_hours_in_24_months ?
+        flights_amounting_5_gld_hours_in_24_months.last.takeoff_time.getlocal.end_of_day + 24.months :
+        nil
+
+    # SFCL.160(b)(1)
+    flights_amounting_6_tmg_hours_in_24_months = []
+    sum = 0
+    pic_or_dual_tmg_flights_in_24_months.each do |flight|
+      if sum < 6.hours
+        sum += flight.landing_time - flight.takeoff_time
+        flights_amounting_6_tmg_hours_in_24_months << flight
+      else
+        break
+      end
+    end
+
+    six_tmg_hours_in_24_months =
+      tmg_hours_in_24_months >= 6.hours
+    six_tmg_hours_in_24_months_until =
+      six_tmg_hours_in_24_months ?
+        flights_amounting_6_tmg_hours_in_24_months.last.takeoff_time.getlocal.end_of_day + 24.months :
+        nil
+
+    # SFCL.160(b)
+    flights_amounting_12_gld_or_tmg_hours_in_24_months = []
+    sum = 0
+    pic_or_dual_flights_in_24_months.each do |flight|
+      if sum < 12.hours
+        sum += flight.landing_time - flight.takeoff_time
+        flights_amounting_12_gld_or_tmg_hours_in_24_months << flight
+      else
+        break
+      end
+    end
+
+    twelve_gld_or_tmg_hours_in_24_months =
+      (gld_hours_in_24_months + tmg_hours_in_24_months) >= 6.hours
+    twelve_gld_or_tmg_hours_in_24_months_until =
+      twelve_gld_or_tmg_hours_in_24_months ?
+        flights_amounting_12_gld_or_tmg_hours_in_24_months.last.takeoff_time.getlocal.end_of_day + 24.months :
+        nil
+
+    # SFCL.160(a)(1)(i)
+    fifteen_gld_launches_in_24_months =
+      pic_or_dual_gld_flights_in_24_months.count >= 15
+    fifteen_gld_launches_in_24_months_until =
+      fifteen_gld_launches_in_24_months ?
+        pic_or_dual_gld_flights_in_24_months.first(15).last.takeoff_time.getlocal.end_of_day + 24.months :
+        nil
+
+    # SFCL.160(a)(2)(ii)
+    twelve_tmg_launches_in_24_months =
+      pic_or_dual_tmg_flights_in_24_months.count >= 12
+    twelve_tmg_launches_in_24_months_until =
+      twelve_tmg_launches_in_24_months ?
+        pic_or_dual_tmg_flights_in_24_months.first(12).last.takeoff_time.getlocal.end_of_day + 24.months :
+        nil
+
+    # SFCL.160(a)(1)(ii) + AMC1 SFCL.160(a)(1)(ii)(d) (d)
+    last_2_gld_training_flights_in_24_months = pic_or_dual_gld_flights_in_enlarged_24_months.select { |x| x.skill_test }.first(2)
+    two_gld_training_flights_in_24_months = last_2_gld_training_flights_in_24_months.count >= 2
+    two_gld_training_flights_in_24_months_until =
+      two_gld_training_flights_in_24_months ?
+        last_2_gld_training_flights_in_24_months.last.takeoff_time.getlocal.end_of_month + 24.months :
+        nil
+
+    # SFCL.160(b)(1)(iii)
+    last_tmg_training_flights_in_24_months =
+      pic_or_dual_tmg_flights_in_24_months.select { |x|
+        x.skill_test && (x.landing_time - x.takeoff_time) >= 1.hour
+      }.first
+    one_tmg_training_flight_in_24_months = !!last_tmg_training_flights_in_24_months
+    one_tmg_training_flight_in_24_months_until =
+      last_tmg_training_flights_in_24_months ?
+        last_tmg_training_flights_in_24_months.takeoff_time.getlocal.end_of_day + 24.months :
+        nil
+
+    # SFCL.160(a)(2)
+    last_gld_proficiency_flight_in_24_months = pic_or_dual_gld_flights_in_24_months.
+      select { |x| x.proficiency_check && x.pilot2_role == 'FE' }.last
+    one_gld_proficiency_flight_in_24_months = !!last_gld_proficiency_flight_in_24_months
+    one_gld_proficiency_flight_in_24_months_until =
+      last_gld_proficiency_flight_in_24_months ?
+        last_gld_proficiency_flight_in_24_months.last.takeoff_time.getlocal.end_of_day + 24.months :
+        nil
+
+    # SFCL.160(b)(2)
+    last_tmg_proficiency_flight_in_24_months = pic_or_dual_tmg_flights_in_24_months.
+      select { |x| x.proficiency_check && x.pilot2_role == 'FE' }.last
+    one_tmg_proficiency_flight_in_24_months = !!last_tmg_proficiency_flight_in_24_months
+    one_tmg_proficiency_flight_in_24_months_until =
+      last_tmg_proficiency_flight_in_24_months ?
+        last_tmg_proficiency_flight_in_24_months.last.takeoff_time.getlocal.end_of_day + 24.months :
+        nil
+
+    # SFCL.155(c)
+    last_5_tows_in_24_months = pic_or_dual_gld_flights_in_24_months.select { |x| x.launch_type == 'TOW' }.first(5)
+    five_tows_in_24_months = last_5_tows_in_24_months.count >= 5
+    five_tows_in_24_months_until =
+      five_tows_in_24_months ?
+        last_5_tows_in_24_months.last.takeoff_time.getlocal.end_of_day + 24.months :
+        nil
+
+    last_5_winches_in_24_months = pic_or_dual_gld_flights_in_24_months.select { |x| x.launch_type == 'WINCH' }.first(15)
+    five_winches_in_24_months = last_5_winches_in_24_months.count >= 15
+    five_winches_in_24_months_until =
+      five_winches_in_24_months ?
+        last_5_winches_in_24_months.last.takeoff_time.getlocal.end_of_day + 24.months :
+        nil
+
+    last_5_sl_in_24_months = pic_or_dual_gld_flights_in_24_months.select { |x| x.launch_type == 'SL' }.first(5)
+    five_sl_in_24_months = last_5_sl_in_24_months.count >= 5
+    five_sl_in_24_months_until =
+      five_sl_in_24_months ?
+        last_5_sl_in_24_months.last.takeoff_time.getlocal.end_of_day + 24.months :
+        nil
+
+    pic_or_dual_sl_or_tmg_flights_in_24_months =
+      pic_or_dual_flights_in_24_months.select { |x|
+        (x.aircraft_class == 'GLD' && x.launch_type == 'SL') ||
+        x.aircraft_class == 'TMG'
+      }
+
+    last_5_sl_or_tmg_in_24_months = pic_or_dual_sl_or_tmg_flights_in_24_months.first(5)
+    five_sl_or_tmg_in_24_months = last_5_sl_or_tmg_in_24_months.count >= 5
+    five_sl_or_tmg_in_24_months_until =
+      five_sl_or_tmg_in_24_months ?
+        last_5_sl_or_tmg_in_24_months.last.takeoff_time.getlocal.end_of_day + 24.months :
+        nil
+
+    # SFCL.160(e)(1)
+    gld_flights_in_90_days = pic_or_dual_gld_flights_in_enlarged_24_months.
+      select { |x|
+        (x.pilot1_role == 'PIC' || x.pilot1_role == 'PICUS' || x.pilot1_role == 'FI' || x.pilot1_role == 'FE') &&
+        x.takeoff_time > ninety_days_window
+      }
+
+    three_gld_launches_in_90_days =
+      gld_flights_in_90_days.count >= 3
+    three_gld_launches_in_90_days_until =
+      three_gld_launches_in_90_days ?
+        (gld_flights_in_90_days.last.takeoff_time.getlocal.end_of_day + 90.days) :
+        nil
+
+    # SFCL.160(e)(2)
+    tmg_flights_in_90_days = pic_or_dual_tmg_flights_in_24_months.
+      select { |x|
+        (x.pilot1_role == 'PIC' || x.pilot1_role == 'PICUS' || x.pilot1_role == 'FI' || x.pilot1_role == 'FE') &&
+        x.takeoff_time > ninety_days_window
+      }
+    three_tmg_launches_in_90_days =
+      tmg_flights_in_90_days.count >= 3
+    three_tmg_launches_in_90_days_until =
+      tmg_flights_in_90_days.any? ?
+        (tmg_flights_in_90_days.last.takeoff_time.getlocal.end_of_day + 90.days) :
+        nil
+
+    # Recency club
+    flights_in_90_days = pic_or_dual_flights_in_24_months.
+      select { |x| x.takeoff_time > ninety_days_window }
+    acao_recency = flights_in_90_days.count >= 1
+    acao_recency_until = flights_in_90_days.last ? flights_in_90_days.last.takeoff_time.getlocal.end_of_day + 90.days : nil
+
+    # SFCL.115(a)(2)(ii)(A)
+    pic_flights = pic_or_dual_gld_flights_in_enlarged_24_months.
+                  select { |x| x.pilot1_role == 'PIC' }
+
+    pic_hours = pic_flights.sum { |x| x.landing_time - x.takeoff_time }
+
+    ten_hours_as_pic = if pic_hours >= 10.hours
+      true
+    else
+      total_time_as_pic = flights.where(aircraft_class: 'GLD').
+                                  where(pilot1_role: [ 'PIC', 'FI' ]).
+                                  sum('landing_time - takeoff_time')
+
+      total_time_as_pic >= 10.hours
+    end
+
+    # SFCL.115(a)(2)(ii)(A)
+    thirty_launches_as_pic = if pic_flights.count >= 30
+      true
+    else
+      launches_as_pic = flights.where(aircraft_class: 'GLD').
+                                where(pilot1_role: [ 'PIC', 'FI' ]).
+                                count
+
+      launches_as_pic >= 30
+    end
+
+    spl_licenses = licenses.select { |x| x.type == 'SPL' }
+    spl_license_valid = spl_licenses.any? { |x| time < x.valid_to }
+    spl_license_until = spl_licenses.map(&:valid_to).max
+
+    ppl_licenses = licenses.select { |x| x.type == 'PPL' }
+    ppl_license_valid = ppl_licenses.any? { |x| time < x.valid_to }
+    ppl_license_until = ppl_licenses.map(&:valid_to).max
+
+    # SFCL.115(a)(2)(ii)(A)
+    pax_endorsment =
+      spl_licenses.any? { |license|
+        license.ratings.any? { |rating| rating.rating_type.symbol == 'PAX' }
+      }
+
+    # SFCL.115(a)(2)(ii)(B)
+    fi_rating =
+      spl_licenses.any? { |license|
+        license.ratings.any? { |rating| rating.rating_type.symbol == 'FI' }
+      }
+
+    # SFCL.155(c)
+    tow_launch_endorsment =
+      spl_licenses.any? { |license|
+        license.ratings.any? { |rating| rating.rating_type.symbol == 'TOW_LAUNCH' }
+      }
+
+    # SFCL.155(c)
+    sl_launch_endorsment =
+      spl_licenses.any? { |license|
+        license.ratings.any? { |rating| rating.rating_type.symbol == 'SLSS' }
+      }
+
+    # SFCL.155(c)
+    winch_launch_endorsment =
+      spl_licenses.any? { |license|
+        license.ratings.any? { |rating| rating.rating_type.symbol == 'WINCH' }
+      }
+
+    # SFCL.
+    tmg_endorsment =
+      spl_licenses.any? { |license|
+        license.ratings.any? { |rating| rating.rating_type.symbol == 'TMG' }
+      }
+
+    # SFCL.160(c)
+    ppl_tmg_endorsment =
+      ppl_licenses.any? { |license|
+        license.ratings.any? { |rating| rating.rating_type.symbol == 'TMG' }
+      }
+
+
+    # Derived statuses ----------------------------------------
+
+    # SFCL.160(a)
+    gld_current = (five_gld_hours_in_24_months && fifteen_gld_launches_in_24_months && two_gld_training_flights_in_24_months) ||
+                   one_gld_proficiency_flight_in_24_months
+    gld_current_until = one_gld_proficiency_flight_in_24_months ?
+                         one_gld_proficiency_flight_in_24_months_until :
+                          [ five_gld_hours_in_24_months_until, fifteen_gld_launches_in_24_months_until,
+                            two_gld_training_flights_in_24_months_until ].compact.min
+
+    # SFCL.160(b)
+    # I suppose PPL currency should be checked if ppl_tmg_endorsment
+    tmg_current = ppl_tmg_endorsment ||
+                  (tmg_endorsment &&
+                    ((twelve_gld_or_tmg_hours_in_24_months &&
+                      six_tmg_hours_in_24_months &&
+                      twelve_tmg_launches_in_24_months_until
+                      one_tmg_training_flight_in_24_months) ||
+                     one_tmg_proficiency_flight_in_24_months)
+                  )
+    tmg_current_until = ppl_tmg_endorsment ? nil :
+                        (one_tmg_proficiency_flight_in_24_months ?
+                          one_tmg_proficiency_flight_in_24_months_until :
+                          [ twelve_gld_or_tmg_hours_in_24_months_until, six_tmg_hours_in_24_months_until,
+                            twelve_tmg_launches_in_24_months_until, one_tmg_training_flight_in_24_months_until ].compact.min)
+
+    # SFCL.115(a)(2) + SFCL.160(e)(1)
+    gld_pax_current = (fi_rating ||
+                   ((ten_hours_as_pic || thirty_launches_as_pic) && pax_endorsment)) &&
+                  three_gld_launches_in_90_days
+    gld_pax_current_until = three_gld_launches_in_90_days_until
+
+    # SFCL.115(a)(2) + SFCL.160(e)(2)
+    tmg_pax_current = (fi_rating ||
+                   ((ten_hours_as_pic || thirty_launches_as_pic) && pax_endorsment)) &&
+                  three_tmg_launches_in_90_days
+    tmg_pax_current_until = three_tmg_launches_in_90_days_until
+
+    # SFCL.155(a)
+    # SFCL.155(c)
+    tow_current = tow_launch_endorsment &&
+                  five_tows_in_24_months
+    tow_current_until = five_tows_in_24_months_until
+
+    sl_current = sl_launch_endorsment &&
+                  five_sl_or_tmg_in_24_months
+    sl_current_until = five_sl_in_24_months_until
+
+    winch_current = winch_launch_endorsment &&
+                  five_winches_in_24_months
+    winch_current_until = five_winches_in_24_months_until
+
+    # Build final matrix ---------------------------------------------------------
+
+    matrix = {
+      gld_tow_private_solo: {
+        valid: mship_valid && cav_valid && medical_valid && spl_license_valid && gld_current && tow_current,
+        until: [ mship_until, cav_until, medical_until, spl_license_until, gld_current_until, tow_current_until, ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license, :gld_current, :tow_current, ],
+      },
+      gld_tow_private_solo_picus: {
+        valid: mship_valid && cav_valid && medical_valid && spl_license_valid && gld_current && tow_launch_endorsment,
+        until: [ mship_until, cav_until, medical_until, spl_license_until, gld_current_until ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license, :gld_current, :tow_launch_endorsment ],
+      },
+      gld_tow_private_pax: {
+        valid: mship_valid && cav_valid && medical_valid && spl_license_valid && gld_current && tow_launch_endorsment &&
+               tow_current && gld_pax_current,
+        until: [ mship_until, cav_until, medical_until, spl_license_until, gld_current_until, tow_current_until,
+                 gld_pax_current_until, ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license, :gld_current, :tow_launch_endorsment, :tow_current, :gld_pax_current, ],
+      },
+      gld_tow_private_student: {
+        valid: mship_valid && cav_valid && medical_valid,
+        until: [ mship_until, cav_until, medical_until,  ].compact.min,
+        depends: [ :membership, :cav, :medical, ],
+      },
+      gld_tow_club_solo: {
+        valid: mship_valid && cav_valid && (caa_valid || cap_valid) && acao_recency && medical_valid &&
+               spl_license_valid && gld_current && tow_launch_endorsment && tow_current,
+        until: [ mship_until, cav_until, (caa_valid ? caa_until : nil), (cap_valid ? cap_until : nil),
+                 acao_recency_until, medical_until, spl_license_until, gld_current_until, tow_current_until, ].compact.min,
+        depends: [ :membership, :cav, :caa, :cap, :acao_recency, :medical, :spl_license, :gld_current, :tow_launch_endorsment, :tow_current, ],
+      },
+      gld_tow_club_solo_picus: {
+        valid: mship_valid && cav_valid && (caa_valid || cap_valid) && acao_recency && medical_valid &&
+               spl_license_valid && gld_current && tow_launch_endorsment,
+        until: [ mship_until, cav_until, (caa_valid ? caa_until : nil), (cap_valid ? cap_until : nil),
+                 acao_recency_until, medical_until, spl_license_until, gld_current_until,  ].compact.min,
+        depends: [ :membership, :cav, :caa, :cap, :acao_recency, :medical, :spl_license, :gld_current, :tow_launch_endorsment ],
+      },
+      gld_tow_club_pax: {
+        valid: mship_valid && cav_valid && (caa_valid || cap_valid) && acao_recency && medical_valid &&
+               spl_license_valid && gld_current && tow_launch_endorsment && tow_current && gld_pax_current,
+        until: [ mship_until, cav_until, (caa_valid ? caa_until : nil), (cap_valid ? cap_until : nil),
+                 acao_recency_until, medical_until, spl_license_until, gld_current_until, tow_current_until,
+                 gld_pax_current_until, ].compact.min,
+        depends: [ :membership, :cav, :caa, :cap, :acao_recency, :medical, :spl_license, :gld_current, :tow_launch_endorsment, :tow_current,
+                   :gld_pax_current ],
+      },
+      gld_tow_club_student: {
+        valid: mship_valid && cav_valid && medical_valid,
+        until: [ mship_until, cav_until, medical_until ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license ],
+      },
+      # Aggiungere volo per conseguimento TOW avendo già SPL?
+
+      gld_sl_private_solo: {
+        valid: mship_valid && cav_valid && medical_valid && spl_license_valid && gld_current && sl_launch_endorsment && sl_current,
+        until: [ mship_until, cav_until, medical_until, spl_license_until, gld_current_until, sl_current_until, ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license, :gld_current, :sl_launch_endorsment, :sl_current, ],
+      },
+      gld_sl_private_solo_picus: {
+        valid: mship_valid && cav_valid && medical_valid && spl_license_valid && gld_current && sl_launch_endorsment,
+        until: [ mship_until, cav_until, medical_until, spl_license_until, gld_current_until, ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license, :gld_current, :sl_launch_endorsment ],
+      },
+      gld_sl_private_pax: {
+        valid: mship_valid && cav_valid && medical_valid && spl_license_valid && gld_current && sl_launch_endorsment &&
+               sl_current && gld_pax_current,
+        until: [ mship_until, cav_until, medical_until, spl_license_until, gld_current_until, sl_current_until,
+               gld_pax_current_until, ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license, :gld_current, :sl_launch_endorsment, :sl_current, :gld_pax_current, ],
+      },
+      gld_sl_private_student: {
+        valid: mship_valid && cav_valid && medical_valid,
+        until: [ mship_until, cav_until, medical_until,  ].compact.min,
+        depends: [ :membership, :cav, :medical, ],
+      },
+      gld_sl_club_solo: {
+        valid: mship_valid && cav_valid && (caa_valid || cap_valid) && acao_recency && medical_valid &&
+               spl_license_valid && gld_current && sl_launch_endorsment && sl_current,
+        until: [ mship_until, cav_until, (caa_valid ? caa_until : nil), (cap_valid ? cap_until : nil),
+                 acao_recency_until, medical_until, spl_license_until, gld_current_until, sl_current_until, ].compact.min,
+        depends: [ :membership, :cav, :caa, :cap, :acao_recency, :medical, :spl_license, :gld_current, :sl_launch_endorsment, :sl_current, ],
+      },
+      gld_sl_club_solo_picus: {
+        valid: mship_valid && cav_valid && (caa_valid || cap_valid) && acao_recency && medical_valid &&
+               spl_license_valid && gld_current && sl_launch_endorsment,
+        until: [ mship_until, cav_until, (caa_valid ? caa_until : nil), (cap_valid ? cap_until : nil),
+                 acao_recency_until, medical_until, spl_license_until, gld_current_until,  ].compact.min,
+        depends: [ :membership, :cav, :caa, :cap, :acao_recency, :medical, :spl_license, :gld_current, :sl_launch_endorsment ],
+      },
+      gld_sl_club_pax: {
+        valid: mship_valid && cav_valid && (caa_valid || cap_valid) && acao_recency && medical_valid &&
+               spl_license_valid && gld_current && sl_launch_endorsment && sl_current && gld_pax_current,
+        until: [ mship_until, cav_until, (caa_valid ? caa_until : nil), (cap_valid ? cap_until : nil),
+                 acao_recency_until, medical_until, spl_license_until, gld_current_until, sl_current_until,
+                 gld_pax_current_until, ].compact.min,
+        depends: [ :membership, :cav, :caa, :cap, :acao_recency, :medical, :spl_license, :gld_current, :sl_launch_endorsment, :sl_current,
+                   :gld_pax_current ],
+      },
+      gld_sl_club_student: { # Verificare che serva CAA/CAP per gli allievi
+        valid: mship_valid && cav_valid && medical_valid,
+        until: [ mship_until, cav_until, medical_until ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license ],
+      },
+      # Aggiungere volo per conseguimento SL avendo già SPL?
+
+
+      gld_winch_private_solo: {
+        valid: mship_valid && cav_valid && medical_valid && spl_license_valid && gld_current && winch_launch_endorsment && winch_current,
+        until: [ mship_until, cav_until, medical_until, spl_license_until, gld_current_until, winch_current_until, ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license, :gld_current, :winch_launch_endorsment, :winch_current, ],
+      },
+      gld_winch_private_solo_picus: {
+        valid: mship_valid && cav_valid && medical_valid && spl_license_valid && gld_current && winch_launch_endorsment,
+        until: [ mship_until, cav_until, medical_until, spl_license_until, gld_current_until, ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license, :gld_current, :winch_launch_endorsment ],
+      },
+      gld_winch_private_pax: {
+        valid: mship_valid && cav_valid && medical_valid && spl_license_valid && gld_current && winch_launch_endorsment && winch_current &&
+               gld_pax_current,
+        until: [ mship_until, cav_until, medical_until, spl_license_until, gld_current_until, winch_current_until,
+                 gld_pax_current_until, ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license, :gld_current, :winch_launch_endorsment, :winch_current, :gld_pax_current, ],
+      },
+      gld_winch_private_student: {
+        valid: mship_valid && cav_valid && medical_valid,
+        until: [ mship_until, cav_until, medical_until,  ].compact.min,
+        depends: [ :membership, :cav, :medical, ],
+      },
+      gld_winch_club_solo: {
+        valid: mship_valid && cav_valid && (caa_valid || cap_valid) && acao_recency && medical_valid &&
+               spl_license_valid && gld_current && winch_launch_endorsment && winch_current,
+        until: [ mship_until, cav_until, (caa_valid ? caa_until : nil), (cap_valid ? cap_until : nil),
+                 acao_recency_until, medical_until, spl_license_until, gld_current_until, winch_current_until, ].compact.min,
+        depends: [ :membership, :cav, :caa, :cap, :acao_recency, :medical, :spl_license, :gld_current, :winch_launch_endorsment,
+                   :winch_current, ],
+      },
+      gld_winch_club_solo_picus: {
+        valid: mship_valid && cav_valid && (caa_valid || cap_valid) && acao_recency && medical_valid &&
+               spl_license_valid && gld_current && winch_launch_endorsment,
+        until: [ mship_until, cav_until, (caa_valid ? caa_until : nil), (cap_valid ? cap_until : nil),
+                 acao_recency_until, medical_until, spl_license_until, gld_current_until, ].compact.min,
+        depends: [ :membership, :cav, :caa, :cap, :acao_recency, :medical, :spl_license, :gld_current, :winch_launch_endorsment ],
+      },
+      gld_winch_club_pax: {
+        valid: mship_valid && cav_valid && (caa_valid || cap_valid) && acao_recency && medical_valid &&
+               spl_license_valid && gld_current && winch_launch_endorsment && winch_current && gld_pax_current,
+        until: [ mship_until, cav_until, (caa_valid ? caa_until : nil), (cap_valid ? cap_until : nil),
+                 acao_recency_until, medical_until, spl_license_until, gld_current_until, winch_current_until,
+                 gld_pax_current_until, ].compact.min,
+        depends: [ :membership, :cav, :caa, :cap, :acao_recency, :medical, :spl_license, :gld_current, :winch_launch_endorsment,
+                   :winch_current, :gld_pax_current ],
+      },
+      gld_winch_club_student: { # Verificare che serva CAA/CAP per gli allievi
+        valid: mship_valid && cav_valid && medical_valid,
+        until: [ mship_until, cav_until, medical_until ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license ],
+      },
+      # Aggiungere volo per conseguimento WINCH avendo già SPL?
+
+
+      tmg_private_solo: {
+        valid: mship_valid && cav_valid && medical_valid && spl_license_valid && tmg_endorsment && tmg_current,
+        until: [ mship_until, cav_until, medical_until, spl_license_until, tmg_current_until ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license, :medical, :tmg_endorsment, :tmg_current ],
+      },
+      tmg_private_solo_picus: {
+        valid: mship_valid && cav_valid && medical_valid && spl_license_valid && tmg_endorsment,
+        until: [ mship_until, cav_until, medical_until, spl_license_until ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license, :tmg_endorsment ],
+      },
+      tmg_private_pax: {
+        valid: mship_valid && cav_valid && medical_valid && spl_license_valid && tmg_endorsment && tmg_current && tmg_pax_current,
+        until: [ mship_until, cav_until, medical_until, spl_license_until, tmg_current_until, tmg_pax_current_until ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license, :tmg_endorsment, :tmg_current, :tmg_pax_current ],
+      },
+      tmg_private_student: {
+        valid: mship_valid && cav_valid && medical_valid && spl_license_valid,
+        until: [ mship_until, cav_until, medical_until, spl_license_until ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license ],
+      },
+      tmg_club_solo: {
+        valid: mship_valid && cav_valid && acao_recency && medical_valid && spl_license_valid && spl_license_valid &&
+               tmg_endorsment && tmg_current,
+        until: [ mship_until, cav_until, acao_recency_until && medical_until, spl_license_until, tmg_current_until ].compact.min,
+        depends: [ :membership, :cav, :acao_recency, :medical, :spl_license, :tmg_endorsment, :tmg_current ],
+      },
+      tmg_club_solo_picus: {
+        valid: mship_valid && cav_valid && acao_recency && medical_valid && spl_license_valid && spl_license_valid && tmg_endorsment,
+        until: [ mship_until, cav_until, acao_recency_until && medical_until, spl_license_until ].compact.min,
+        depends: [ :membership, :cav, :acao_recency, :medical, :spl_license, :tmg_endorsment ],
+      },
+      tmg_club_pax: {
+        valid: mship_valid && cav_valid && acao_recency && medical_valid && spl_license_valid && tmg_endorsment && tmg_current &&
+               tmg_pax_current,
+        until: [ mship_until, cav_until, acao_recency_until, medical_until, spl_license_until, tmg_current_until,
+                tmg_pax_current_until ].compact.min,
+        depends: [ :membership, :cav, :acao_recency, :medical, :spl_license, :tmg_endorsment, :tmg_current, :tmg_pax_current ],
+      },
+      tmg_club_student: {
+        valid: mship_valid && cav_valid && medical_valid && spl_license_valid,
+        until: [ mship_until, cav_until, medical_until, spl_license_until ].compact.min,
+        depends: [ :membership, :cav, :medical, :spl_license, ],
+      },
+    }
 
     currency = {
+      membership: {
+        ranges: mship_ranges.to_a,
+        valid: mship_valid,
+        until: mship_until,
+      },
       ass: {
         ranges: ass_ranges.to_a,
         valid: ass_valid,
@@ -369,9 +943,135 @@ class Member < Ygg::PublicModel
         valid: cap_valid,
         until: cap_until,
       },
-      spl: {
-        medical: spl_medical,
-      }
+      medical: {
+        valid: medical_valid,
+        until: medical_until,
+      },
+      spl_license: {
+        valid: spl_license_valid,
+        until: spl_license_until,
+      },
+      ppl_license: {
+        valid: ppl_license_valid,
+        until: ppl_license_until,
+      },
+      tow_launch_endorsment: {
+        valid: tow_launch_endorsment,
+      },
+      sl_launch_endorsment: {
+        valid: sl_launch_endorsment,
+      },
+      winch_launch_endorsment: {
+        valid: winch_launch_endorsment,
+      },
+      tmg_endorsment: {
+        valid: tmg_endorsment,
+      },
+      ppl_tmg_endorsment: {
+        valid: ppl_tmg_endorsment,
+      },
+      pax_endorsment: {
+        valid: pax_endorsment,
+      },
+      gld_launches_in_24_months: gld_launches_in_24_months,
+      gld_hours_in_24_months: gld_hours_in_24_months,
+      tmg_launches_in_24_months: tmg_launches_in_24_months,
+      tmg_hours_in_24_months: tmg_hours_in_24_months,
+      fifteen_gld_launches_in_24_months: {
+        valid: fifteen_gld_launches_in_24_months,
+        until: fifteen_gld_launches_in_24_months_until,
+      },
+      twelve_tmg_launches_in_24_months: {
+        valid: twelve_tmg_launches_in_24_months,
+        until: twelve_tmg_launches_in_24_months_until,
+      },
+      five_gld_hours_in_24_months: {
+        valid: five_gld_hours_in_24_months,
+        until: five_gld_hours_in_24_months_until,
+      },
+      six_tmg_hours_in_24_months: {
+        valid: six_tmg_hours_in_24_months,
+        until: six_tmg_hours_in_24_months_until,
+      },
+      twelve_gld_or_tmg_hours_in_24_months: {
+        valid: twelve_gld_or_tmg_hours_in_24_months,
+        until: twelve_gld_or_tmg_hours_in_24_months_until,
+      },
+      two_gld_training_flights_in_24_months: {
+        valid: two_gld_training_flights_in_24_months,
+        until: two_gld_training_flights_in_24_months_until,
+      },
+      one_tmg_training_flight_in_24_months: {
+        valid: one_tmg_training_flight_in_24_months,
+        until: one_tmg_training_flight_in_24_months_until,
+      },
+      one_gld_proficiency_flight_in_24_months: {
+        valid: one_gld_proficiency_flight_in_24_months,
+        until: one_gld_proficiency_flight_in_24_months_until,
+      },
+      one_tmg_proficiency_flight_in_24_months: {
+        valid: one_tmg_proficiency_flight_in_24_months,
+        until: one_tmg_proficiency_flight_in_24_months_until,
+      },
+      five_tows_in_24_months: {
+        valid: five_tows_in_24_months,
+        until: five_tows_in_24_months_until,
+      },
+      five_winches_in_24_months: {
+        valid: five_winches_in_24_months,
+        until: five_winches_in_24_months_until,
+      },
+      five_sl_in_24_months: {
+        valid: five_sl_in_24_months,
+        until: five_sl_in_24_months_until,
+      },
+      five_sl_or_tmg_in_24_months: {
+        valid: five_sl_or_tmg_in_24_months,
+        until: five_sl_or_tmg_in_24_months_until,
+      },
+      three_gld_launches_in_90_days: {
+        valid: three_gld_launches_in_90_days,
+        until: three_gld_launches_in_90_days_until,
+      },
+      three_tmg_launches_in_90_days: {
+        valid: three_tmg_launches_in_90_days,
+        until: three_tmg_launches_in_90_days_until,
+      },
+      acao_recency: {
+        valid: acao_recency,
+        until: acao_recency_until,
+      },
+      ten_hours_as_pic: {
+        valid: ten_hours_as_pic,
+      },
+      thirty_launches_as_pic: {
+        valid: thirty_launches_as_pic,
+      },
+      gld_current: {
+        valid: gld_current,
+        until: gld_current_until,
+      },
+      tow_current: {
+        valid: tow_current,
+        until: tow_current_until,
+      },
+      sl_current: {
+        valid: sl_current,
+        until: sl_current_until,
+      },
+      winch_current: {
+        valid: winch_current,
+        until: winch_current_until,
+      },
+      gld_pax_current: {
+        valid: gld_pax_current,
+        until: gld_pax_current_until,
+      },
+      tmg_pax_current: {
+        valid: tmg_pax_current,
+        until: tmg_pax_current_until,
+      },
+      gld_matrix: matrix,
     }
 
     currency
@@ -1335,7 +2035,7 @@ class Member < Ygg::PublicModel
     end
   end
 
-  def sync_licenses(licenza, debug: 0)
+  def sync_licenses(licenza = socio.licenza, debug: 0)
     changed = false
 
     if licenza.GL_SiNo && licenza.Numero_GL.strip.upcase != 'ALLIEVO' && licenza.Numero_GL.strip.upcase != 'TRAINATORE' && licenza.Numero_GL.strip != 'I-GL-?'  && licenza.Numero_GL.strip != 'I-GL-'
@@ -1353,23 +2053,23 @@ class Member < Ygg::PublicModel
                           licenza.Annotazione_GL.floor(0) : nil
 
       if licenza.abilitazioneSL_SiNo
-        rating = license.ratings.find_or_initialize_by(type: 'SLSS')
+        rating = license.ratings.find_or_initialize_by(rating_type: Ygg::Acao::RatingType.find_by!(symbol: 'SLSS'))
         rating.issued_at = (licenza.data_abil_SL && licenza.data_abil_SL != Date.parse('1900-01-01 00:00:00 UTC')) ?
                            licenza.data_abil_SL.floor(0) : nil
         rating.valid_to = nil
         rating.save!
       else
-        license.ratings.where(type: 'SLSS').destroy_all
+        license.ratings.where(rating_type: Ygg::Acao::RatingType.find_by!(symbol: 'SLSS')).destroy_all
       end
 
       if licenza.Abilitazione_TMG_SiNo
-        rating = license.ratings.find_or_initialize_by(type: 'TMG')
+        rating = license.ratings.find_or_initialize_by(rating_type: Ygg::Acao::RatingType.find_by!(symbol: 'TMG'))
         rating.issued_at = (licenza.DataAbilit_TMG && licenza.DataAbilit_TMG != Date.parse('1900-01-01 00:00:00 UTC')) ?
                            licenza.DataAbilit_TMG.floor(0) : nil
         rating.valid_to = nil
         rating.save!
       else
-        license.ratings.where(type: 'TMG').destroy_all
+        license.ratings.where(rating_type: Ygg::Acao::RatingType.find_by!(symbol: 'TMG')).destroy_all
       end
 
       if license.changed?
@@ -1396,35 +2096,35 @@ class Member < Ygg::PublicModel
                          licenza.scadenza_retraining_PPL.floor(0) : nil
 
       if licenza.Abilitazione_TMG_SiNo
-        rating = license.ratings.find_or_create_by(type: 'TMG')
+        rating = license.ratings.find_or_create_by(rating_type: Ygg::Acao::RatingType.find_by!(symbol: 'TMG'))
         rating.issued_at = (licenza.DataAbilit_TMG && licenza.DataAbilit_TMG != Date.parse('1900-01-01 00:00:00 UTC')) ?
                            licenza.DataAbilit_TMG.floor(0) : nil
         rating.valid_to = nil
         rating.save!
       else
-        rating = license.ratings.find_by(type: 'TMG')
+        rating = license.ratings.find_by(rating_type: Ygg::Acao::RatingType.find_by!(symbol: 'TMG'))
         rating.destroy if rating
       end
 
       if licenza.Abilitazione_Traino_SiNo
-        rating = license.ratings.find_or_create_by(type: 'TOW')
+        rating = license.ratings.find_or_create_by(rating_type: Ygg::Acao::RatingType.find_by!(symbol: 'TOW'))
         rating.issued_at = (licenza.Data_Abilit_Traino && licenza.Data_Abilit_Traino != Date.parse('1900-01-01 00:00:00 UTC')) ?
                            licenza.Data_Abilit_Traino.floor(0) : nil
         rating.valid_to = nil
         rating.save!
       else
-        rating = license.ratings.find_by(type: 'TOW')
+        rating = license.ratings.find_by(rating_type: Ygg::Acao::RatingType.find_by!(symbol: 'TOW'))
         rating.destroy if rating
       end
 
       if licenza.Abilit_Istruttore_SiNo
-        rating = license.ratings.find_or_create_by(type: 'FI')
+        rating = license.ratings.find_or_create_by(rating_type: Ygg::Acao::RatingType.find_by!(symbol: 'FI'))
         rating.issued_at = (licenza.Data_Abilit_Istruttore && licenza.Data_Abilit_Istruttore != Date.parse('1900-01-01 00:00:00 UTC')) ?
                            licenza.Data_Abilit_Istruttore.floor(0) : nil
         rating.valid_to = nil
         rating.save!
       else
-        rating = license.ratings.find_by(type: 'FI')
+        rating = license.ratings.find_by(rating_type: Ygg::Acao::RatingType.find_by!(symbol: 'FI'))
         rating.destroy if rating
       end
 
