@@ -61,6 +61,8 @@ source 'https://gems.vihai.it/' do
 end
 
 group :hel_development, :test do
+  gem 'rspec-rails', '~> 8.0'
+
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
 
