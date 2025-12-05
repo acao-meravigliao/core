@@ -553,9 +553,6 @@ class Server
       end
 
     when AM::AMQP::Client::MsgDelivery
-
-puts "DELIVERY #{msg}"
-
       case msg.headers[:type]
       when 'LIFECYCLE_UPDATE'
         payload = JSON.parse(msg.payload, symbolize_names: true)
