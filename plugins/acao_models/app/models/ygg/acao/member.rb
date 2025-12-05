@@ -395,12 +395,30 @@ class Member < Ygg::PublicModel
     pic_or_dual_tmg_flights_in_24_months =
       pic_or_dual_flights_in_enlarged_24_months.select { |x| x.aircraft_class == 'TMG' }
 
+    pic_or_dual_gld_flights_in_90_days = pic_or_dual_gld_flights_in_enlarged_24_months.
+      select { |x|
+        (x.pilot1_role == 'PIC' || x.pilot1_role == 'PICUS' || x.pilot1_role == 'FI' || x.pilot1_role == 'FE') &&
+        x.takeoff_time > ninety_days_window
+      }
+
+    pic_or_dual_tmg_flights_in_90_days = pic_or_dual_tmg_flights_in_24_months.
+      select { |x|
+        (x.pilot1_role == 'PIC' || x.pilot1_role == 'PICUS' || x.pilot1_role == 'FI' || x.pilot1_role == 'FE') &&
+        x.takeoff_time > ninety_days_window
+      }
+
     # Some stats
     gld_hours_in_24_months = pic_or_dual_gld_flights_in_24_months.sum { |x| x.landing_time - x.takeoff_time }
     gld_launches_in_24_months = pic_or_dual_gld_flights_in_24_months.count
 
     tmg_hours_in_24_months = pic_or_dual_tmg_flights_in_24_months.sum { |x| x.landing_time - x.takeoff_time }
     tmg_launches_in_24_months = pic_or_dual_tmg_flights_in_24_months.count
+
+    gld_hours_in_90_days = pic_or_dual_gld_flights_in_90_days.sum { |x| x.landing_time - x.takeoff_time }
+    gld_launches_in_90_days = pic_or_dual_gld_flights_in_90_days.count
+
+    tmg_hours_in_90_days = pic_or_dual_tmg_flights_in_90_days.sum { |x| x.landing_time - x.takeoff_time }
+    tmg_launches_in_90_days = pic_or_dual_tmg_flights_in_90_days.count
 
     # SFCL.160(a)
     flights_amounting_5_gld_hours_in_24_months = []
@@ -548,30 +566,19 @@ class Member < Ygg::PublicModel
         nil
 
     # SFCL.160(e)(1)
-    gld_flights_in_90_days = pic_or_dual_gld_flights_in_enlarged_24_months.
-      select { |x|
-        (x.pilot1_role == 'PIC' || x.pilot1_role == 'PICUS' || x.pilot1_role == 'FI' || x.pilot1_role == 'FE') &&
-        x.takeoff_time > ninety_days_window
-      }
-
     three_gld_launches_in_90_days =
-      gld_flights_in_90_days.count >= 3
+      pic_or_dual_gld_flights_in_90_days.count >= 3
     three_gld_launches_in_90_days_until =
       three_gld_launches_in_90_days ?
-        (gld_flights_in_90_days.last.takeoff_time.getlocal.end_of_day + 90.days) :
+        (pic_or_dual_gld_flights_in_90_days.last.takeoff_time.getlocal.end_of_day + 90.days) :
         nil
 
     # SFCL.160(e)(2)
-    tmg_flights_in_90_days = pic_or_dual_tmg_flights_in_24_months.
-      select { |x|
-        (x.pilot1_role == 'PIC' || x.pilot1_role == 'PICUS' || x.pilot1_role == 'FI' || x.pilot1_role == 'FE') &&
-        x.takeoff_time > ninety_days_window
-      }
     three_tmg_launches_in_90_days =
-      tmg_flights_in_90_days.count >= 3
+      pic_or_dual_tmg_flights_in_90_days.count >= 3
     three_tmg_launches_in_90_days_until =
-      tmg_flights_in_90_days.any? ?
-        (tmg_flights_in_90_days.last.takeoff_time.getlocal.end_of_day + 90.days) :
+      pic_or_dual_tmg_flights_in_90_days.any? ?
+        (pic_or_dual_tmg_flights_in_90_days.last.takeoff_time.getlocal.end_of_day + 90.days) :
         nil
 
     # Recency club
@@ -977,6 +984,10 @@ class Member < Ygg::PublicModel
       gld_hours_in_24_months: gld_hours_in_24_months,
       tmg_launches_in_24_months: tmg_launches_in_24_months,
       tmg_hours_in_24_months: tmg_hours_in_24_months,
+      gld_launches_in_90_days: gld_launches_in_90_days,
+      gld_hours_in_90_days: gld_hours_in_90_days,
+      tmg_launches_in_90_days: tmg_launches_in_90_days,
+      tmg_hours_in_90_days: tmg_hours_in_90_days,
       fifteen_gld_launches_in_24_months: {
         valid: fifteen_gld_launches_in_24_months,
         until: fifteen_gld_launches_in_24_months_until,
