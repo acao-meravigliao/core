@@ -20,6 +20,9 @@ class BarTransaction < Ygg::PublicModel
              class_name: 'Ygg::Acao::Member',
              optional: true
 
+  gs_rel_map << { from: :bar_transaction, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
+  gs_rel_map << { from: :bar_transaction, to: :operator, to_cls: 'Ygg::Acao::Member', from_key: 'operator_id', }
+
   include Ygg::Core::Loggable
   define_default_log_controller(self)
 

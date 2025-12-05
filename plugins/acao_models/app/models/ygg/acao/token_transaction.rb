@@ -33,6 +33,7 @@ class TokenTransaction < Ygg::PublicModel
              optional: true
 
   gs_rel_map << { from: :token_transaction, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
+  gs_rel_map << { from: :token_transaction, to: :operator, to_cls: 'Ygg::Acao::Member', from_key: 'operator_id', }
   gs_rel_map << { from: :token_transaction, to: :aircraft, to_cls: 'Ygg::Acao::Aircraft', from_key: 'aircraft_id', }
   gs_rel_map << { from: :token_transaction, to: :flight, to_cls: 'Ygg::Acao::Flight', from_key: 'flight_id', }
   gs_rel_map << { from: :token_transaction, to: :invoice, to_cls: 'Ygg::Acao::Invoice', from_key: 'invoice_id', }
