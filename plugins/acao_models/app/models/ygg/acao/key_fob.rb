@@ -21,11 +21,10 @@ class KeyFob < Ygg::PublicModel
 
   gs_rel_map << { from: :key_fob, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
 
-
-  include Ygg::Core::Versioned
-  self.versioning_insensitive_attributes += [
-    :last_notify_run,
-  ]
+  #include Ygg::Core::Versioned
+  #self.versioning_insensitive_attributes += [
+  #  :last_notify_run,
+  #]
 
   include Ygg::Core::Loggable
   define_default_log_controller(self)
