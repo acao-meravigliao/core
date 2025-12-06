@@ -11,20 +11,6 @@ class CreateRatingsTable < ActiveRecord::Migration[8.1]
 
     add_index 'acao.rating_types', [ :symbol ], unique: true
 
-    Ygg::Acao::License.where(type: 'GPL').each do |lic|
-      lic2 = lic.member.licenses.find_by(type: 'SPL')
-      if lic2
-        if lic2.identifier != lic.identifier
-          raise "Incompatible licenses cannot be merged"
-        end
-
-        lic.destroy
-      else
-        lic.type = 'SPL'
-        lic.save!
-      end
-    end
-
     rts = {}
     rts['TMG'] = Ygg::Acao::RatingType.create!(
       symbol: 'TMG',
@@ -67,11 +53,14 @@ class CreateRatingsTable < ActiveRecord::Migration[8.1]
       Ygg::Acao::License::Rating.where(type: rt_symbol).update_all(rating_type_id: rt.id)
     end
 
+    remove_column 'acao.license_ratings', 'type'
+
+    Ygg::Acao::License::Rating.connection.schema_cache.clear!
+    Ygg::Acao::License::Rating.reset_column_information
+
     Ygg::Acao::License.where(type: 'SPL').each do |license|
       license.ratings.find_or_create_by!(rating_type: tow_launch)
     end
-
-    remove_column 'acao.license_ratings', 'type'
 
     change_column_null 'acao.license_ratings', 'rating_type_id', false
 
