@@ -16,16 +16,6 @@ class RosterDay::VosController < Ygg::Hel::VosBaseController
 
     new_obj = nil
 
-    ActiveRecord::Base.connection_pool.with_connection do
-      ActiveRecord::Base.transaction do
-        new_obj = Ygg::Acao::RosterDay.create(
-          date: body[:date],
-          high_season: false,
-          needed_people: 3,
-        )
-      end
-    end
-
     ds.tell(::AM::GrafoStore::Store::MsgObjectCreate.new(
       obj: new_obj,
     ))
@@ -40,13 +30,6 @@ class RosterDay::VosController < Ygg::Hel::VosBaseController
       needed_people: body[:needed_people],
     }
 
-# FIXME: it's done by AM::GrafoStore
-#    ActiveRecord::Base.connection_pool.with_connection do
-#      ActiveRecord::Base.transaction do
-#        obj.update!(upd)
-#      end
-#    end
-
     ds.tell(::AM::GrafoStore::Store::MsgObjectUpdate.new(
       id: obj.id,
       vals: upd,
@@ -55,8 +38,6 @@ class RosterDay::VosController < Ygg::Hel::VosBaseController
 
   def destroy(obj:, **)
     ds.tell(::AM::GrafoStore::Store::MsgObjectDestroy.new(id: obj.id))
-
-    obj.destroy!
   end
 
   def compute_stats(**)

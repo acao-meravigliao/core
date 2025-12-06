@@ -18,15 +18,6 @@ class RosterEntry::VosController < Ygg::Hel::VosBaseController
 
     new_obj = nil
 
-    ActiveRecord::Base.connection_pool.with_connection do
-      ActiveRecord::Base.transaction do
-        new_obj = Ygg::Acao::RosterEntry.create(
-          member: Ygg::Acao::Member.find(body[:member_id]),
-          roster_day: Ygg::Acao::RosterDay.find(body[:roster_day_id]),
-        )
-      end
-    end
-
     ds.tell(::AM::GrafoStore::Store::MsgObjectCreate.new(
       obj: new_obj,
       rels: [
@@ -55,8 +46,6 @@ class RosterEntry::VosController < Ygg::Hel::VosBaseController
 
   def destroy(obj:, **)
     ds.tell(::AM::GrafoStore::Store::MsgObjectDestroy.new(id: obj.id))
-
-    obj.destroy!
   end
 end
 
