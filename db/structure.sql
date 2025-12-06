@@ -142,7 +142,8 @@ CREATE TABLE acao.access_remotes (
     ch2_code character varying(32),
     ch3_code character varying(32),
     ch4_code character varying(32),
-    descr character varying
+    descr character varying,
+    member_id uuid
 );
 
 
@@ -563,20 +564,6 @@ CREATE TABLE acao.medicals (
     issued_at timestamp with time zone,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     identifier character varying(32),
-    member_id uuid NOT NULL
-);
-
-
---
--- Name: member_access_remotes; Type: TABLE; Schema: acao; Owner: -
---
-
-CREATE TABLE acao.member_access_remotes (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    symbol character varying(32),
-    person_id uuid,
-    remote_id uuid NOT NULL,
-    descr character varying,
     member_id uuid NOT NULL
 );
 
@@ -4587,14 +4574,6 @@ ALTER TABLE ONLY acao.medicals
 
 
 --
--- Name: member_access_remotes member_access_remotes_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.member_access_remotes
-    ADD CONSTRAINT member_access_remotes_pkey PRIMARY KEY (id);
-
-
---
 -- Name: member_roles member_roles_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -5837,6 +5816,13 @@ CREATE UNIQUE INDEX index_acao_person_services_on_uuid ON acao.member_services U
 
 
 --
+-- Name: index_access_remotes_on_member_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_access_remotes_on_member_id ON acao.access_remotes USING btree (member_id);
+
+
+--
 -- Name: index_access_remotes_on_symbol; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -6219,20 +6205,6 @@ CREATE UNIQUE INDEX index_medicals_on_type_and_identifier ON acao.medicals USING
 --
 
 CREATE UNIQUE INDEX index_medicals_on_uuid ON acao.medicals USING btree (id);
-
-
---
--- Name: index_member_access_remotes_on_member_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE INDEX index_member_access_remotes_on_member_id ON acao.member_access_remotes USING btree (member_id);
-
-
---
--- Name: index_member_access_remotes_on_remote_id; Type: INDEX; Schema: acao; Owner: -
---
-
-CREATE UNIQUE INDEX index_member_access_remotes_on_remote_id ON acao.member_access_remotes USING btree (remote_id);
 
 
 --
@@ -8294,6 +8266,14 @@ ALTER TABLE ONLY acao.trailers
 
 
 --
+-- Name: access_remotes fk_rails_14fe46dab3; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.access_remotes
+    ADD CONSTRAINT fk_rails_14fe46dab3 FOREIGN KEY (member_id) REFERENCES acao.members(id);
+
+
+--
 -- Name: token_transactions fk_rails_191dde7206; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8563,14 +8543,6 @@ ALTER TABLE ONLY acao.member_roles
 
 ALTER TABLE ONLY acao.flights
     ADD CONSTRAINT fk_rails_918c481775 FOREIGN KEY (aircraft_id) REFERENCES acao.aircrafts(id);
-
-
---
--- Name: member_access_remotes fk_rails_9354268f41; Type: FK CONSTRAINT; Schema: acao; Owner: -
---
-
-ALTER TABLE ONLY acao.member_access_remotes
-    ADD CONSTRAINT fk_rails_9354268f41 FOREIGN KEY (member_id) REFERENCES acao.members(id);
 
 
 --
@@ -9348,6 +9320,7 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251205223635'),
 ('20251203172127'),
 ('20251117001749'),
 ('20251111141725'),

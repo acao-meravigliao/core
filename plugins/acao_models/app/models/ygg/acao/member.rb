@@ -126,14 +126,9 @@ class Member < Ygg::PublicModel
            class_name: '::Ygg::Acao::KeyFob',
            foreign_key: 'member_id'
 
-  has_many :person_access_remotes,
-           class_name: '::Ygg::Acao::MemberAccessRemote',
-           foreign_key: 'member_id'
-
   has_many :access_remotes,
            class_name: '::Ygg::Acao::AccessRemote',
-           through: :person_access_remotes,
-           source: :remote
+           foreign_key: 'member_id'
 
   has_many :ml_list_members,
            class_name: '::Ygg::Ml::List::Member',
@@ -173,6 +168,8 @@ class Member < Ygg::PublicModel
   gs_rel_map << { from: :acao_member, to: :person, to_cls: 'Ygg::Core::Person', from_key: 'person_id', }
   gs_rel_map << { from: :pilot1, to: :flight, to_cls: 'Ygg::Acao::Flight', to_key: 'pilot1_id', }
   gs_rel_map << { from: :pilot2, to: :flight, to_cls: 'Ygg::Acao::Flight', to_key: 'pilot2_id', }
+  gs_rel_map << { from: :member, to: :key_fob, to_cls: 'Ygg::Acao::KeyFob', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :access_remote, to_cls: 'Ygg::Acao::AccessRemote', to_key: 'member_id', }
 
   def self.alive_pilots
     where.not('sleeping')
@@ -379,7 +376,7 @@ class Member < Ygg::PublicModel
     # Select all the relevant flights
     pic_or_dual_flights_in_enlarged_24_months =
       flights.where('takeoff_time > ?', currency_months_start_from).
-              where(pilot1_role: [ 'PIC', 'PICUS', 'DUAL', 'FI', 'FE' ]).
+              where(pilot1_role: [ 'PIC', 'PICUS', 'FI_PIC', 'DUAL', 'FI', 'FE' ]).
               order(takeoff_time: 'DESC')
 
     # Compute specific selections
@@ -397,13 +394,13 @@ class Member < Ygg::PublicModel
 
     pic_or_dual_gld_flights_in_90_days = pic_or_dual_gld_flights_in_enlarged_24_months.
       select { |x|
-        (x.pilot1_role == 'PIC' || x.pilot1_role == 'PICUS' || x.pilot1_role == 'FI' || x.pilot1_role == 'FE') &&
+        ([ 'PIC', 'PICUS', 'DUAL', 'FI_PIC', 'FI', 'FE' ].include?(x.pilot1_role)) &&
         x.takeoff_time > ninety_days_window
       }
 
     pic_or_dual_tmg_flights_in_90_days = pic_or_dual_tmg_flights_in_24_months.
       select { |x|
-        (x.pilot1_role == 'PIC' || x.pilot1_role == 'PICUS' || x.pilot1_role == 'FI' || x.pilot1_role == 'FE') &&
+        ([ 'PIC', 'PICUS', 'DUAL', 'FI_PIC', 'FI', 'FE' ].include?(x.pilot1_role)) &&
         x.takeoff_time > ninety_days_window
       }
 
@@ -494,7 +491,8 @@ class Member < Ygg::PublicModel
         nil
 
     # SFCL.160(a)(1)(ii) + AMC1 SFCL.160(a)(1)(ii)(d) (d)
-    last_2_gld_training_flights_in_24_months = pic_or_dual_gld_flights_in_enlarged_24_months.select { |x| x.skill_test }.first(2)
+    last_2_gld_training_flights_in_24_months =
+      pic_or_dual_gld_flights_in_enlarged_24_months.select { |x| x.purpose == 'TRAINING' }.first(2)
     two_gld_training_flights_in_24_months = last_2_gld_training_flights_in_24_months.count >= 2
     two_gld_training_flights_in_24_months_until =
       two_gld_training_flights_in_24_months ?
@@ -504,7 +502,7 @@ class Member < Ygg::PublicModel
     # SFCL.160(b)(1)(iii)
     last_tmg_training_flights_in_24_months =
       pic_or_dual_tmg_flights_in_24_months.select { |x|
-        x.skill_test && (x.landing_time - x.takeoff_time) >= 1.hour
+        x.purpose == 'TRAINING' && (x.landing_time - x.takeoff_time) >= 1.hour
       }.first
     one_tmg_training_flight_in_24_months = !!last_tmg_training_flights_in_24_months
     one_tmg_training_flight_in_24_months_until =
@@ -514,7 +512,7 @@ class Member < Ygg::PublicModel
 
     # SFCL.160(a)(2)
     last_gld_proficiency_flight_in_24_months = pic_or_dual_gld_flights_in_24_months.
-      select { |x| x.proficiency_check && x.pilot2_role == 'FE' }.last
+      select { |x| x.purpose == 'PROFICIENCY_CHECK' }.last
     one_gld_proficiency_flight_in_24_months = !!last_gld_proficiency_flight_in_24_months
     one_gld_proficiency_flight_in_24_months_until =
       last_gld_proficiency_flight_in_24_months ?
@@ -523,7 +521,7 @@ class Member < Ygg::PublicModel
 
     # SFCL.160(b)(2)
     last_tmg_proficiency_flight_in_24_months = pic_or_dual_tmg_flights_in_24_months.
-      select { |x| x.proficiency_check && x.pilot2_role == 'FE' }.last
+      select { |x| x.purpose == 'PROFICIENCY_CHECK' }.last
     one_tmg_proficiency_flight_in_24_months = !!last_tmg_proficiency_flight_in_24_months
     one_tmg_proficiency_flight_in_24_months_until =
       last_tmg_proficiency_flight_in_24_months ?
@@ -589,7 +587,7 @@ class Member < Ygg::PublicModel
 
     # SFCL.115(a)(2)(ii)(A)
     pic_flights = pic_or_dual_gld_flights_in_enlarged_24_months.
-                  select { |x| x.pilot1_role == 'PIC' }
+                  select { |x| [ 'PIC', 'PICUS', 'FI_PIC' ].include?(x.pilot1_role) }
 
     pic_hours = pic_flights.sum { |x| x.landing_time - x.takeoff_time }
 
@@ -597,7 +595,7 @@ class Member < Ygg::PublicModel
       true
     else
       total_time_as_pic = flights.where(aircraft_class: 'GLD').
-                                  where(pilot1_role: [ 'PIC', 'FI' ]).
+                                  where(pilot1_role: [ 'PIC', 'PICUS','FI_PIC' ]).
                                   sum('landing_time - takeoff_time')
 
       total_time_as_pic >= 10.hours
@@ -608,7 +606,7 @@ class Member < Ygg::PublicModel
       true
     else
       launches_as_pic = flights.where(aircraft_class: 'GLD').
-                                where(pilot1_role: [ 'PIC', 'FI' ]).
+                                where(pilot1_role: [ 'PIC', 'PICUS', 'FI_PIC' ]).
                                 count
 
       launches_as_pic >= 30
@@ -1317,57 +1315,57 @@ class Member < Ygg::PublicModel
       )
     }
 
-    Ygg::Acao::MemberAccessRemote.all.each do |x|
-      if users[x.member_id] && x.remote.ch1_code
+    Ygg::Acao::AccessRemote.all.each do |x|
+      if users[x.member_id] && x.ch1_code
         l_records << Media.new(
           id: x.id,
-          number: 10000 + (x.remote.symbol.to_i * 10) + 1,
-          code: x.remote.ch1_code,
+          number: 10000 + (x.symbol.to_i * 10) + 1,
+          code: x.ch1_code,
           member_id: x.member_id,
           member: users[x.member_id],
-          code_for_faac: x.remote.ch1_code_for_faac,
+          code_for_faac: x.ch1_code_for_faac,
           enabled: x.validity_ranges.any?,
           validity_start: x.validity_start,
           validity_end: x.validity_end,
         )
       end
 
-      if users[x.member_id] && x.remote.ch2_code
+      if users[x.member_id] && x.ch2_code
         l_records << Media.new(
           id: derive_uuid_from_uuid(x.id),
-          number: 10000 + (x.remote.symbol.to_i * 10) + 2,
-          code: x.remote.ch2_code,
+          number: 10000 + (x.symbol.to_i * 10) + 2,
+          code: x.ch2_code,
           member_id: x.member_id,
           member: users[x.member_id],
-          code_for_faac: x.remote.ch2_code_for_faac,
+          code_for_faac: x.ch2_code_for_faac,
           enabled: x.validity_ranges.any?,
           validity_start: x.validity_start,
           validity_end: x.validity_end,
-        ) if x.remote.ch2_code
+        )
       end
 
-      if users[x.member_id] && x.remote.ch3_code
+      if users[x.member_id] && x.ch3_code
         l_records << Media.new(
           id: derive_uuid_from_uuid(derive_uuid_from_uuid(x.id)),
-          number: 10000 + (x.remote.symbol.to_i * 10) + 3,
-          code: x.remote.ch3_code,
+          number: 10000 + (x.symbol.to_i * 10) + 3,
+          code: x.ch3_code,
           member_id: x.member_id,
           member: users[x.member_id],
-          code_for_faac: x.remote.ch3_code_for_faac,
+          code_for_faac: x.ch3_code_for_faac,
           enabled: x.validity_ranges.any?,
           validity_start: x.validity_start,
           validity_end: x.validity_end,
-        ) if x.remote.ch3_code
+        )
       end
 
-      if users[x.member_id] && x.remote.ch4_code
+      if users[x.member_id] && x.ch4_code
         l_records << Media.new(
           id: derive_uuid_from_uuid(derive_uuid_from_uuid(derive_uuid_from_uuid(x.id))),
-          number: 10000 + (x.remote.symbol.to_i * 10) + 4,
-          code: x.remote.ch4_code,
+          number: 10000 + (x.symbol.to_i * 10) + 4,
+          code: x.ch4_code,
           member_id: x.member_id,
           member: users[x.member_id],
-          code_for_faac: x.remote.ch4_code_for_faac,
+          code_for_faac: x.ch4_code_for_faac,
           enabled: x.validity_ranges.any?,
           validity_start: x.validity_start,
           validity_end: x.validity_end,
@@ -1958,6 +1956,22 @@ class Member < Ygg::PublicModel
 
       sync_contacts(other, person: person, debug: debug)
       sync_credentials(other, debug: debug)
+
+      Ygg::Toolkit.merge(
+      l: socio.tessere.where('len(tag) > 0').where('len(tag) < 10').order('LOWER(tag)'),
+      r: access_remotes,
+      l_cmp_r: lambda { |l,r| l.tag.downcase <=> r.symbol },
+      l_to_r: lambda { |l|
+        puts "ACCESS_REMOTE ADD #{r.inspect}" if debug >= 2
+        Ygg::Acao::AccessRemote.find_by(symbol: l.tag.downcase).update(member_id: id)
+      },
+      r_to_l: lambda { |r|
+        puts "ACCESS_REMOTE REMOVE #{r.inspect}" if debug >= 2
+        r.update(member_id: nil)
+      },
+      lr_update: lambda { |l,r|
+        puts "ACCESS_REMOTE #{l.inspect} => #{r.inspect}" if debug >= 2
+      })
 
       if deep_changed?
         puts "MEMBER #{code} #{person.first_name} #{person.last_name} CHANGED" if debug >= 1

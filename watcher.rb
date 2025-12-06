@@ -146,7 +146,7 @@ loop do
       puts "Tessera has been changed" if debug >= 1
 
       Ygg::Acao::KeyFob.sync_from_maindb!(debug: debug)
-      Ygg::Acao::MemberAccessRemote.sync_from_maindb!(debug: debug)
+      Ygg::Acao::AccessRemote.sync_from_maindb!(debug: debug)
 
       Ygg::Acao::MainDb::Tessera.update_last_update!
     end
