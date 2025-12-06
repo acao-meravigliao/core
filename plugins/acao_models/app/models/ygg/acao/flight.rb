@@ -397,18 +397,21 @@ class Flight < Ygg::PublicModel
     when 1   # ALLIEVO D.C.           : volo scuola trainato doppio commando
       self.instruction_flight = true
       self.pilot1_role = 'DUAL'
-      self.pilot2_role = 'FI'
+      self.pilot2_role = 'FI_PIC'
       self.aircraft_class = 'GLD'
+      self.purpose = 'INSTRUCTION'
     when 2   # ALLIEVO D.C. TMG       : volo scuola su TMG (non trainato quindi) a doppio commando
       self.instruction_flight = true
       self.pilot1_role = 'DUAL'
-      self.pilot2_role = 'FI'
+      self.pilot2_role = 'FI_PIC'
       self.aircraft_class = 'TMG'
+      self.purpose = 'INSTRUCTION'
     when 3   # ALLIEVO M.C.           : volo scuola trainato solista
       self.instruction_flight = true
       self.pilot1_role = 'PIC'
       self.pilot2_role = nil
       self.aircraft_class = 'GLD'
+      self.purpose = 'INSTRUCTION'
     when 4   # ALIANTE CLUB S.S.      : volo non scuola trainato su monoposto del ACAO
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
@@ -464,7 +467,7 @@ class Flight < Ygg::PublicModel
     when 16  # VDS  ALLIEVO D.C.
       self.instruction_flight = true
       self.pilot1_role = 'DUAL'
-      self.pilot2_role = 'FI'
+      self.pilot2_role = 'FI_PIC'
       self.aircraft_class = 'ULM'
     when 17  # VDS ALLIEVO M.C.
       self.instruction_flight = true
@@ -480,45 +483,47 @@ class Flight < Ygg::PublicModel
       self.aircraft_class = 'HELI'
     when 20  # VOLO PROVA (officina)
       self.instruction_flight = false
-      self.maintenance_flight = true
       self.pilot1_role = 'PIC'
       self.aircraft_class = 'HELI'
+      self.purpose = 'MAINT'
       # Aggiungere Volo Officina (MCF Maintenance Check Flight)
     when 21  # ADDESTRAMENTO ALIANTE (DC) (training flight, addestramento aliante)
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.pilot2_role = 'FI'
       self.aircraft_class = 'GLD'
+      self.purpose = 'TRAINING'
     when 22  # ADDESTRAMENTO TMG (DC) (training flight, addestramento TMG)
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.pilot2_role = 'FI'
       self.aircraft_class = 'TMG'
+      self.purpose = 'TRAINING'
     when 23  # ADDESTRAMENTO SEP (DC) (training flight)
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.pilot2_role = 'FI'
       self.aircraft_class = 'SEP'
+      self.purpose = 'TRAINING'
     when 24  # ESAME ALIANTE
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.pilot2_role = 'FE'
-      self.proficiency_check = false
-      self.skill_test = true
       self.aircraft_class = 'GLD'
+      self.purpose = 'SKILL_TEST'
     when 25  # ESAME TMG
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.pilot2_role = 'FE'
-      self.proficiency_check = false
-      self.skill_test = true
       self.aircraft_class = 'TMG'
       self.launch_type = nil
+      self.purpose = 'SKILL_TEST'
     when 26  # ABILITAZIONE PAX
       self.instruction_flight = false
       self.pilot1_role = 'PIC'
       self.pilot1_role = 'FI'
       self.aircraft_class = 'GLD'
+      self.purpose = 'PAX_ENDORSMENT'
     end
 
     if !self.aircraft_class && aircraft_reg_orig == 'X-SAIL'
