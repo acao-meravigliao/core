@@ -99,6 +99,7 @@ module AcaoCore
       config.rails_vos.object_event_endpoint = 'ygg.model.events'
 
       config.rails_vos.class_map = [
+        'Ygg::Acao::AccessRemote',
         'Ygg::Acao::Aircraft',
         'Ygg::Acao::Aircraft::Owner',
         'Ygg::Acao::AircraftSyncStatus',
@@ -142,6 +143,8 @@ module AcaoCore
         'Ygg::Core::Session',
         'Ygg::Ml::Address',
         'Ygg::Ml::Address::Validation',
+        'Ygg::Ml::List',
+        'Ygg::Ml::List::Member',
         'Ygg::Ml::Msg',
       ]
 
