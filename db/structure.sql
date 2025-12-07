@@ -594,7 +594,12 @@ CREATE TABLE acao.member_services (
     invoice_detail_id uuid,
     service_type_id uuid NOT NULL,
     payment_id uuid,
-    member_id uuid
+    member_id uuid,
+    year integer NOT NULL,
+    service_code character varying NOT NULL,
+    name character varying,
+    notes_internal text,
+    notes_public text
 );
 
 
@@ -654,7 +659,8 @@ CREATE TABLE acao.memberships (
     invoice_detail_id uuid,
     person_id uuid,
     reference_year_id uuid NOT NULL,
-    member_id uuid NOT NULL
+    member_id uuid NOT NULL,
+    year integer NOT NULL
 );
 
 
@@ -1261,7 +1267,8 @@ CREATE TABLE acao.years (
     renew_opening_time timestamp with time zone,
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     renew_announce_time timestamp with time zone,
-    late_renewal_deadline timestamp without time zone NOT NULL
+    late_renewal_deadline timestamp without time zone NOT NULL,
+    age_reference_date date NOT NULL
 );
 
 
@@ -9320,6 +9327,9 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251207222248'),
+('20251207000354'),
+('20251206201951'),
 ('20251205223635'),
 ('20251203172127'),
 ('20251117001749'),
