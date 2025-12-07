@@ -104,7 +104,7 @@ class Msg::Email < Ygg::Ml::Msg
 
       sending_attempted!
 
-      if !Rails.application.config.ml.email_disable
+      if !Rails.application.config.ml.email_disabled
         pars = (sender.email_smtp_pars || Rails.application.config.ml.email_smtp_pars).symbolize_keys
         pars.merge!(
           debug: Rails.application.config.ml.email_debug,

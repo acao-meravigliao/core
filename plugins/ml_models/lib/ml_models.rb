@@ -18,7 +18,7 @@ class ModelsEngine < Rails::Engine
     hostname: 'localhost',
   }
   config.ml.email_debug = 0
-  config.ml.email_disable = false
+  config.ml.email_disabled = false
   config.ml.email_redirect_to = nil
   config.ml.email_also_bcc = []
   config.ml.sms_disable = false
