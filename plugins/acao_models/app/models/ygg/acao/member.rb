@@ -238,7 +238,7 @@ class Member < Ygg::PublicModel
     if roles.include?('SPL_PILOT') ||
        roles.include?('SPL_STUDENT')
 
-      if person.birth_date && compute_completed_years(person.birth_date, ym.renew_opening_time) >= 65
+      if person.birth_date && compute_completed_years(person.birth_date, ym.age_reference_date) >= 65
         needed[:total] = 0
         needed[:high_season] = 0
         needed[:reason] = 'older_than_65'
@@ -321,6 +321,21 @@ class Member < Ygg::PublicModel
     services.where('valid_to IS NULL OR valid_to > ?', time).where('valid_from IS NULL OR valid_from < ?', time)
   end
 
+  class Condition
+    attr_reader :valid
+    attr_reader :deps
+
+    def initialize(valid:, to: nil, deps: nil)
+      @valid = valid
+      @to = to
+      @deps = deps
+    end
+
+    def to
+      @valid ? @to : nil
+    end
+  end
+
   def compute_currency(time: Time.now)
     # TODO: Blocco volo
     # TODO: Esente CAV
@@ -331,7 +346,7 @@ class Member < Ygg::PublicModel
     mship_ranges = RangeArray.new(memberships.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
     mship_franges = mship_ranges.flatten
     mship_valid = mship_franges.any? { |x| x.include?(time) }
-    mship_until = mship_franges.find { |x| x.include?(time) }.max
+    mship_until = mship_franges.select { |x| x.include?(time) }.map(&:end).max
 
     services = active_services(time: time).joins(:service_type)
 
@@ -339,25 +354,25 @@ class Member < Ygg::PublicModel
     ass_ranges = RangeArray.new(asses.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
     ass_franges = ass_ranges.flatten
     ass_valid = ass_franges.any? { |x| x.include?(time) }
-    ass_until = ass_franges.find { |x| x.include?(time) }.try(:max)
+    ass_until = ass_franges.select { |x| x.include?(time) }.map(&:end).max
 
     cavs = services.where(service_type: { is_cav: true })
     cav_ranges = RangeArray.new(cavs.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
     cav_franges = cav_ranges.flatten
     cav_valid = cav_franges.any? { |x| x.include?(time) }
-    cav_until = cav_franges.find { |x| x.include?(time) }.try(:max)
+    cav_until = cav_franges.select { |x| x.include?(time) }.map(&:end).max
 
     caas = services.where(service_type: { symbol: 'CAA' })
     caa_ranges = RangeArray.new(caas.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
     caa_franges = caa_ranges.flatten
     caa_valid = caa_franges.any? { |x| x.include?(time) }
-    caa_until = caa_franges.find { |x| x.include?(time) }.try(:max)
+    caa_until = caa_franges.select { |x| x.include?(time) }.map(&:end).max
 
     caps = services.where(service_type: { symbol: 'CAP' })
     cap_ranges = RangeArray.new(caps.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
     cap_franges = cap_ranges.flatten
     cap_valid = cap_franges.any? { |x| x.include?(time) }
-    cap_until = cap_franges.find { |x| x.include?(time) }.try(:max)
+    cap_until = cap_franges.select { |x| x.include?(time) }.map(&:end).max
 
     our_medicals = medicals.where(type: [ 'IT class 2', 'IT class 1', 'LAPL' ])
     medical_valid = our_medicals.any?

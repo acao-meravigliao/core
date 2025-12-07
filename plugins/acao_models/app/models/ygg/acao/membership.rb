@@ -61,7 +61,7 @@ class Membership < Ygg::PublicModel
     roles = role_models.map(&:symbol)
 
     if person.birth_date
-      age = compute_completed_years(person.birth_date, year_model.renew_opening_time)
+      age = compute_completed_years(person.birth_date, year_model.age_reference_date)
 
       if roles.include?('SPL_INSTRUCTOR')
         if age < 23
@@ -272,6 +272,7 @@ class Membership < Ygg::PublicModel
       membership = Ygg::Acao::Membership.create!(
         member: member,
         reference_year: year_model,
+        year: year_model.year,
         status: 'WAITING_PAYMENT',
         valid_from: Time.now,
         valid_to: (Time.local(year_model.year).end_of_year + 31.days).end_of_day,
@@ -299,6 +300,9 @@ class Membership < Ygg::PublicModel
           Ygg::Acao::MemberService.create!(
             member: member,
             service_type: service_type,
+            service_code: service_type.symbol,
+            name: service_type.name,
+            year: year_model.year,
             valid_from: Time.local(year_model.year).beginning_of_year,
             valid_to: (Time.local(year_model.year).end_of_year + 31.days).end_of_day,
             service_data: service[:extra_info],
