@@ -18,7 +18,7 @@ RSpec.describe Ygg::Acao::Member, type: :model do
     )
   }
 
-  let(:year) {
+  let(:year_model) {
     Ygg::Acao::Year.create!(
       year: time.year,
       renew_announce_time: time.beginning_of_year,
@@ -157,7 +157,8 @@ RSpec.describe Ygg::Acao::Member, type: :model do
       member.memberships.create!(
         valid_from: time.beginning_of_year,
         valid_to: time.end_of_year,
-        reference_year: year,
+        reference_year: year_model,
+        year: year_model.year,
       )
     }
 
@@ -171,6 +172,9 @@ RSpec.describe Ygg::Acao::Member, type: :model do
           valid_from: time.beginning_of_year,
           valid_to: time.end_of_year,
           service_type: service_type_association,
+          service_code: service_type_association.symbol,
+          year: time.year,
+          name: service_type_cav.name,
         )
       }
 
@@ -193,6 +197,9 @@ RSpec.describe Ygg::Acao::Member, type: :model do
             valid_from: time.beginning_of_year,
             valid_to: time.end_of_year,
             service_type: service_type_cav,
+            service_code: service_type_association.symbol,
+            year: time.year,
+            name: service_type_cav.name,
           )
         }
 
