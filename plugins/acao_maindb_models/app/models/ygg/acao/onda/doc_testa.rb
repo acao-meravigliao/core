@@ -68,6 +68,12 @@ class DocTesta < ActiveRecord::Base
         return false
       end
 
+      member = Ygg::Acao::Member.find_by(code: mdb_socio.codice_socio_dati_generale)
+      if !member
+        puts "Member #{msb_socio.codice_socio_dati_generale} non trovato" if debug >= 1
+        return false
+      end
+
       puts "SOCIO = #{mdb_socio.Nome} #{mdb_socio.Cognome} #{mdb_socio.codice_socio_dati_generale}"
 
       righe.each do |riga|
@@ -93,6 +99,8 @@ class DocTesta < ActiveRecord::Base
               iscr.save!
             end
           end
+
+          # Do not add our membership, it has to be requested via online renew
 
         when '0002S' # CAV
         when '0005S' # CAV ridotto
@@ -138,6 +146,27 @@ class DocTesta < ActiveRecord::Base
           mdb_servizio.save!
 
           changed = true
+        end
+
+        # Our services
+
+        service_type = Ygg::Acao::ServiceType.find_by(onda_1_code: riga.CodArt) ||
+                       Ygg::Acao::ServiceType.find_by(onda_2_code: riga.CodArt)
+
+        service = member.services.find_by(year: year, service_type: service_type)
+        if service
+          puts "  SERVICE #{service.service_code} #{service.name} FOUND, nothing to do"
+        else
+          puts "  SERVICE #{service_type.symbol} #{service_type.name} CREATED FROM ONDA!!!"
+          member.services.create!(
+            service_type: service_type,
+            valid_from: Time.now,
+            valid_to: Time.local(year + 1, 1, 31, 23, 59, 59),
+            year: year,
+            service_code: service_type.symbol,
+            name: service_type.name,
+            notes_internal: "Created from invoice #{self.NumeroDocumento}",
+          )
         end
       end
 
