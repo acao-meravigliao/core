@@ -135,6 +135,7 @@ module AcaoCore
         'Ygg::Acao::SatispayProfilePicture',
         'Ygg::Acao::ServiceType',
         'Ygg::Acao::TokenTransaction',
+        'Ygg::Acao::Ticket',
         'Ygg::Acao::WolTarget',
         'Ygg::Core::Location',
         'Ygg::Core::Person::Contact',
@@ -146,6 +147,8 @@ module AcaoCore
         'Ygg::Ml::List',
         'Ygg::Ml::List::Member',
         'Ygg::Ml::Msg',
+        'Ygg::Ml::Msg::Object',
+        'Ygg::Ml::Msg::Event',
       ]
 
       config.rails_vos.routes = {
