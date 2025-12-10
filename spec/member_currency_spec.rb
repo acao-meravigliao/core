@@ -21,8 +21,9 @@ RSpec.describe Ygg::Acao::Member, type: :model do
   let(:year_model) {
     Ygg::Acao::Year.create!(
       year: time.year,
-      renew_announce_time: time.beginning_of_year,
-      late_renewal_deadline: time.end_of_year,
+      renew_announce_time: Time.local(2025,10,26),
+      late_renewal_deadline: Time.local(2026,1,31),
+      age_reference_date: Time.local(2025,10,26),
     )
   }
 
@@ -184,11 +185,11 @@ RSpec.describe Ygg::Acao::Member, type: :model do
       end
 
       it 'has valid association' do
-        expect(subject[:ass][:valid]).to be_truthy
+        expect(subject[:conds][:ass][:value]).to be_truthy
       end
 
       it 'association valid until end of year' do
-        expect(subject[:ass][:until]).to be_within(1).of(time.end_of_year)
+        expect(subject[:conds][:ass][:until]).to be_within(1).of(time.end_of_year)
       end
 
       context 'with CAV' do
@@ -208,7 +209,7 @@ RSpec.describe Ygg::Acao::Member, type: :model do
         end
 
         it 'has valid CAV' do
-          expect(subject[:cav][:valid]).to be_truthy
+          expect(subject[:conds][:cav][:value]).to be_truthy
         end
 
         context 'with one flight as PIC in the last 30 days' do
@@ -217,11 +218,11 @@ RSpec.describe Ygg::Acao::Member, type: :model do
           end
 
           it 'does not indicate three_gld_launches_in_90_days' do
-            expect(subject[:three_gld_launches_in_90_days][:valid]).to be_falsey
+            expect(subject[:conds][:three_gld_launches_in_90_days][:value]).to be_falsey
           end
 
           it 'shows three_gld_launches_in_90_days_until as nil' do
-            expect(subject[:three_gld_launches_in_90_days][:until]).to be_nil
+            expect(subject[:conds][:three_gld_launches_in_90_days][:until]).to be_nil
           end
         end
 
@@ -232,11 +233,11 @@ RSpec.describe Ygg::Acao::Member, type: :model do
           end
 
           it 'does not indicate three_gld_launches_in_90_days' do
-            expect(subject[:three_gld_launches_in_90_days][:valid]).to be_falsey
+            expect(subject[:conds][:three_gld_launches_in_90_days][:value]).to be_falsey
           end
 
           it 'shows three_gld_launches_in_90_days_until as nil' do
-            expect(subject[:three_gld_launches_in_90_days][:until]).to be_nil
+            expect(subject[:conds][:three_gld_launches_in_90_days][:until]).to be_nil
           end
         end
 
@@ -248,11 +249,11 @@ RSpec.describe Ygg::Acao::Member, type: :model do
           end
 
           it 'does not indicate three_gld_launches_in_90_days' do
-            expect(subject[:three_gld_launches_in_90_days][:valid]).to be_falsey
+            expect(subject[:conds][:three_gld_launches_in_90_days][:value]).to be_falsey
           end
 
           it 'shows three_gld_launches_in_90_days_until as nil' do
-            expect(subject[:three_gld_launches_in_90_days][:until]).to be_nil
+            expect(subject[:conds][:three_gld_launches_in_90_days][:until]).to be_nil
           end
         end
 
@@ -264,11 +265,11 @@ RSpec.describe Ygg::Acao::Member, type: :model do
           end
 
           it 'does not indicate three_gld_launches_in_90_days' do
-            expect(subject[:three_gld_launches_in_90_days][:valid]).to be_falsey
+            expect(subject[:conds][:three_gld_launches_in_90_days][:value]).to be_falsey
           end
 
           it 'shows three_gld_launches_in_90_days_until as nil' do
-            expect(subject[:three_gld_launches_in_90_days][:until]).to be_nil
+            expect(subject[:conds][:three_gld_launches_in_90_days][:until]).to be_nil
           end
         end
 
@@ -280,11 +281,11 @@ RSpec.describe Ygg::Acao::Member, type: :model do
           end
 
           it 'does indicate three_gld_launches_in_90_days' do
-            expect(subject[:three_gld_launches_in_90_days][:valid]).to be_truthy
+            expect(subject[:conds][:three_gld_launches_in_90_days][:value]).to be_truthy
           end
 
           it 'shows three_gld_launches_in_90_days_until as close to 2025-12-14' do
-            expect(subject[:three_gld_launches_in_90_days][:until]).to be_within(2).of(Time.local(2025, 12, 15))
+            expect(subject[:conds][:three_gld_launches_in_90_days][:until]).to be_within(2).of(Time.local(2025, 12, 15))
           end
         end
 
