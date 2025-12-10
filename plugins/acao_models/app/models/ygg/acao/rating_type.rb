@@ -13,10 +13,17 @@ module Acao
 class RatingType < Ygg::PublicModel
   self.table_name = 'acao.rating_types'
 
-  include Ygg::Core::Loggable
-  define_default_log_controller(self)
+  has_many :ratings,
+           class_name: '::Ygg::Acao::License::Rating'
+
+  has_many :licenses,
+           class_name: '::Ygg::Acao::License',
+           through: :ratings
 
   gs_rel_map << { from: :rating_type, to: :rating, to_cls: 'Ygg::Acao::License::Rating', to_key: 'rating_type_id', }
+
+  include Ygg::Core::Loggable
+  define_default_log_controller(self)
 end
 
 end
