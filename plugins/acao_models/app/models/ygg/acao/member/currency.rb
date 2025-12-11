@@ -155,9 +155,9 @@ module Currency
       to: lambda { mship_franges.select { |x| x.include?(time) }.map(&:end).max },
     )
 
-    services = active_services(time: time).joins(:service_type)
+    svcs = services.joins(:service_type)
 
-    asses = services.where(service_type: { is_association: true })
+    asses = svcs.where(service_type: { is_association: true })
     ass_ranges = RangeArray.new(asses.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
     ass_franges = ass_ranges.flatten
 
@@ -167,7 +167,7 @@ module Currency
       to: lambda { ass_franges.select { |x| x.include?(time) }.map(&:end).max },
     )
 
-    cavs = services.where(service_type: { is_cav: true })
+    cavs = svcs.where(service_type: { is_cav: true })
     cav_ranges = RangeArray.new(cavs.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
     cav_franges = cav_ranges.flatten
 
@@ -178,7 +178,7 @@ module Currency
     )
 
 
-    caas = services.where(service_type: { symbol: 'CAA' })
+    caas = svcs.where(service_type: { symbol: 'CAA' })
     caa_ranges = RangeArray.new(caas.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
     caa_franges = caa_ranges.flatten
 
@@ -188,7 +188,7 @@ module Currency
       to: lambda { caa_franges.select { |x| x.include?(time) }.map(&:end).max },
     )
 
-    caps = services.where(service_type: { symbol: 'CAP' })
+    caps = svcs.where(service_type: { symbol: 'CAP' })
     cap_ranges = RangeArray.new(caps.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
     cap_franges = cap_ranges.flatten
 
