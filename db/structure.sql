@@ -2949,7 +2949,9 @@ CREATE TABLE ml.addresses (
     validated boolean DEFAULT false NOT NULL,
     validated_at timestamp without time zone,
     reliable boolean DEFAULT true NOT NULL,
-    reliability_score integer DEFAULT 100 NOT NULL
+    reliability_score integer DEFAULT 100 NOT NULL,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone
 );
 
 
@@ -9327,6 +9329,7 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251212114107'),
 ('20251207222248'),
 ('20251207000354'),
 ('20251206201951'),
