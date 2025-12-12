@@ -25,8 +25,25 @@ class Email < Ygg::PublicModel
   gs_rel_map << { from: :email, to: :person, to_cls: '::Ygg::Core::Person', from_key: 'person_id' }
   gs_rel_map << { from: :email, to: :ml_address, to_cls: '::Ygg::Ml::Address', from_key: 'ml_address_id' }
 
+  after_create do
+    ml_address_with_create
+  end
+
   def ml_address_with_create
-    ml_address || create_ml_address(addr: email, addr_type: 'EMAIL', name: person.name)
+    ml_address || lookup_or_create_ml_address
+  end
+
+  def lookup_or_create_ml_address
+    ml_addr = Ygg::Ml::Address.find_by(addr: email, addr_type: 'EMAIL')
+    if ml_addr
+      ml_addr.name = person.name
+      ml_addr.save!
+      self.ml_address = ml_addr
+      save!
+    else
+      create_ml_address(addr: email, addr_type: 'EMAIL', name: person.name)
+      save!
+    end
   end
 
   def start_validation!
