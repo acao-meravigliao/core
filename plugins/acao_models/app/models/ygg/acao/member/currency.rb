@@ -58,13 +58,15 @@ module Currency
       cur = evaluate_operand(ex.shift)
       until ex.empty? do
         op = ex.shift
+        val = ex.shift
+
+        # Evaluate operand anyway
+        opnd = evaluate_operand(val)
 
         if op == :AND
-          val = ex.shift
-          cur = cur && evaluate_operand(val)
+          cur = cur && opnd
         elsif op == :OR
-          val = ex.shift
-          cur = cur || evaluate_operand(val)
+          cur = cur || opnd
         else
           raise "Unknown operator '#{op}'"
         end
@@ -571,7 +573,7 @@ module Currency
           :tmg_endorsment, :AND, [
             :twelve_gld_or_tmg_hours_in_24_months, :AND,
             :six_tmg_hours_in_24_months, :AND,
-            :twelve_tmg_launches_in_24_months,
+            :twelve_tmg_launches_in_24_months, :AND,
             :one_tmg_training_flight_in_24_months,
           ], :OR, :one_tmg_proficiency_flight_in_24_months
         ]
