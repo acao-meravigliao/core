@@ -93,6 +93,8 @@ class Msg < Ygg::PublicModel
   def sending_permanent_failure!(reason: nil)
     events.create(at: Time.now, event: 'FAILED')
 
+    recipient.delivery_failed!
+
     self.status_reason = reason
     self.status = 'FAILED'
     save!
@@ -111,6 +113,9 @@ class Msg < Ygg::PublicModel
 
     self.status = 'ASSUMED_DELIVERED'
     self.delivery_successful_at = Time.now
+
+    recipient.delivery_successful!
+
     save!
   end
 

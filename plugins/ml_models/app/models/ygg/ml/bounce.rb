@@ -82,9 +82,9 @@ class Bounce < Ygg::PublicModel
       attrs[attr_name] = attr[0..col.limit] if attr && col && col.type == :string && col.limit
     end
 
-    bounce = Ygg::Ml::Bounce.create(attrs)
+    bounce = Ygg::Ml::Bounce.create!(attrs)
 
-    bounce.msg.bounce_received(bounce) if bounce.msg
+    bounce.msg.bounce_received!(bounce) if bounce.msg
   end
 
   def self.handle_dsn(m:, bounce_attrs:)
@@ -119,16 +119,18 @@ class Bounce < Ygg::PublicModel
       recipient = nil
 
       if per_rec[:original_recipient]
-        recipient ||= msg.rcpts.find_by(addr: per_rec[:original_recipient].to_s.split(';')[1].strip)
+        recipient ||= (per_rec[:original_recipient] == msg.recipient.addr) ? msg.recipient : nil
+        #recipient ||= msg.rcpts.find_by(addr: per_rec[:original_recipient].to_s.split(';')[1].strip)
       end
 
       if per_rec[:final_recipient]
-        recipient ||= msg.rcpts.find_by(addr: per_rec[:final_recipient].to_s.split(';')[1].strip)
+        recipient ||= (per_rec[:final_recipient] == msg.recipient.addr) ? msg.recipient : nil
+        #recipient ||= msg.rcpts.find_by(addr: per_rec[:final_recipient].to_s.split(';')[1].strip)
       end
 
       if recipient && per_rec[:action]
         if per_rec[:action].to_s == 'failed'
-          recipient.bounce_received!
+          recipient.dailvery_failed!
           recipient.save!
         end
       end

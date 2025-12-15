@@ -36,13 +36,25 @@ class Address < Ygg::PublicModel
   gs_rel_map << { from: :address, to: :validation, to_cls: '::Ygg::Ml::Address::Validation', to_key: 'address_id' }
   gs_rel_map << { from: :recipient, to: :message, to_cls: '::Ygg::Ml::Msg', to_key: 'recipient_id' }
 
-  def bounce_received!
+  def delivery_failed!
     self.failed_deliveries += 1
     self.reliability_score = self.reliability_score * 0.7
 
-    if reliability_score < 0.3
+    if reliability_score < 30
       self.reliable = false
     end
+
+    save!
+  end
+
+  def delivery_successful!
+    self.reliability_score = [ self.reliability_score * 1.3, 100 ].min
+
+    if reliability_score > 80
+      self.reliable = true
+    end
+
+    save!
   end
 
   def start_validation!(person:)

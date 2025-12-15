@@ -104,51 +104,66 @@ class Msg::Email < Ygg::Ml::Msg
 
       sending_attempted!
 
-      if !Rails.application.config.ml.email_disabled
-        pars = (sender.email_smtp_pars || Rails.application.config.ml.email_smtp_pars).symbolize_keys
-        pars.merge!(
-          debug: Rails.application.config.ml.email_debug,
-          idle_timeout: 10.seconds,
-        )
-
-        client = nil
-
-        begin
-          client = AM::SMTP::Client.new(**pars)
-        rescue AM::ActorRegistry::ActorExists => e
-          client = e.existing_actor
-        end
-
-        smtp_sender = ::Mail::Address.new(sender.email_address).address
-        smtp_recipients = [ { to: recipient.addr, ext: [ 'NOTIFY=SUCCESS,FAILURE,DELAY' ] } ]
-
-        if Rails.application.config.ml.email_also_bcc && !Rails.application.config.ml.email_also_bcc.empty?
-          if Rails.application.config.ml.email_also_bcc.is_a?(Array)
-            smtp_recipients += { to: Rails.application.config.ml.email_also_bcc, ext: [] }
-          else
-            smtp_recipients << { to: Rails.application.config.ml.email_also_bcc, ext: [] }
-          end
-        end
-
-        if Rails.application.config.ml.email_redirect_to
-          smtp_recipients = [ { to: Rails.application.config.ml.email_redirect_to, ext: [] } ]
-        end
-
-        begin
-          res = client.ask(AM::SMTP::Client::MsgDeliver.new(
-            from: email_message_id + '@' + sender.email_bounces_domain,
-            from_ext: [ 'RET=HDRS', "ENVID=#{email_message_id}" ],
-            rcpts: smtp_recipients,
-            body: message,
-          )).value
-        rescue AM::SMTP::Client::MsgDeliverFailure => e
-          sending_failed!(reason: e.title)
-          save!
-          return
-        end
-
-        self.email_data_response = res.data_response
+      if Rails.application.config.ml.email_disabled
+        sent!
+        save!
+        return
       end
+    end
+
+    pars = (sender.email_smtp_pars || Rails.application.config.ml.email_smtp_pars).symbolize_keys
+    pars.merge!(
+      debug: Rails.application.config.ml.email_debug,
+      idle_timeout: 10.seconds,
+    )
+
+    client = nil
+
+    begin
+      client = AM::SMTP::Client.new(**pars)
+    rescue AM::ActorRegistry::ActorExists => e
+      client = e.existing_actor
+    end
+
+    smtp_sender = ::Mail::Address.new(sender.email_address).address
+    smtp_recipients = [ { to: recipient.addr, ext: [ 'NOTIFY=SUCCESS,FAILURE,DELAY' ] } ]
+
+    if Rails.application.config.ml.email_also_bcc && !Rails.application.config.ml.email_also_bcc.empty?
+      if Rails.application.config.ml.email_also_bcc.is_a?(Array)
+        smtp_recipients += { to: Rails.application.config.ml.email_also_bcc, ext: [] }
+      else
+        smtp_recipients << { to: Rails.application.config.ml.email_also_bcc, ext: [] }
+      end
+    end
+
+    if Rails.application.config.ml.email_redirect_to
+      smtp_recipients = [ { to: Rails.application.config.ml.email_redirect_to, ext: [] } ]
+    end
+
+    begin
+      res = client.ask(AM::SMTP::Client::MsgDeliver.new(
+        from: email_message_id + '@' + sender.email_bounces_domain,
+        from_ext: [ 'RET=HDRS', "ENVID=#{email_message_id}" ],
+        rcpts: smtp_recipients,
+        body: message,
+      )).value
+    rescue AM::SMTP::Client::MsgDeliverFailure => e
+      transaction do
+        if e.response_code.start_with?('5') ||
+           e.response_code == '452'
+          sending_permanent_failure!(reason: e.title)
+        else
+          sending_failed!(reason: e.title)
+        end
+
+        save!
+      end
+
+      return
+    end
+
+    transaction do
+      self.email_data_response = res.data_response
 
       sent!
       save!
@@ -288,7 +303,7 @@ class Msg::Email < Ygg::Ml::Msg
     msg
   end
 
-  def bounce_received(bounce)
+  def bounce_received!(bounce)
     logger.info "Received bounce for message id=#{email_message_id} for original_recipient=#{bounce.original_recipient}"
 
     if bounce.original_recipient != recipient.addr
