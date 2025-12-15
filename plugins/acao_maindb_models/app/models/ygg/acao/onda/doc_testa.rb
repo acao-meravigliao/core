@@ -55,7 +55,13 @@ class DocTesta < ActiveRecord::Base
 
       puts "-----------------------------------------------------------------------------------" if debug >= 1
 
-      year = Ygg::Acao::Year.renewal_year.year
+      year = nil
+      year_model = Ygg::Acao::Year.find_by(year: self.DataDocumento.year)
+      if self.DataDocumento > year_model.age_reference_date
+        year = year_model.year + 1
+      else
+        year = year_model.year
+      end
 
       puts "DOCUMENTO NUMERO=#{self.NumeroDocumento} TIPO=#{self.TipoDocumento} #{self.DataDocumento}" if debug >= 1
 
