@@ -443,7 +443,7 @@ module Currency
     conds << Condition.new(
       name: :acao_recency,
       value: flights_in_90_days.count >= 1,
-      to: lambda { flights_in_90_days.last.takeoff_time.getlocal.end_of_day + 90.days },
+      to: lambda { flights_in_90_days.first(3).first.takeoff_time.getlocal.end_of_day + 90.days },
     )
 
     # SFCL.115(a)(2)(ii)(A)
