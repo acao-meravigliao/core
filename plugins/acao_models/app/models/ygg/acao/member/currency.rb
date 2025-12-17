@@ -226,13 +226,19 @@ module Currency
 
     # Compute specific selections
     pic_or_dual_flights_in_24_months =
-      pic_or_dual_flights_in_enlarged_24_months.select { |x| x.takeoff_time > calendar_24_month_window }
+      pic_or_dual_flights_in_enlarged_24_months.select { |x|
+        x.takeoff_time > calendar_24_month_window &&
+        x.takeoff_time < time
+      }
 
     pic_or_dual_gld_flights_in_enlarged_24_months =
       pic_or_dual_flights_in_enlarged_24_months.select { |x| x.aircraft_class == 'GLD' }
 
     pic_or_dual_gld_flights_in_24_months =
-      pic_or_dual_gld_flights_in_enlarged_24_months.select { |x| x.takeoff_time > calendar_24_month_window }
+      pic_or_dual_gld_flights_in_enlarged_24_months.select { |x|
+        x.takeoff_time > calendar_24_month_window &&
+        x.takeoff_time < time
+      }
 
     pic_or_dual_tmg_flights_in_24_months =
       pic_or_dual_flights_in_enlarged_24_months.select { |x| x.aircraft_class == 'TMG' }
@@ -240,13 +246,15 @@ module Currency
     pic_or_dual_gld_flights_in_90_days = pic_or_dual_gld_flights_in_enlarged_24_months.
       select { |x|
         ([ 'PIC', 'PICUS', 'DUAL', 'FI_PIC', 'FI', 'FE' ].include?(x.pilot1_role)) &&
-        x.takeoff_time > ninety_days_window
+        x.takeoff_time > ninety_days_window &&
+        x.takeoff_time < time
       }
 
     pic_or_dual_tmg_flights_in_90_days = pic_or_dual_tmg_flights_in_24_months.
       select { |x|
         ([ 'PIC', 'PICUS', 'DUAL', 'FI_PIC', 'FI', 'FE' ].include?(x.pilot1_role)) &&
-        x.takeoff_time > ninety_days_window
+        x.takeoff_time > ninety_days_window &&
+        x.takeoff_time < time
       }
 
     # Some stats
@@ -385,8 +393,8 @@ module Currency
 
     conds << Condition.new(
       name: :five_winches_in_24_months,
-      value: last_5_winches_in_24_months.count >= 15,
-      to: lambda { last_5_winches_in_24_months.last.takeoff_time.getlocal.end_of_day + 24.months },
+      value: last_5_winches_in_24_months.count >= 5,
+      to: lambda { last_5_winches_in_24_months.first(5).last.takeoff_time.getlocal.end_of_day + 24.months },
     )
 
     last_5_sl_in_24_months = pic_or_dual_gld_flights_in_24_months.select { |x| x.launch_type == 'SL' }.first(5)
@@ -394,7 +402,7 @@ module Currency
     conds << Condition.new(
       name: :five_sl_in_24_months,
       value: last_5_sl_in_24_months.count >= 5,
-      to: lambda { last_5_sl_in_24_months.last.takeoff_time.getlocal.end_of_day + 24.months },
+      to: lambda { last_5_sl_in_24_months.first(5).last.takeoff_time.getlocal.end_of_day + 24.months },
     )
 
     pic_or_dual_sl_or_tmg_flights_in_24_months =
@@ -408,26 +416,29 @@ module Currency
     conds << Condition.new(
       name: :five_sl_or_tmg_in_24_months,
       value: last_5_sl_or_tmg_in_24_months.count >= 5,
-      to: lambda { last_5_sl_or_tmg_in_24_months.last.takeoff_time.getlocal.end_of_day + 24.months },
+      to: lambda { last_5_sl_or_tmg_in_24_months.first(5).last.takeoff_time.getlocal.end_of_day + 24.months },
     )
 
     # SFCL.160(e)(1)
     conds << Condition.new(
       name: :three_gld_launches_in_90_days,
       value: pic_or_dual_gld_flights_in_90_days.count >= 3,
-      to: lambda { pic_or_dual_gld_flights_in_90_days.last.takeoff_time.getlocal.end_of_day + 90.days },
+      to: lambda { pic_or_dual_gld_flights_in_90_days.first(3).last.takeoff_time.getlocal.end_of_day + 90.days },
     )
 
     # SFCL.160(e)(2)
     conds << Condition.new(
       name: :three_tmg_launches_in_90_days,
       value:  pic_or_dual_tmg_flights_in_90_days.count >= 3,
-      to: lambda { pic_or_dual_tmg_flights_in_90_days.last.takeoff_time.getlocal.end_of_day + 90.days },
+      to: lambda { pic_or_dual_tmg_flights_in_90_days.first(3).last.takeoff_time.getlocal.end_of_day + 90.days },
     )
 
     # Recency club
     flights_in_90_days = pic_or_dual_flights_in_24_months.
-      select { |x| x.takeoff_time > ninety_days_window }
+      select { |x|
+        x.takeoff_time > ninety_days_window &&
+        x.takeoff_time < time
+      }
 
     conds << Condition.new(
       name: :acao_recency,
