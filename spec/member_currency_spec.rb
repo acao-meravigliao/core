@@ -144,7 +144,7 @@ RSpec.describe Ygg::Acao::Member, type: :model do
   }
 
   subject {
-    member.compute_currency
+    member.compute_currency(time: time)
   }
 
   context 'without membership' do
