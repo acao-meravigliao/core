@@ -10,35 +10,6 @@ module Ygg
 module Acao
 
 class RosterDay::VosController < Ygg::Hel::VosBaseController
-  def create(body:, **)
-    ensure_authenticated!
-    raise AuthorizationError unless session.has_global_roles?(:superuser)
-
-    new_obj = nil
-
-    ds.tell(::AM::GrafoStore::Store::MsgObjectCreate.new(
-      obj: new_obj,
-    ))
-  end
-
-  def update(obj:, body:, **)
-    ensure_authenticated!
-    raise AuthorizationError unless session.has_global_roles?(:superuser)
-
-    upd = {
-      high_season: body[:high_season],
-      needed_people: body[:needed_people],
-    }
-
-    ds.tell(::AM::GrafoStore::Store::MsgObjectUpdate.new(
-      id: obj.id,
-      vals: upd,
-    ))
-  end
-
-  def destroy(obj:, **)
-    ds.tell(::AM::GrafoStore::Store::MsgObjectDestroy.new(id: obj.id))
-  end
 
   def compute_stats(**)
     ensure_authenticated!
