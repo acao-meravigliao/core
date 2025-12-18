@@ -449,8 +449,11 @@ class Server
 
       ar_objs = {}
       ar_objs_to_save = Set.new
+      ar_objs_to_destroy = Set.new
+      fks_to_update = {}
 
       Ygg::Core::Transaction.new('Web Operation') do
+
         @xact.each do |xm|
           case xm
           when AM::GrafoStore::Store::MsgObjectCreated
@@ -476,7 +479,7 @@ class Server
             ar_obj = ar_objs[xm.obj.id] || xm.obj.class.ar_class.find_by(id: xm.obj.id)
             if ar_obj
               ar_objs_to_save.delete(ar_obj)
-              ar_obj.destroy
+              ar_objs_to_destroy << ar_obj
             end
 
           when AM::GrafoStore::Store::MsgRelationCreated
@@ -488,21 +491,16 @@ class Server
             [ ar_obj_a, ar_obj_b ].compact.each do |ar_obj|
               # We should now search into gs_rel_map(s) to find if this relation matches any of them
 
-              reldef = ar_obj.class.gs_rel_map.find { |x|
-                xm.rel.match?(a: ar_obj.id, a_as: x[:from], b_as: x[:to])
-              }
+              if !ar_objs_to_destroy.include?(ar_obj)
+                reldef = ar_obj.class.gs_rel_map.find { |x|
+                  xm.rel.match?(a: ar_obj.id, a_as: x[:from], b_as: x[:to])
+                }
 
-              if reldef
+                raise "Missing reldef in #{ar_obj} ???" if !reldef
+
                 if reldef[:from_key]
-                  ar_obj.send("#{reldef[:from_key]}=", xm.rel.orient(a_as: reldef[:from]).b)
-                  ar_objs_to_save << ar_obj
-                  break
-                else
-                  fk = xm.rel.orient(b_as: reldef[:to]).b
-                  oth_model = ar_objs[fk] ||= reldef[:to_cls].constantize.find(fk)
-                  oth_model.send("#{reldef[:to_key]}=", xm.rel.orient(a_as: reldef[:from]).a);
-                  ar_objs_to_save << oth_model
-                  break
+                  fk = fks_to_update["#{ar_obj.id},#{reldef[:from_key]}"] ||= [ ar_obj, reldef[:from_key] ]
+                  fk[2] = xm.rel.orient(a_as: reldef[:from]).b
                 end
               end
             end
@@ -516,31 +514,51 @@ class Server
             ar_obj_b = ar_objs[xm.rel.b] ||= xm.b.class.ar_class.find(xm.rel.b)
 
             [ ar_obj_a, ar_obj_b ].compact.each do |ar_obj|
-              # We should now search into gs_rel_map(s) to find if this relation matches any of them
+              if !ar_objs_to_destroy.include?(ar_obj)
+                # We should now search into gs_rel_map(s) to find if this relation matches any of them
 
-              reldef = ar_obj.class.gs_rel_map.find { |x|
-                xm.rel.match?(a: ar_obj.id, a_as: x[:from], b_as: x[:to])
-              }
+                reldef = ar_obj.class.gs_rel_map.find { |x|
+                  xm.rel.match?(a: ar_obj.id, a_as: x[:from], b_as: x[:to])
+                }
 
-              if reldef
+                raise "Missing reldef in #{ar_obj} ???" if !reldef
+
                 if reldef[:from_key]
-                  ar_obj.send("#{reldef[:from_key]}=", nil)
-                  ar_objs_to_save << ar_obj
-                  break
-                else
-                  fk = xm.rel.orient(b_as: reldef[:to]).b
-                  oth_model = ar_objs[fk] ||= reldef[:to_cls].constantize.find(fk)
-                  oth_model.send("#{reldef[:to_key]}=", nil);
-                  ar_objs_to_save << oth_model
-                  break
+                  fk = fks_to_update["#{ar_obj.id},#{reldef[:from_key]}"]
+                  if !fk
+                    fks_to_update["#{ar_obj.id},#{reldef[:from_key]}"] ||= [ ar_obj, reldef[:from_key], nil ]
+                  end
                 end
               end
             end
           end
         end
 
+        #puts "=================================================="
+        #puts "OBJS TO DESTROY = #{ar_objs_to_destroy}"
+        #puts "OBJS TO SAVE = #{ar_objs_to_save}"
+        #puts "FK TO UPDATE=#{fks_to_update.inspect}"
+
+        fks_to_update.each do |k, fk|
+          if !ar_objs_to_destroy.include?(fk[0])
+            ar_objs_to_save << fk[0]
+            fk[0].send("#{fk[1]}=", fk[2]);
+          end
+        end
+
+        ar_objs_to_destroy.each do |obj|
+          obj.destroy
+        end
+
         ar_objs_to_save.each do |obj|
-          obj.save!
+          begin
+            obj.save!
+          rescue ActiveRecord::RecordInvalid => e
+            puts "EEEEEEEEEEEEEEEEEEEEEEEEEE #{e.record} #{e.record.errors.inspect}"
+
+            # TODO: report error to am-vos
+            raise
+          end
         end
       end
 
