@@ -1199,8 +1199,11 @@ class Member < Ygg::PublicModel
       r: access_remotes,
       l_cmp_r: lambda { |l,r| l.tag.downcase <=> r.symbol },
       l_to_r: lambda { |l|
-        puts "ACCESS_REMOTE ADD #{r.inspect}" if debug >= 2
-        Ygg::Acao::AccessRemote.find_by(symbol: l.tag.downcase).update(member_id: id)
+        puts "ACCESS_REMOTE ADD #{l.inspect}" if debug >= 2
+        rem = Ygg::Acao::AccessRemote.find_by(symbol: l.tag.downcase)
+        raise "Cannot find remote '#{l.tag.downcase}' from #{l.inspect}" if !rem
+
+        rem.update(member_id: id)
       },
       r_to_l: lambda { |r|
         puts "ACCESS_REMOTE REMOVE #{r.inspect}" if debug >= 2
