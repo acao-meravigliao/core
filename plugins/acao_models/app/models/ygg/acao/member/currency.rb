@@ -22,7 +22,8 @@ module Currency
       @name = name
       @value = value
       @deps = Set.new
-      @until = (@value && to) ? to.call : nil
+      @to = to
+      @until = nil
     end
 
     def value
@@ -44,7 +45,10 @@ module Currency
         raise "Missing condition #{o}" if !cond
 
         @deps << o
-        @until = [ @until, cond.until ].compact.min
+
+        if cond.value
+          @until = [ @until, cond.until ].compact.min
+        end
 
         cond.value
       end
@@ -82,8 +86,9 @@ module Currency
     end
 
     def until
-      value
-      @until
+      value ?
+        (@to ? @to.call : @until) :
+        nil
     end
 
     def to_s
@@ -219,56 +224,73 @@ module Currency
     ninety_days_window = (time - 90.days).beginning_of_day
 
     # Select all the relevant flights
+    p1_flights = flights.where(pilot1_role: [ 'PIC', 'PICUS', 'FI_PIC', 'DUAL', 'FI', 'FE' ])
+    p2_flights = flights_as_pilot2.where(pilot2_role: [ 'PIC', 'PICUS', 'FI_PIC', 'DUAL', 'FI', 'FE' ])
+
     pic_or_dual_flights_in_enlarged_24_months =
-      flights.where('takeoff_time > ?', currency_months_start_from).
-              where(pilot1_role: [ 'PIC', 'PICUS', 'FI_PIC', 'DUAL', 'FI', 'FE' ]).
+      p1_flights.or(p2_flights).
+              where(takeoff_time: currency_months_start_from .. time).
               order(takeoff_time: 'DESC')
 
     # Compute specific selections
     pic_or_dual_flights_in_24_months =
       pic_or_dual_flights_in_enlarged_24_months.select { |x|
-        x.takeoff_time > calendar_24_month_window &&
-        x.takeoff_time < time
+        x.takeoff_time > calendar_24_month_window
       }
 
     pic_or_dual_gld_flights_in_enlarged_24_months =
-      pic_or_dual_flights_in_enlarged_24_months.select { |x| x.aircraft_class == 'GLD' }
+      pic_or_dual_flights_in_enlarged_24_months.select { |x|
+        x.aircraft_class == 'GLD'
+      }
 
     pic_or_dual_gld_flights_in_24_months =
       pic_or_dual_gld_flights_in_enlarged_24_months.select { |x|
-        x.takeoff_time > calendar_24_month_window &&
-        x.takeoff_time < time
+        x.takeoff_time > calendar_24_month_window
       }
 
     pic_or_dual_tmg_flights_in_24_months =
-      pic_or_dual_flights_in_enlarged_24_months.select { |x| x.aircraft_class == 'TMG' }
+      pic_or_dual_flights_in_24_months.select { |x|
+        x.aircraft_class == 'TMG'
+      }
 
-    pic_or_dual_gld_flights_in_90_days = pic_or_dual_gld_flights_in_enlarged_24_months.
+    pic_or_dual_sep_flights_in_24_months =
+      pic_or_dual_flights_in_24_months.select { |x|
+        x.aircraft_class == 'SEP'
+      }
+
+    pic_or_dual_gld_flights_in_90_days = pic_or_dual_gld_flights_in_24_months.
       select { |x|
-        ([ 'PIC', 'PICUS', 'DUAL', 'FI_PIC', 'FI', 'FE' ].include?(x.pilot1_role)) &&
-        x.takeoff_time > ninety_days_window &&
-        x.takeoff_time < time
+        x.takeoff_time > ninety_days_window
       }
 
     pic_or_dual_tmg_flights_in_90_days = pic_or_dual_tmg_flights_in_24_months.
       select { |x|
-        ([ 'PIC', 'PICUS', 'DUAL', 'FI_PIC', 'FI', 'FE' ].include?(x.pilot1_role)) &&
-        x.takeoff_time > ninety_days_window &&
-        x.takeoff_time < time
+        x.takeoff_time > ninety_days_window
+      }
+
+    pic_or_dual_sep_flights_in_90_days = pic_or_dual_sep_flights_in_24_months.
+      select { |x|
+        x.takeoff_time > ninety_days_window
       }
 
     # Some stats
     gld_hours_in_24_months = pic_or_dual_gld_flights_in_24_months.sum { |x| x.landing_time - x.takeoff_time }
     gld_launches_in_24_months = pic_or_dual_gld_flights_in_24_months.count
 
-    tmg_hours_in_24_months = pic_or_dual_tmg_flights_in_24_months.sum { |x| x.landing_time - x.takeoff_time }
-    tmg_launches_in_24_months = pic_or_dual_tmg_flights_in_24_months.count
-
     gld_hours_in_90_days = pic_or_dual_gld_flights_in_90_days.sum { |x| x.landing_time - x.takeoff_time }
     gld_launches_in_90_days = pic_or_dual_gld_flights_in_90_days.count
 
+    tmg_hours_in_24_months = pic_or_dual_tmg_flights_in_24_months.sum { |x| x.landing_time - x.takeoff_time }
+    tmg_launches_in_24_months = pic_or_dual_tmg_flights_in_24_months.count
+
     tmg_hours_in_90_days = pic_or_dual_tmg_flights_in_90_days.sum { |x| x.landing_time - x.takeoff_time }
     tmg_launches_in_90_days = pic_or_dual_tmg_flights_in_90_days.count
+
+    sep_hours_in_24_months = pic_or_dual_sep_flights_in_24_months.sum { |x| x.landing_time - x.takeoff_time }
+    sep_launches_in_24_months = pic_or_dual_sep_flights_in_24_months.count
+
+    sep_hours_in_90_days = pic_or_dual_sep_flights_in_90_days.sum { |x| x.landing_time - x.takeoff_time }
+    sep_launches_in_90_days = pic_or_dual_sep_flights_in_90_days.count
 
     # SFCL.160(a)
     flights_amounting_5_gld_hours_in_24_months = []
@@ -448,16 +470,17 @@ module Currency
 
     # SFCL.115(a)(2)(ii)(A)
     pic_flights = pic_or_dual_gld_flights_in_enlarged_24_months.
-                  select { |x| [ 'PIC', 'PICUS', 'FI_PIC' ].include?(x.pilot1_role) }
+                  select { |x| [ 'PIC', 'PICUS', 'FI_PIC' ].include?(x.role_for(self)) }
 
     pic_hours = pic_flights.sum { |x| x.landing_time - x.takeoff_time }
 
     ten_hours_as_pic = if pic_hours >= 10.hours
       true
     else
-      total_time_as_pic = flights.where(aircraft_class: 'GLD').
-                                  where(pilot1_role: [ 'PIC', 'PICUS','FI_PIC' ]).
-                                  sum('landing_time - takeoff_time')
+      total_time_as_pic = (flights.where(pilot1_role: [ 'PIC', 'PICUS', 'FI_PIC' ]).
+                           or(flights_as_pilot2.where(pilot2_role: [ 'PIC', 'PICUS', 'FI_PIC' ]))).
+                             where(aircraft_class: 'GLD').
+                             sum('landing_time - takeoff_time')
 
       total_time_as_pic >= 10.hours
     end
@@ -471,9 +494,10 @@ module Currency
     thirty_launches_as_pic = if pic_flights.count >= 30
       true
     else
-      launches_as_pic = flights.where(aircraft_class: 'GLD').
-                                where(pilot1_role: [ 'PIC', 'PICUS', 'FI_PIC' ]).
-                                count
+      launches_as_pic = (flights.where(pilot1_role: [ 'PIC', 'PICUS','FI_PIC' ]).
+                           or(flights_as_pilot2.where(pilot2_role: [ 'PIC', 'PICUS','FI_PIC' ]))).
+                             where(aircraft_class: 'GLD').
+                             count
 
       launches_as_pic >= 30
     end
@@ -911,12 +935,16 @@ module Currency
     currency = {
       gld_launches_in_24_months: gld_launches_in_24_months,
       gld_hours_in_24_months: gld_hours_in_24_months,
-      tmg_launches_in_24_months: tmg_launches_in_24_months,
-      tmg_hours_in_24_months: tmg_hours_in_24_months,
       gld_launches_in_90_days: gld_launches_in_90_days,
       gld_hours_in_90_days: gld_hours_in_90_days,
+      tmg_launches_in_24_months: tmg_launches_in_24_months,
+      tmg_hours_in_24_months: tmg_hours_in_24_months,
       tmg_launches_in_90_days: tmg_launches_in_90_days,
       tmg_hours_in_90_days: tmg_hours_in_90_days,
+      sep_launches_in_24_months: sep_launches_in_24_months,
+      sep_hours_in_24_months: sep_hours_in_24_months,
+      sep_launches_in_90_days: sep_launches_in_90_days,
+      sep_hours_in_90_days: sep_hours_in_90_days,
       conds: conds_json,
       matrix_conds: matrix_conds,
     }

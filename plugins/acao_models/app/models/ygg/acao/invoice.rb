@@ -134,6 +134,8 @@ class Invoice < Ygg::PublicModel
       ##tt = Ygg::Acao::TokenTransaction.where('recorded_at BETWEEN ? AND ?',
       ##       invoice.recorded_at.beginning_of_year, invoice.recorded_at.ending_of_year).where('descr LIKE \'%?%\'', invoice.identifier)
 
+      # TODO: Associate MemberService with this invoice
+
       invoice.save!
     },
     r_to_l: lambda { |r|
@@ -174,6 +176,7 @@ class Invoice < Ygg::PublicModel
       )
 
       # TODO: Associate TokenTransactions with this invoice
+      # TODO: Associate MemberService with this invoice
 
       if r.deep_changed? || force
         r.details.destroy_all

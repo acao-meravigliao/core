@@ -657,6 +657,10 @@ class Flight < Ygg::PublicModel
     dt.to_a[0..2] == [0,0,0] ? nil : ActiveSupport::TimeZone.new('Europe/Rome').local_to_utc(dt)
   end
 
+  def role_for(member)
+    pilot1_id == member.id ? pilot1_role : (pilot2_id == member.id ? pilot2_role : nil)
+  end
+
 end
 
 end
