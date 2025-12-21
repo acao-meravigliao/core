@@ -23,7 +23,7 @@ class Client
     )
   end
 
-  def login(username: Rails.application.config.acao.faac_generic_user, password: Rails.application.secrets.faac_generic_user_password)
+  def login(username: Rails.application.config.acao.faac_generic_user, password: Rails.application.credentials.faac_generic_user_password)
     res = @http.post('keydom/api-external/authentication/login',
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
