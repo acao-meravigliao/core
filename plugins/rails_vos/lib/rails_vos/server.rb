@@ -99,16 +99,18 @@ class ClassMap
 
   end
 
-  def by_gs_class(cls)
-    @by_gs_class[cls]
+  def vos_name_by_gs_class(cls)
+    ce = @by_gs_class[cls]
+    ce ? ce.vos_name : nil
   end
 
   def by_ar_class(cls)
     @by_ar_class[cls]
   end
 
-  def by_vos_name(vos_name)
-    @by_vos_name[vos_name]
+  def gs_class_by_vos_name(vos_name)
+    ce = @by_vos_name[vos_name]
+    ce ? ce.gs_class : nil
   end
 
   def jsonapi_to_class_name(str)
