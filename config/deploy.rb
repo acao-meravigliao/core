@@ -6,6 +6,7 @@ set :shared_dirs, fetch(:shared_dirs, []) + [ ]
 set :shared_files, fetch(:shared_files, []) + [ 'config/database.yml', 'config/credentials.yml.enc', 'config/master.key' ]
 set :repository, 'foobar'
 set :keep_releases, 100
+set :bundle_options, -> { '' }
 set :rsync_excludes, [
   '.git*',
   '/config/database.yml',
@@ -34,8 +35,8 @@ end
 desc 'Does local cleanup'
 task :local_cleanup do
   sh 'rm -r vendor/cache'
-  sh 'bundle config --local with ""'
-  sh 'bundle config --local without ""'
+  sh 'bundle config set --local with ""'
+  sh 'bundle config set --local without ""'
 end
 
 task :staging do
@@ -60,8 +61,9 @@ end
 desc "Deploys the current version to the server."
 task :deploy do
   deploy do
-    sh "bundle config --local with 'production hel_together puma'"
-    sh 'bundle config --local without "development test"'
+    sh "bundle config set --local with 'production hel_together puma'"
+    sh 'bundle config set --local without "development test"'
+    sh 'bundle config set --local deployment \'true\''
     sh 'bundle install --quiet'
     sh 'bundle package'
 
