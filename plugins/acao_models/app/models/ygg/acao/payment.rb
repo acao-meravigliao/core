@@ -103,8 +103,6 @@ class Payment < Ygg::PublicModel
 
   def cancel!
     transaction do
-      lock!
-
       raise "Payment in state #{state} cannot be canceled" if state != 'PENDING'
 
       self.state = 'CANCELED'
