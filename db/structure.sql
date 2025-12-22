@@ -6416,7 +6416,7 @@ CREATE UNIQUE INDEX index_payments_on_identifier ON acao.payments USING btree (i
 -- Name: index_payments_on_invoice_id; Type: INDEX; Schema: acao; Owner: -
 --
 
-CREATE UNIQUE INDEX index_payments_on_invoice_id ON acao.payments USING btree (invoice_id);
+CREATE INDEX index_payments_on_invoice_id ON acao.payments USING btree (invoice_id);
 
 
 --
@@ -9329,6 +9329,7 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251222234350'),
 ('20251212114107'),
 ('20251207222248'),
 ('20251207000354'),
