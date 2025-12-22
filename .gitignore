@@ -20,3 +20,5 @@
 /config/credentials.yml
 /config/credentials.yml.enc
 /config/database.yml
+
+/vendor/bundle
