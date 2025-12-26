@@ -205,7 +205,7 @@ RSpec.describe Ygg::Acao::Membership, type: :model do
       it 'returns ASS_23, no CAV, services' do
         person.update(birth_date: Time.new(2007,12,7))
 
-        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, now: time)
+        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, time: time)
 
         expect(bs).to match_array([
           hash_including({ service_type_id: service_type_ass_23.id }),
@@ -219,7 +219,7 @@ RSpec.describe Ygg::Acao::Membership, type: :model do
       it 'returns ASS_23, no CAV, services' do
         person.update(birth_date: Time.new(2002,12,7))
 
-        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, now: time)
+        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, time: time)
 
         expect(bs).to match_array([
           hash_including({ service_type_id: service_type_ass_23.id }),
@@ -233,7 +233,7 @@ RSpec.describe Ygg::Acao::Membership, type: :model do
       it 'returns ASS_STANDARD, CAV_26, services' do
         person.update(birth_date: Time.new(2001,12,7))
 
-        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, now: time)
+        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, time: time)
 
         expect(bs).to match_array([
           hash_including({ service_type_id: service_type_ass_standard.id }),
@@ -248,7 +248,7 @@ RSpec.describe Ygg::Acao::Membership, type: :model do
       it 'returns ASS_STANDARD, CAV_26, services' do
         person.update(birth_date: Time.new(1999,12,7))
 
-        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, now: time)
+        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, time: time)
 
         expect(bs).to match_array([
           hash_including({ service_type_id: service_type_ass_standard.id }),
@@ -263,7 +263,7 @@ RSpec.describe Ygg::Acao::Membership, type: :model do
       it 'returns ASS_STANDARD, CAV_26, services' do
         person.update(birth_date: Time.new(1998,12,7))
 
-        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, now: time)
+        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, time: time)
 
         expect(bs).to match_array([
           hash_including({ service_type_id: service_type_ass_standard.id }),
@@ -278,7 +278,7 @@ RSpec.describe Ygg::Acao::Membership, type: :model do
       it 'returns ASS_STANDARD, CAV_STANDARD, services' do
         person.update(birth_date: Time.new(1997,12,7))
 
-        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, now: time)
+        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, time: time)
 
         expect(bs).to match_array([
           hash_including({ service_type_id: service_type_ass_standard.id }),
@@ -293,7 +293,7 @@ RSpec.describe Ygg::Acao::Membership, type: :model do
       it 'returns ASS_STANDARD, CAV_STANDARD, services' do
         person.update(birth_date: Time.new(1975,12,7))
 
-        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, now: time)
+        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, time: time)
 
         expect(bs).to match_array([
           hash_including({ service_type_id: service_type_ass_standard.id }),
@@ -308,7 +308,7 @@ RSpec.describe Ygg::Acao::Membership, type: :model do
       it 'returns ASS_STANDARD, CAV_STANDARD, services' do
         person.update(birth_date: Time.new(1950,12,7))
 
-        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, now: time)
+        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, time: time)
 
         expect(bs).to match_array([
           hash_including({ service_type_id: service_type_ass_standard.id }),
@@ -323,7 +323,7 @@ RSpec.describe Ygg::Acao::Membership, type: :model do
       it 'returns ASS_STANDARD, CAV_75, services' do
         person.update(birth_date: Time.new(1949,12,7))
 
-        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, now: time)
+        bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, time: time)
 
         expect(bs).to match_array([
           hash_including({ service_type_id: service_type_ass_standard.id }),

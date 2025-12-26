@@ -208,6 +208,71 @@ class Member < Ygg::PublicModel
     completed_years
   end
 
+  def determine_required_ass_cav(time: Time.now)
+    ass_type = 'ASS_STANDARD'
+
+    role_models = roles_at(time: time)
+    roles = role_models.map(&:symbol)
+    year_model = Ygg::Acao::Year.find_by!(year: time.year)
+
+    if person.birth_date
+      age = compute_completed_years(person.birth_date.beginning_of_day, year_model.age_reference_date)
+
+      if roles.include?('SPL_INSTRUCTOR')
+        if age < 23
+          ass_type = 'ASS_23'
+          cav_type = nil
+        elsif age <= 26
+          ass_type = 'ASS_FI'
+          cav_type = 'CAV_26'
+        elsif age >= 75
+          ass_type = 'ASS_FI'
+          cav_type = 'CAV_75'
+        elsif has_disability
+          # This supposes CAV_DIS is always equal or more expensive than CAV_75 a CAV_26
+          ass_type = 'ASS_FI'
+          cav_type = 'CAV_DIS'
+        else
+          ass_type = 'ASS_FI'
+          cav_type = 'CAV_STANDARD'
+        end
+      else
+        if age < 23
+          ass_type = 'ASS_23'
+          cav_type = nil
+        elsif age <= 26
+          ass_type = 'ASS_STANDARD'
+          cav_type = 'CAV_26'
+        elsif age >= 75
+          ass_type = 'ASS_STANDARD'
+          cav_type = 'CAV_75'
+        elsif has_disability
+          # This supposes CAV_DIS is always equal or more expensive than CAV_75 a CAV_26
+          ass_type = 'ASS_STANDARD'
+          cav_type = 'CAV_DIS'
+        else
+          ass_type = 'ASS_STANDARD'
+          cav_type = 'CAV_STANDARD'
+        end
+      end
+    end
+
+    #if person.residence_location &&
+    #   Geocoder::Calculations.distance_between(
+    #     [ person.residence_location.lat, person.residence_location.lng ],
+    #     [ 45.810189, 8.770963 ]) > 300000
+
+    #  cav_amount = 700.00
+    #  cav_type = 'CAV residenti oltre 300 km'
+    #else
+
+    if cav_exempt
+      cav_type = nil
+    end
+
+    [ ass_type, cav_type ]
+  end
+
   # Verifica che i turni di linea necessari siano stati selezionati
   #
   def roster_needed_entries_present(time: Time.now)

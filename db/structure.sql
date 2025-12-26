@@ -642,7 +642,8 @@ CREATE TABLE acao.members (
     consent_magazine boolean DEFAULT false,
     consent_fai boolean DEFAULT false,
     consent_marketing boolean DEFAULT false,
-    consent_members boolean DEFAULT false
+    consent_members boolean DEFAULT false,
+    cav_exempt boolean DEFAULT false NOT NULL
 );
 
 
@@ -1760,7 +1761,7 @@ CREATE TABLE core.people (
     last_name character varying(64) NOT NULL,
     nickname character varying(32),
     gender character varying(1),
-    birth_date timestamp without time zone,
+    birth_date date,
     id_document_type character varying(255),
     id_document_number character varying(255),
     vat_number character varying(16),
@@ -9329,6 +9330,8 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251226210716'),
+('20251226202159'),
 ('20251222234350'),
 ('20251212114107'),
 ('20251207222248'),

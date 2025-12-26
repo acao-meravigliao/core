@@ -51,65 +51,8 @@ class Membership < Ygg::PublicModel
     completed_years
   end
 
-  def self.determine_base_services(member:, year_model:, now: Time.now)
-    ass_type = 'ASS_STANDARD'
-    cav_type = 'CAV_STANDARD'
-
-    person = member.person
-
-    role_models = member.roles_at(time: now)
-    roles = role_models.map(&:symbol)
-
-    if person.birth_date
-      age = compute_completed_years(person.birth_date, year_model.age_reference_date)
-
-      if roles.include?('SPL_INSTRUCTOR')
-        if age < 23
-          ass_type = 'ASS_23'
-          cav_type = nil
-        elsif age <= 26
-          ass_type = 'ASS_FI'
-          cav_type = 'CAV_26'
-        elsif age >= 75
-          ass_type = 'ASS_FI'
-          cav_type = 'CAV_75'
-        elsif member.has_disability
-          # This supposes CAV_DIS is always equal or more expensive than CAV_75 a CAV_26
-          ass_type = 'ASS_FI'
-          cav_type = 'CAV_DIS'
-        else
-          ass_type = 'ASS_FI'
-          cav_type = 'CAV_STANDARD'
-        end
-      else
-        if age < 23
-          ass_type = 'ASS_23'
-          cav_type = nil
-        elsif age <= 26
-          ass_type = 'ASS_STANDARD'
-          cav_type = 'CAV_26'
-        elsif age >= 75
-          ass_type = 'ASS_STANDARD'
-          cav_type = 'CAV_75'
-        elsif member.has_disability
-          # This supposes CAV_DIS is always equal or more expensive than CAV_75 a CAV_26
-          ass_type = 'ASS_STANDARD'
-          cav_type = 'CAV_DIS'
-        else
-          ass_type = 'ASS_STANDARD'
-          cav_type = 'CAV_STANDARD'
-        end
-      end
-    end
-
-    #if person.residence_location &&
-    #   Geocoder::Calculations.distance_between(
-    #     [ person.residence_location.lat, person.residence_location.lng ],
-    #     [ 45.810189, 8.770963 ]) > 300000
-
-    #  cav_amount = 700.00
-    #  cav_type = 'CAV residenti oltre 300 km'
-    #else
+  def self.determine_base_services(member:, year_model:, time: Time.now)
+    (ass_type, cav_type) = member.determine_required_ass_cav(time: time)
 
     services = []
 
@@ -120,7 +63,7 @@ class Membership < Ygg::PublicModel
       enabled: true,
     }
 
-    if now > year_model.late_renewal_deadline && !member.is_spl_student? # && member.was_member_previous_year(year: year_model)
+    if time > year_model.late_renewal_deadline && !member.is_spl_student? # && member.was_member_previous_year(year: year_model)
       services << {
         service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'ASS_LATE').id,
         removable: false,

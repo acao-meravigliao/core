@@ -180,10 +180,14 @@ module Currency
 
     conds << Condition.new(
       name: :cav,
-      value: cav_franges.any? { |x| x.include?(time) },
+      value: cav_exempt || cav_franges.any? { |x| x.include?(time) },
       to: lambda { cav_franges.select { |x| x.include?(time) }.map(&:end).max },
     )
 
+    conds << Condition.new(
+      name: :cav_exempt,
+      value: cav_exempt,
+    )
 
     caas = svcs.where(service_type: { symbol: 'CAA' })
     caa_ranges = RangeArray.new(caas.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
@@ -686,7 +690,7 @@ module Currency
 
     conds << Condition.new(
       name: :gld_tow_private_student,
-      value: [ :membership, :AND, :cav, :AND, :medical, ],
+      value: [ :membership, :AND, :medical, ],
     )
 
     conds << Condition.new(
@@ -716,7 +720,7 @@ module Currency
 
     conds << Condition.new(
       name: :gld_tow_club_student,
-      value: [ :membership, :AND, :cav, :AND, :medical, ],
+      value: [ :membership, :AND, :medical, ],
     )
 
     # Aggiungere volo per conseguimento TOW avendo già SPL?
@@ -746,7 +750,7 @@ module Currency
 
     conds << Condition.new(
       name: :gld_sl_private_student,
-      value: [ :membership, :AND, :cav, :AND, :medical, ],
+      value: [ :membership, :AND, :medical, ],
     )
 
     conds << Condition.new(
@@ -777,14 +781,14 @@ module Currency
 
     conds << Condition.new(
       name: :gld_sl_club_student, # Verificare che serva CAA/CAP per gli allievi
-      value: [ :membership, :AND, :cav, :AND, :medical, ],
+      value: [ :membership, :AND, :medical, ],
     )
 
     # Aggiungere volo per conseguimento SL avendo già SPL?
     conds << Condition.new(
       name: :gld_winch_private_solo,
       value: [
-        :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND, :gld_current, :AND, 
+        :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND, :gld_current, :AND,
         :winch_launch_endorsment, :AND, :winch_current,
       ],
     )
@@ -807,7 +811,7 @@ module Currency
 
     conds << Condition.new(
       name: :gld_winch_private_student,
-      value: [ :membership, :AND, :cav, :AND, :medical, ],
+      value: [ :membership, :AND, :medical, ],
     )
 
     conds << Condition.new(
@@ -837,7 +841,7 @@ module Currency
 
     conds << Condition.new(
       name: :gld_winch_club_student, # Verificare che serva CAA/CAP per gli allievi
-      value: [ :membership, :AND, :cav, :AND, :medical, ],
+      value: [ :membership, :AND, :medical, ],
     )
 
     # Aggiungere volo per conseguimento WINCH avendo già SPL?
@@ -863,7 +867,7 @@ module Currency
 
     conds << Condition.new(
       name: :tmg_private_student,
-      value: [ :membership, :AND, :cav, :AND, :medical, :AND, :spl_license ],
+      value: [ :membership, :AND, :medical, :AND, :spl_license ],
     )
 
     conds << Condition.new(
@@ -892,7 +896,7 @@ module Currency
 
     conds << Condition.new(
       name: :tmg_club_student,
-      value: [ :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, ],
+      value: [ :membership, :AND, :medical, :AND, :spl_license, ],
     )
 
     conds_json = conds.as_json

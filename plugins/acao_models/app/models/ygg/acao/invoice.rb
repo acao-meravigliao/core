@@ -94,6 +94,9 @@ class Invoice < Ygg::PublicModel
       debt = Ygg::Acao::Debt.find_by(identifier: l.NostroRif) ||
              Ygg::Acao::Debt.find_by(identifier: l.NostroRif[0...5])
 
+      puts "  DEBT = #{debt ? debt.identifier : 'nil'}"
+      puts "  PAYMENTS = #{debt ? (debt.payments.map { |x| x.identifier }) : 'nil'}"
+
       invoice = Ygg::Acao::Invoice.new(
         member: member,
         person: member && member.person,
