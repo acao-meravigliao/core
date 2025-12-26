@@ -178,10 +178,17 @@ module Currency
     cav_ranges = RangeArray.new(cavs.map { |x| (x.valid_from.to_time)..(x.valid_to.to_time) })
     cav_franges = cav_ranges.flatten
 
+    (ass_type, cav_type) = determine_required_ass_cav(time: time)
+
     conds << Condition.new(
       name: :cav,
-      value: cav_exempt || cav_franges.any? { |x| x.include?(time) },
+      value: cav_exempt || !cav_type || cav_franges.any? { |x| x.include?(time) },
       to: lambda { cav_franges.select { |x| x.include?(time) }.map(&:end).max },
+    )
+
+    conds << Condition.new(
+      name: :cav_required,
+      value: !!cav_type,
     )
 
     conds << Condition.new(
