@@ -682,7 +682,7 @@ module Currency
     conds << Condition.new(
       name: :gld_tow_private_solo_picus,
       value: [
-        :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND, :gld_current, :AND,
+        :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND,
         :tow_launch_endorsment,
       ],
     )
@@ -712,7 +712,7 @@ module Currency
       name: :gld_tow_club_solo_picus,
       value: [
         :membership, :AND, :cav, :AND, [ :caa, :OR, :cap ], :AND, :acao_recency, :AND,
-        :medical, :AND, :spl_license, :AND, :gld_current, :AND, :tow_launch_endorsment,
+        :medical, :AND, :spl_license, :AND, :tow_launch_endorsment,
       ],
     )
 
@@ -742,7 +742,7 @@ module Currency
     conds << Condition.new(
       name: :gld_sl_private_solo_picus,
       value: [
-        :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND, :gld_current, :AND,
+        :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND,
         :sl_launch_endorsment,
       ],
     )
@@ -773,7 +773,7 @@ module Currency
       name: :gld_sl_club_solo_picus,
       value: [
         :membership, :AND, :cav, :AND, [ :caa, :OR, :cap ], :AND, :acao_recency, :AND,
-        :medical, :AND, :spl_license, :AND, :gld_current, :AND, :sl_launch_endorsment,
+        :medical, :AND, :spl_license, :AND, :sl_launch_endorsment,
       ],
     )
 
@@ -803,7 +803,7 @@ module Currency
     conds << Condition.new(
       name: :gld_winch_private_solo_picus,
       value: [
-        :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND, :gld_current, :AND,
+        :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND,
         :winch_launch_endorsment,
       ],
     )
@@ -833,7 +833,7 @@ module Currency
       name: :gld_winch_club_solo_picus,
       value: [
         :membership, :AND, :cav, :AND, [ :caa, :OR, :cap ], :AND, :acao_recency, :AND,
-        :medical, :AND, :spl_license, :AND, :gld_current, :AND, :winch_launch_endorsment,
+        :medical, :AND, :spl_license, :AND, :winch_launch_endorsment,
       ],
     )
 
