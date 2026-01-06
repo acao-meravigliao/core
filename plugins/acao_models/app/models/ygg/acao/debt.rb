@@ -130,7 +130,7 @@ class Debt < Ygg::PublicModel
             count: detail.count * detail.service_type.onda_1_cnt,
             code: detail.service_type.onda_1_code,
             item_type: detail.service_type.onda_1_type,
-            descr: detail.descr,
+            descr: detail.descr + (detail.data ? " #{detail.data}" : ''),
             amount: detail.amount,
             vat: detail.vat,
           )
@@ -141,7 +141,7 @@ class Debt < Ygg::PublicModel
             count: detail.count * detail.service_type.onda_1_cnt,
             code: detail.service_type.onda_2_code,
             item_type: detail.service_type.onda_2_type,
-            descr: detail.descr,
+            descr: detail.descr + (detail.data ? " #{detail.data}" : ''),
             amount: detail.amount,
             vat: detail.vat,
           )
