@@ -112,7 +112,7 @@ class OndaInvoiceExport < Ygg::PublicModel
               riga.cod_art = det.code
               riga.cod_iva = ''
               riga.cod_un_mis = 'NR.'
-              riga.descrizione = det.data ? "#{det.descr} #{det.data}" : ''
+              riga.descrizione = det.descr
               riga.imponibile = ''
               riga.importo_sconto = 0
               riga.imposta = ''
@@ -128,7 +128,7 @@ class OndaInvoiceExport < Ygg::PublicModel
               riga.dati_art_serv = XmlInterface::RicFisc::Docu::Righe::Riga::DatiArtServ.new do |dati_art_serv|
                 dati_art_serv.cod_art = det.code
                 dati_art_serv.cod_un_mis_base = 'NR.'
-                dati_art_serv.descrizione = det.data ? "#{det.descr} #{det.data}" : ''
+                dati_art_serv.descrizione = det.descr
                 dati_art_serv.tipo_articolo = det.item_type
               end
             end
