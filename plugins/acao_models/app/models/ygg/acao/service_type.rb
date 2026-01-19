@@ -16,12 +16,13 @@ class ServiceType < Ygg::PublicModel
   has_many :member_services,
            class_name: 'Ygg::Acao::MemberService'
 
-  gs_rel_map << { from: :service_type, to: :service, to_cls: 'Ygg::Acao::MemberService', to_key: 'service_type_id', }
-
   has_meta_class
 
   include Ygg::Core::Loggable
   define_default_log_controller(self)
+
+  gs_rel_map << { from: :service_type, to: :service, to_cls: '::Ygg::Acao::MemberService', to_key: 'service_type_id', }
+  gs_rel_map << { from: :service_type, to: :detail, to_cls: '::Ygg::Acao::Debt', to_key: 'service_type_id' }
 end
 
 end
