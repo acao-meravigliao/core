@@ -143,6 +143,14 @@ class Member < Ygg::PublicModel
            class_name: 'Ygg::Acao::SkysightCode',
            foreign_key: :assigned_to_id
 
+  has_many :pm_notes,
+           class_name: 'Ygg::Acao:Member::PmNote',
+           foreign_key: :member_id
+
+  has_many :pm_notes_as_author,
+           class_name: 'Ygg::Acao:Member::PmNote',
+           foreign_key: :author_id
+
   # Old DB
   belongs_to :socio,
              class_name: '::Ygg::Acao::MainDb::Socio',
@@ -170,6 +178,8 @@ class Member < Ygg::PublicModel
   gs_rel_map << { from: :pilot2, to: :flight, to_cls: 'Ygg::Acao::Flight', to_key: 'pilot2_id', }
   gs_rel_map << { from: :member, to: :key_fob, to_cls: 'Ygg::Acao::KeyFob', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :access_remote, to_cls: 'Ygg::Acao::AccessRemote', to_key: 'member_id', }
+  gs_rel_map << { from: :member, to: :pm_note, to_cls: 'Ygg::Acao::Member::PmNote', to_key: 'member_id', }
+  gs_rel_map << { from: :author, to: :pm_note, to_cls: 'Ygg::Acao::Member::PmNote', to_key: 'author_id', }
 
   def self.alive_pilots
     where.not('sleeping')

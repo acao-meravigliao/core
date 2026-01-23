@@ -569,6 +569,21 @@ CREATE TABLE acao.medicals (
 
 
 --
+-- Name: member_pm_notes; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.member_pm_notes (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    member_id uuid NOT NULL,
+    author_id uuid NOT NULL,
+    cls character varying(16) NOT NULL,
+    text character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
 -- Name: member_roles; Type: TABLE; Schema: acao; Owner: -
 --
 
@@ -643,7 +658,30 @@ CREATE TABLE acao.members (
     consent_fai boolean DEFAULT false,
     consent_marketing boolean DEFAULT false,
     consent_members boolean DEFAULT false,
-    cav_exempt boolean DEFAULT false NOT NULL
+    cav_exempt boolean DEFAULT false NOT NULL,
+    wind_rating boolean DEFAULT false NOT NULL,
+    wind_lim boolean DEFAULT false NOT NULL,
+    wind_lim_to timestamp without time zone,
+    wind_lim_reason character varying,
+    solo_rating boolean DEFAULT false NOT NULL,
+    solo_lim boolean DEFAULT false NOT NULL,
+    solo_lim_to timestamp without time zone,
+    solo_lim_reason character varying,
+    astir_rating boolean DEFAULT false NOT NULL,
+    astir_lim boolean DEFAULT false NOT NULL,
+    astir_lim_to timestamp without time zone,
+    astir_lim_reason character varying,
+    discus_rating boolean DEFAULT false NOT NULL,
+    discus_lim boolean DEFAULT false NOT NULL,
+    discus_lim_to timestamp without time zone,
+    discus_lim_reason character varying,
+    duodiscus_rating boolean DEFAULT false NOT NULL,
+    duodiscus_lim boolean DEFAULT false NOT NULL,
+    duodiscus_lim_to timestamp without time zone,
+    duodiscus_lim_reason character varying,
+    pax_lim boolean DEFAULT false NOT NULL,
+    pax_lim_to timestamp without time zone,
+    pax_lim_reason character varying
 );
 
 
@@ -4584,6 +4622,14 @@ ALTER TABLE ONLY acao.medicals
 
 
 --
+-- Name: member_pm_notes member_pm_notes_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.member_pm_notes
+    ADD CONSTRAINT member_pm_notes_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: member_roles member_roles_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -6215,6 +6261,20 @@ CREATE UNIQUE INDEX index_medicals_on_type_and_identifier ON acao.medicals USING
 --
 
 CREATE UNIQUE INDEX index_medicals_on_uuid ON acao.medicals USING btree (id);
+
+
+--
+-- Name: index_member_pm_notes_on_author_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_member_pm_notes_on_author_id ON acao.member_pm_notes USING btree (author_id);
+
+
+--
+-- Name: index_member_pm_notes_on_member_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_member_pm_notes_on_member_id ON acao.member_pm_notes USING btree (member_id);
 
 
 --
@@ -8468,6 +8528,14 @@ ALTER TABLE ONLY acao.member_services
 
 
 --
+-- Name: member_pm_notes fk_rails_52e613e615; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.member_pm_notes
+    ADD CONSTRAINT fk_rails_52e613e615 FOREIGN KEY (author_id) REFERENCES acao.members(id) ON DELETE CASCADE;
+
+
+--
 -- Name: license_ratings fk_rails_5651f51a07; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -8705,6 +8773,14 @@ ALTER TABLE ONLY acao.invoices
 
 ALTER TABLE ONLY acao.timetable_entries
     ADD CONSTRAINT fk_rails_c231a7ad67 FOREIGN KEY (takeoff_location_id) REFERENCES core.locations(id);
+
+
+--
+-- Name: member_pm_notes fk_rails_c2a5c34975; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.member_pm_notes
+    ADD CONSTRAINT fk_rails_c2a5c34975 FOREIGN KEY (member_id) REFERENCES acao.members(id) ON DELETE CASCADE;
 
 
 --
@@ -9330,6 +9406,7 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260114163602'),
 ('20251226210716'),
 ('20251226202159'),
 ('20251222234350'),

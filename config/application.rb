@@ -123,6 +123,7 @@ module AcaoCore
         'Ygg::Acao::Member::Role',
         'Ygg::Acao::Membership',
         'Ygg::Acao::MemberService',
+        'Ygg::Acao::Member::PmNote',
         'Ygg::Acao::OgnDdbEntry',
         'Ygg::Acao::OndaInvoiceExport::Detail',
         'Ygg::Acao::OndaInvoiceExport',
