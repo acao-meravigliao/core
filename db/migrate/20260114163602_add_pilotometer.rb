@@ -37,6 +37,6 @@ class AddPilotometer < ActiveRecord::Migration[8.1]
     add_foreign_key 'acao.member_pm_notes', 'acao.members', column: 'member_id', on_delete: :cascade
     add_foreign_key 'acao.member_pm_notes', 'acao.members', column: 'author_id', on_delete: :cascade
 
-    Ygg::Acao::Member.update_all(wind_rating: true, duodiscus_rating: true, discus_rating: true, astir_rating: true, solo_rating: true)
+    Ygg::Acao::Member.update_all(wind_rating: true, duodiscus_rating: true, discus_rating: true, astir_rating: true)
   end
 end
