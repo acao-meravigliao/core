@@ -19,6 +19,8 @@ class Debt::VosController < Ygg::Hel::VosBaseController
     ensure_authenticated!
     raise AuthorizationError unless session.has_global_roles?(:superuser)
 
+    payment = nil
+
     ActiveRecord::Base.connection_pool.with_connection do
       hel_transaction('Payment received') do
         obj.onda_export = body.has_key?(:onda_export) ? body[:onda_export] : true
@@ -41,14 +43,8 @@ class Debt::VosController < Ygg::Hel::VosBaseController
         )
       end
     end
-#
-#    ds.tell(::AM::GrafoStore::Store::MsgObjectCreate.new(
-#      obj: new_obj,
-#      rels: [
-#        { from_as: :roster_entry, to_as: :member, to: new_obj.member_id },
-#        { from_as: :entry, to_as: :day, to: new_obj.roster_day_id },
-#      ]
-#    ))
+
+    { payment_id: payment.id }
   end
 
   def onda_retry(obj:, **)
