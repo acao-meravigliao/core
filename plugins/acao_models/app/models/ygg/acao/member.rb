@@ -310,9 +310,17 @@ class Member < Ygg::PublicModel
       high_season: 0,
     }
 
-    if roles.include?('SPL_PILOT') ||
-       roles.include?('SPL_STUDENT')
+#    if roles.include?('SPL_PILOT') ||
+#       roles.include?('SPL_STUDENT') ||
+#       roles.include?('PPL_PILOT') ||
+#       roles.include?('PPL_STUDENT') ||
+#       roles.include?('TUG_PILOT')
 
+    if roles.include?('NONPILOT')
+      needed[:total] = 0
+      needed[:high_season] = 0
+      needed[:reason] = 'nonpilot'
+    else
       if person.birth_date && compute_completed_years(person.birth_date, ym.age_reference_date) >= 65
         needed[:total] = 0
         needed[:high_season] = 0
@@ -337,10 +345,6 @@ class Member < Ygg::PublicModel
         needed[:total] = 2
         needed[:high_season] = 1
       end
-    else
-      # FALLBACK if there are no roles, REMOVE ME
-      needed[:total] = 2
-      needed[:high_season] = 1
     end
 
     needed
