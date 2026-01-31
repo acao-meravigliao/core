@@ -9,6 +9,7 @@ RSpec.describe Ygg::Acao::Member, 'determine_required_ass_cav', type: :model do
     Ygg::Core::Person.create!(
       first_name: 'Paolino',
       last_name: 'Paperino',
+      birth_date: Date.new(1975, 12, 7),
     )
   }
 
@@ -38,73 +39,84 @@ RSpec.describe Ygg::Acao::Member, 'determine_required_ass_cav', type: :model do
 #      member.roles.create!(symbol: 'SPL_INSTRUCTOR')
     end
 
-    context 'when age is 18 before age_reference_date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2007,10,1))
-      }
+    context 'when age is 18 at time of renewal' do
+      let(:time) { Time.local(1993, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 1994 }
 
       it 'returns ASS_23 and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_23', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_23', nil ])
       end
     end
 
-    context 'when age is 22 before age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2002,12,7))
-      }
+    context 'when age is 22 at time of renewal' do
+      let(:time) { Time.local(1998, 10, 7, 10, 30, 0) }
+      let(:renewal_year) { 1999 }
 
       it 'returns ASS_23 and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_23', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_23', nil ])
       end
     end
 
-    context 'when age turn 23 one day after age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.local(2002,10,27))
-      }
-
-      it 'returns ASS_23 and NO CAV ]' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_23', nil ])
-      end
-    end
-
-    context 'when age is 23 on age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2002,10,26))
-      }
+    context 'when age is exactly 23 at time of renewal' do
+      let(:time) { Time.local(1998, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 1999 }
 
       it 'returns ASS_STANDARD and CAV_26' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_STANDARD', 'CAV_26' ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_STANDARD', 'CAV_26' ])
       end
     end
 
-    context 'when age is 23 one day after age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2002,10,25))
-      }
+    context 'when age is one day after 23 at time of renewal' do
+      let(:time) { Time.local(1998, 12, 8, 10, 30, 0) }
+      let(:renewal_year) { 1999 }
 
       it 'returns ASS_STANDARD and CAV_26' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_STANDARD', 'CAV_26' ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_STANDARD', 'CAV_26' ])
       end
     end
 
-    context 'when age is 30' do
-      before(:each) {
-        person.update(birth_date: Time.new(1996,10,1))
-      }
+    context 'when age is one day before 27 at time of renewal' do
+      let(:time) { Time.local(2002, 12, 6, 10, 30, 0) }
+      let(:renewal_year) { 2003 }
+
+      it 'returns ASS_STANDARD and CAV_26' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_STANDARD', 'CAV_26' ])
+      end
+    end
+
+    context 'when age is exactly 27 at time of renewal' do
+      let(:time) { Time.local(2002, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2003 }
 
       it 'returns ASS_STANDARD and CAV_STANDARD' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_STANDARD', 'CAV_STANDARD' ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_STANDARD', 'CAV_STANDARD' ])
       end
     end
 
-    context 'when age is >= 75' do
-      before(:each) {
-        person.update(birth_date: Time.new(1946,10,1))
-      }
+    context 'when age is 30 at time of renewal' do
+      let(:time) { Time.local(2005, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2006 }
+
+      it 'returns ASS_STANDARD and CAV_STANDARD' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_STANDARD', 'CAV_STANDARD' ])
+      end
+    end
+
+    context 'when age is >= 75 at time of renewal but not at 31-1 of renewal year' do
+      let(:time) { Time.local(2049, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2050 }
 
       it 'returns ASS_STANDARD and CAV_75' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_STANDARD', 'CAV_75' ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_STANDARD', 'CAV_STANDARD' ])
+      end
+    end
+
+    context 'when age is >= 75 at 31-1 of renewal year' do
+      let(:time) { Time.local(2051, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2051 }
+
+      it 'returns ASS_STANDARD and CAV_75' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_STANDARD', 'CAV_75' ])
       end
     end
   end
@@ -114,73 +126,84 @@ RSpec.describe Ygg::Acao::Member, 'determine_required_ass_cav', type: :model do
       member.roles.create!(symbol: 'SPL_INSTRUCTOR')
     end
 
-    context 'when age is 18 before age_reference_date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2007,10,1))
-      }
+    context 'when age is 18 at time of renewal' do
+      let(:time) { Time.local(1993, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 1994 }
 
       it 'returns ASS_23 and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_23', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_23', nil ])
       end
     end
 
-    context 'when age is 22 before age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2002,12,7))
-      }
+    context 'when age is 22 at time of renewal' do
+      let(:time) { Time.local(1998, 10, 7, 10, 30, 0) }
+      let(:renewal_year) { 1999 }
 
       it 'returns ASS_23 and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_23', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_23', nil ])
       end
     end
 
-    context 'when age turn 23 one day after age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.local(2002,10,27))
-      }
+    context 'when age is exactly 23 at time of renewal' do
+      let(:time) { Time.local(1998, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 1999 }
 
-      it 'returns ASS_23 and NO CAV ]' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_23', nil ])
+      it 'returns ASS_STANDARD and CAV_26' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_FI', 'CAV_26' ])
       end
     end
 
-    context 'when age is 23 on age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2002,10,26))
-      }
+    context 'when age is one day after 23 at time of renewal' do
+      let(:time) { Time.local(1998, 12, 8, 10, 30, 0) }
+      let(:renewal_year) { 1999 }
 
-      it 'returns ASS_FI and CAV_26' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_FI', 'CAV_26' ])
+      it 'returns ASS_STANDARD and CAV_26' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_FI', 'CAV_26' ])
       end
     end
 
-    context 'when age is 23 one day after age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2002,10,25))
-      }
+    context 'when age is one day before 27 at time of renewal' do
+      let(:time) { Time.local(2002, 12, 6, 10, 30, 0) }
+      let(:renewal_year) { 2003 }
 
-      it 'returns ASS_FI and CAV_26' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_FI', 'CAV_26' ])
+      it 'returns ASS_STANDARD and CAV_26' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_FI', 'CAV_26' ])
       end
     end
 
-    context 'when age is 30' do
-      before(:each) {
-        person.update(birth_date: Time.new(1996,10,1))
-      }
+    context 'when age is exactly 27 at time of renewal' do
+      let(:time) { Time.local(2002, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2003 }
 
-      it 'returns ASS_FI and CAV_STANDARD' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_FI', 'CAV_STANDARD' ])
+      it 'returns ASS_STANDARD and CAV_STANDARD' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_FI', 'CAV_STANDARD' ])
       end
     end
 
-    context 'when age is >= 75' do
-      before(:each) {
-        person.update(birth_date: Time.new(1946,10,1))
-      }
+    context 'when age is 30 at time of renewal' do
+      let(:time) { Time.local(2005, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2006 }
 
-      it 'returns ASS_FI CAV_75' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_FI', 'CAV_75' ])
+      it 'returns ASS_STANDARD and CAV_STANDARD' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_FI', 'CAV_STANDARD' ])
+      end
+    end
+
+    context 'when age is >= 75 at time of renewal but not at 31-1 of renewal year' do
+      let(:time) { Time.local(2049, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2050 }
+
+      it 'returns ASS_STANDARD and CAV_75' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_FI', 'CAV_STANDARD' ])
+      end
+    end
+
+    context 'when age is >= 75 at 31-1 of renewal year' do
+      let(:time) { Time.local(2051, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2051 }
+
+      it 'returns ASS_STANDARD and CAV_75' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_FI', 'CAV_75' ])
       end
     end
   end
@@ -190,75 +213,87 @@ RSpec.describe Ygg::Acao::Member, 'determine_required_ass_cav', type: :model do
       member.update(cav_exempt: true)
     }
 
-    context 'when age is 18 before age_reference_date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2007,10,1))
-      }
+    context 'when age is 18 at time of renewal' do
+      let(:time) { Time.local(1993, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 1994 }
 
       it 'returns ASS_23 and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_23', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_23', nil ])
       end
     end
 
-    context 'when age is 22 before age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2002,12,7))
-      }
+    context 'when age is 22 at time of renewal' do
+      let(:time) { Time.local(1998, 10, 7, 10, 30, 0) }
+      let(:renewal_year) { 1999 }
 
       it 'returns ASS_23 and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_23', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_23', nil ])
       end
     end
 
-    context 'when age turn 23 one day after age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.local(2002,10,27))
-      }
-
-      it 'returns ASS_23 and NO CAV ]' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_23', nil ])
-      end
-    end
-
-    context 'when age is 23 on age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2002,10,26))
-      }
+    context 'when age is exactly 23 at time of renewal' do
+      let(:time) { Time.local(1998, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 1999 }
 
       it 'returns ASS_STANDARD and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_STANDARD', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_STANDARD', nil ])
       end
     end
 
-    context 'when age is 23 one day after age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2002,10,25))
-      }
+    context 'when age is one day after 23 at time of renewal' do
+      let(:time) { Time.local(1998, 12, 8, 10, 30, 0) }
+      let(:renewal_year) { 1999 }
 
       it 'returns ASS_STANDARD and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_STANDARD', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_STANDARD', nil ])
       end
     end
 
-    context 'when age is 30' do
-      before(:each) {
-        person.update(birth_date: Time.new(1996,10,1))
-      }
+    context 'when age is one day before 27 at time of renewal' do
+      let(:time) { Time.local(2002, 12, 6, 10, 30, 0) }
+      let(:renewal_year) { 2003 }
 
       it 'returns ASS_STANDARD and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_STANDARD', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_STANDARD', nil ])
       end
     end
 
-    context 'when age is >= 75' do
-      before(:each) {
-        person.update(birth_date: Time.new(1946,10,1))
-      }
+    context 'when age is exactly 27 at time of renewal' do
+      let(:time) { Time.local(2002, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2003 }
 
       it 'returns ASS_STANDARD and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_STANDARD', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_STANDARD', nil ])
       end
     end
+
+    context 'when age is 30 at time of renewal' do
+      let(:time) { Time.local(2005, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2006 }
+
+      it 'returns ASS_STANDARD and NO CAV' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_STANDARD', nil ])
+      end
+    end
+
+    context 'when age is >= 75 at time of renewal but not at 31-1 of renewal year' do
+      let(:time) { Time.local(2049, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2050 }
+
+      it 'returns ASS_STANDARD and NO CAV' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_STANDARD', nil ])
+      end
+    end
+
+    context 'when age is >= 75 at 31-1 of renewal year' do
+      let(:time) { Time.local(2051, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2051 }
+
+      it 'returns ASS_STANDARD and NO CAV' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_STANDARD', nil ])
+      end
+    end
+
   end
 
   context 'when is cav_exempt and instructor' do
@@ -267,73 +302,84 @@ RSpec.describe Ygg::Acao::Member, 'determine_required_ass_cav', type: :model do
       member.roles.create!(symbol: 'SPL_INSTRUCTOR')
     }
 
-    context 'when age is 18 before age_reference_date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2007,10,1))
-      }
+    context 'when age is 18 at time of renewal' do
+      let(:time) { Time.local(1993, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 1994 }
 
       it 'returns ASS_23 and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_23', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_23', nil ])
       end
     end
 
-    context 'when age is 22 before age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2002,12,7))
-      }
+    context 'when age is 22 at time of renewal' do
+      let(:time) { Time.local(1998, 10, 7, 10, 30, 0) }
+      let(:renewal_year) { 1999 }
 
       it 'returns ASS_23 and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_23', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_23', nil ])
       end
     end
 
-    context 'when age turn 23 one day after age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.local(2002,10,27))
-      }
-
-      it 'returns ASS_23 and NO CAV ]' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_23', nil ])
-      end
-    end
-
-    context 'when age is 23 on age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2002,10,26))
-      }
+    context 'when age is exactly 23 at time of renewal' do
+      let(:time) { Time.local(1998, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 1999 }
 
       it 'returns ASS_FI and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_FI', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_FI', nil ])
       end
     end
 
-    context 'when age is 23 one day after age_reference date' do
-      before(:each) {
-        person.update(birth_date: Time.new(2002,10,25))
-      }
+    context 'when age is one day after 23 at time of renewal' do
+      let(:time) { Time.local(1998, 12, 8, 10, 30, 0) }
+      let(:renewal_year) { 1999 }
 
       it 'returns ASS_FI and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_FI', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_FI', nil ])
       end
     end
 
-    context 'when age is 30' do
-      before(:each) {
-        person.update(birth_date: Time.new(1996,10,1))
-      }
+    context 'when age is one day before 27 at time of renewal' do
+      let(:time) { Time.local(2002, 12, 6, 10, 30, 0) }
+      let(:renewal_year) { 2003 }
 
       it 'returns ASS_FI and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_FI', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_FI', nil ])
       end
     end
 
-    context 'when age is >= 75' do
-      before(:each) {
-        person.update(birth_date: Time.new(1946,10,1))
-      }
+    context 'when age is exactly 27 at time of renewal' do
+      let(:time) { Time.local(2002, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2003 }
 
       it 'returns ASS_FI and NO CAV' do
-        expect(subject.determine_required_ass_cav(time: time)).to eq([ 'ASS_FI', nil ])
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_FI', nil ])
+      end
+    end
+
+    context 'when age is 30 at time of renewal' do
+      let(:time) { Time.local(2005, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2006 }
+
+      it 'returns ASS_FI and NO CAV' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_FI', nil ])
+      end
+    end
+
+    context 'when age is >= 75 at time of renewal but not at 31-1 of renewal year' do
+      let(:time) { Time.local(2049, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2050 }
+
+      it 'returns ASS_FI and NO CAV' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_FI', nil ])
+      end
+    end
+
+    context 'when age is >= 75 at 31-1 of renewal year' do
+      let(:time) { Time.local(2051, 12, 7, 10, 30, 0) }
+      let(:renewal_year) { 2051 }
+
+      it 'returns ASS_FI and NO CAV' do
+        expect(subject.determine_required_ass_cav(renewal_year: renewal_year, time: time)).to eq([ 'ASS_FI', nil ])
       end
     end
 
