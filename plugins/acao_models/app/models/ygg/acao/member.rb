@@ -516,10 +516,7 @@ class Member < Ygg::PublicModel
                  (socio.tessere_fine && socio.tessere_fine.end_of_day))
     end
 
-#puts "Ranges #{ranges}"
-
     ranges = ranges.flatten
-#puts "Ranges flattened #{ranges}"
 
     ranges.drop_while { |x| x.end && x.end < from }
 
