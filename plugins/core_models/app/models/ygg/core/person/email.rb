@@ -23,7 +23,7 @@ class Email < Ygg::PublicModel
   define_default_log_controller(self)
 
   gs_rel_map << { from: :email, to: :person, to_cls: '::Ygg::Core::Person', from_key: 'person_id' }
-  gs_rel_map << { from: :email, to: :ml_address, to_cls: '::Ygg::Ml::Address', from_key: 'ml_address_id' }
+  gs_rel_map << { from: :person_email, to: :ml_address, to_cls: '::Ygg::Ml::Address', from_key: 'ml_address_id' }
 
   after_create do
     ml_address_with_create
