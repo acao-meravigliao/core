@@ -20,6 +20,15 @@ class Email < Ygg::PublicModel
              class_name: '::Ygg::Ml::Address',
              optional: true
 
+  has_many :ml_list_members,
+           class_name: '::Ygg::Ml::List::Member',
+           as: :owner
+
+  has_many :ml_lists,
+           class_name: '::Ygg::Ml::List',
+           source: 'list',
+           through: :ml_list_members
+
   define_default_log_controller(self)
 
   gs_rel_map << { from: :email, to: :person, to_cls: '::Ygg::Core::Person', from_key: 'person_id' }

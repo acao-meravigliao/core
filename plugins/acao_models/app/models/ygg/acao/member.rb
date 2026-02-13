@@ -130,15 +130,6 @@ class Member < Ygg::PublicModel
            class_name: '::Ygg::Acao::AccessRemote',
            foreign_key: 'member_id'
 
-  has_many :ml_list_members,
-           class_name: '::Ygg::Ml::List::Member',
-           as: :owner
-
-  has_many :ml_lists,
-           class_name: '::Ygg::Ml::List',
-           source: 'list',
-           through: :ml_list_members
-
   has_many :skysight_codes,
            class_name: 'Ygg::Acao::SkysightCode',
            foreign_key: :assigned_to_id
@@ -444,7 +435,7 @@ class Member < Ygg::PublicModel
     end
   end
 
-  def self.sync_mailing_lists!
+  def self.sync_mailing_lists!(debug: 0, dry_run: Rails.application.config.acao.soci_ml_dry_run)
     transaction do
       act = active_members.to_a
       act << Ygg::Acao::Member.find_by!(code: 554) # Special entry for Fabio
@@ -453,25 +444,34 @@ class Member < Ygg::PublicModel
       act << Ygg::Acao::Member.find_by!(code: 7017) # Special entry for Matteo Negri
       act << Ygg::Acao::Member.find_by!(code: 7023) # Special entry for Clara
 
-      Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').sync_from_people!(people: act.compact.uniq)
+      Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').
+        sync_from_people!(people: act.compact.uniq.map(&:person), debug: debug)
 
       vot = voting_members.to_a
-      vot << Ygg::Acao::Member.find_by!(code: 7002)
+      vot << Ygg::Acao::Member.find_by!(code: 7002) # Special entry for Daniela
 
-      Ygg::Ml::List.find_by!(symbol: 'VOTING_MEMBERS').sync_from_people!(people: vot.compact.uniq)
-      Ygg::Ml::List.find_by!(symbol: 'STUDENTS').sync_from_people!(people: active_members.where(ml_students: true))
-      Ygg::Ml::List.find_by!(symbol: 'INSTRUCTORS').sync_from_people!(people: active_members.where(ml_instructors: true))
-      Ygg::Ml::List.find_by!(symbol: 'TUG_PILOTS').sync_from_people!(people: active_members.where(ml_tug_pilots: true))
-      Ygg::Ml::List.find_by!(symbol: 'BOARD_MEMBERS').sync_from_people!(people: board_members)
+      Ygg::Ml::List.find_by!(symbol: 'VOTING_MEMBERS').
+        sync_from_people!(people: vot.compact.uniq.map(&:person), debug: debug)
+
+      Ygg::Ml::List.find_by!(symbol: 'STUDENTS').
+        sync_from_people!(people: active_members.where(ml_students: true).map(&:person), debug: debug)
+
+      Ygg::Ml::List.find_by!(symbol: 'INSTRUCTORS').
+        sync_from_people!(people: active_members.where(ml_instructors: true).map(&:person), debug: debug)
+
+      Ygg::Ml::List.find_by!(symbol: 'TUG_PILOTS').
+        sync_from_people!(people: active_members.where(ml_tug_pilots: true).map(&:person), debug: debug)
+
+      Ygg::Ml::List.find_by!(symbol: 'BOARD_MEMBERS').
+        sync_from_people!(people: board_members.map(&:person), debug: debug)
     end
 
-    transaction do
-      Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').sync_to_mailman!(list_name: 'soci')
-#     Ygg::Ml::List.find_by!(symbol: 'STUDENTS'). sync_to_mailman!(list_name: 'scuola')
-      Ygg::Ml::List.find_by!(symbol: 'INSTRUCTORS').sync_to_mailman!(list_name: 'istruttori')
-#      Ygg::Ml::List.find_by!(symbol: 'BOARD_MEMBERS').sync_to_mailman!(list_name: 'consiglio')
-      Ygg::Ml::List.find_by!(symbol: 'TUG_PILOTS').sync_to_mailman!(list_name: 'trainatori')
-    end
+    Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').sync_to_mailman!(list_name: 'soci', dry_run: dry_run)
+#    Ygg::Ml::List.find_by!(symbol: 'STUDENTS'). sync_to_mailman!(list_name: 'scuola', dry_run: dry_run)
+#    Ygg::Ml::List.find_by!(symbol: 'SECONDOPERIODO'). sync_to_mailman!(list_name: 'secondoperiodo', dry_run: dry_run)
+    Ygg::Ml::List.find_by!(symbol: 'INSTRUCTORS').sync_to_mailman!(list_name: 'istruttori', dry_run: dry_run)
+    Ygg::Ml::List.find_by!(symbol: 'BOARD_MEMBERS').sync_to_mailman!(list_name: 'consiglio', dry_run: dry_run)
+    Ygg::Ml::List.find_by!(symbol: 'TUG_PILOTS').sync_to_mailman!(list_name: 'trainatori', dry_run: dry_run)
   end
 
   class Media
