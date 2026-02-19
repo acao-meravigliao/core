@@ -582,7 +582,7 @@ class Server
 
           if events.include?('C')
             obj = Object.const_get(payload[:model], false).find_by(id: payload[:object_id])
-            if obj
+            if obj && obj.class.respond_to?(:gs_class)
               gs_obj = obj.class.gs_class.new(**obj.attributes)
 
               @ds.tell(::AM::GrafoStore::Store::MsgObjectCreate.new(
@@ -596,7 +596,7 @@ class Server
 
           elsif events.include?('U')
             obj = Object.const_get(payload[:model], false).find_by(id: payload[:object_id])
-            if obj
+            if obj && obj.class.respond_to?(:gs_class)
               attrs = obj.attributes
               attrs.symbolize_keys!
               attrs.delete(:id)
@@ -613,7 +613,7 @@ class Server
 
           elsif events.include?('D')
             obj = Object.const_get(payload[:model], false).find_by(id: payload[:object_id])
-            if obj
+            if obj && obj.class.respond_to?(:gs_class)
               @ds.tell(::AM::GrafoStore::Store::MsgObjectDestroy.new(
                 id: obj.id,
                 from_backend: true,
