@@ -464,6 +464,9 @@ class Member < Ygg::PublicModel
 
       Ygg::Ml::List.find_by!(symbol: 'BOARD_MEMBERS').
         sync_from_people!(people: board_members.map(&:person), debug: debug)
+
+      Ygg::Ml::List.find_by!(symbol: 'SAFETY_BOARD').
+        sync_from_people!(people: active_members.joins(:roles).where(roles: { symbol: 'SAFETY_BOARD' })
     end
 
     Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').sync_to_mailman!(list_name: 'soci', dry_run: dry_run)
@@ -472,6 +475,7 @@ class Member < Ygg::PublicModel
     Ygg::Ml::List.find_by!(symbol: 'INSTRUCTORS').sync_to_mailman!(list_name: 'istruttori', dry_run: dry_run)
     Ygg::Ml::List.find_by!(symbol: 'BOARD_MEMBERS').sync_to_mailman!(list_name: 'consiglio', dry_run: dry_run)
     Ygg::Ml::List.find_by!(symbol: 'TUG_PILOTS').sync_to_mailman!(list_name: 'trainatori', dry_run: dry_run)
+    Ygg::Ml::List.find_by!(symbol: 'SAFETY_BOARD').sync_to_mailman!(list_name: 'safety-board', dry_run: dry_run)
   end
 
   class Media
