@@ -68,16 +68,9 @@ namespace :acao do
     end
   end
 
-  namespace :roster do
-    task(print_daily_form: :environment) do
-      TimeoutActor.new(tout: 100).do do
-
-        today_roster = Ygg::Acao::RosterDay.find_by(date: Time.now)
-        if today_roster
-          today_roster.check_and_mark_chief!
-          today_roster.print_daily_form
-        end
-      end
+  task(update_meteo: :environment) do
+    TimeoutActor.new(tout: 100).do do
+      Ygg::Acao::Day.meteo_update!
     end
   end
 

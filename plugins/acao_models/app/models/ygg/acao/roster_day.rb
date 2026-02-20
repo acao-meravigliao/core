@@ -100,22 +100,6 @@ class RosterDay < Ygg::PublicModel
       end
     end
   end
-
-  def daily_form_pdf
-   pdf = DailyPdfForm.new(day: self, page_size: 'A4', page_layout: :portrait)
-   pdf.draw
-   str = pdf.render
-
-   str
-  end
-
-  def print_daily_form
-    pdfstr = daily_form_pdf
-
-    IO.popen([ '/usr/bin/lpr', "-P#{Rails.application.config.acao.printer}" ], File::WRONLY, encoding: Encoding::ASCII_8BIT) do |io|
-      io.write(pdfstr)
-    end
-  end
 end
 
 end

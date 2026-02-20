@@ -19,6 +19,8 @@ class ModelsEngine < Rails::Engine
 
   config.acao.printer = "printer@xerox.acao.it"
 
+  config.acao.openmeteo_url = "https://api.open-meteo.com/v1/forecast"
+
   config.to_prepare do
     Ygg::Core::Person.class_eval do
       has_one :acao_member,

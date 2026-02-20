@@ -15,7 +15,6 @@ class RosterDay::RestController < Ygg::Hel::RestController
   load_role_defs!
 
   member_action :daily_form
-  member_action :print_daily_form
 
   view :_default_ do
     attribute :roster_entries do
@@ -58,13 +57,6 @@ class RosterDay::RestController < Ygg::Hel::RestController
         render body: ar_resource.daily_form_pdf, content_type: 'application/pdf'
       end
     end
-  end
-
-  def print_daily_form
-    ar_retrieve_resource
-    ar_authorize_member_action
-
-    render body: ar_resource.print_daily_form
   end
 
 end

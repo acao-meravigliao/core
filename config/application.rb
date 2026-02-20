@@ -109,6 +109,7 @@ module AcaoCore
         'Ygg::Acao::Club',
         'Ygg::Acao::Debt::Detail',
         'Ygg::Acao::Debt',
+        'Ygg::Acao::Day',
         'Ygg::Acao::FaiCard',
         'Ygg::Acao::FlarmnetEntry',
         'Ygg::Acao::Flight',

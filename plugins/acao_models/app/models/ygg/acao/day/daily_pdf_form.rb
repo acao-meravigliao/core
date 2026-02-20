@@ -10,7 +10,7 @@
 module Ygg
 module Acao
 
-class RosterDay < Ygg::PublicModel
+class Day < Ygg::PublicModel
 class DailyPdfForm < Prawn::Document
   require 'nokogiri'
   require 'am/http/client'
@@ -21,6 +21,8 @@ class DailyPdfForm < Prawn::Document
   end
 
   def draw
+    roster_day = Ygg::Acao::RosterDay.find_by(date: @day.date)
+
     font '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 
     pad(10) do
@@ -44,11 +46,13 @@ class DailyPdfForm < Prawn::Document
         text 'Componenti', align: :center
       end
 
-      indent(5) do
-        pad(5) do
-          @day.roster_entries.each do |entry|
-            ##### #{entry.chief ? ', Capolinea' : ', Aiuto'}
-            text "<font size=\"14\">#{entry.member.person.name}</font>, #{entry.member.code}", inline_format: true
+      if roster_day
+        indent(5) do
+          pad(5) do
+            roster_day.roster_entries.each do |entry|
+              ##### #{entry.chief ? ', Capolinea' : ', Aiuto'}
+              text "<font size=\"14\">#{entry.member.person.name}</font>, #{entry.member.code}", inline_format: true
+            end
           end
         end
       end
@@ -81,7 +85,7 @@ class DailyPdfForm < Prawn::Document
             Ygg::Acao::Aircraft.where(club_owner: Ygg::Acao::Club.find_by!(symbol: 'ACAO'), is_towplane: false).
                                 order(registration: :asc).each do |aircraft|
 
-              text "<font size=\"14\">#{aircraft.available ? '✔' : '✗'}</font>" +
+              text "<font size=\"14\">#{aircraft.flyable ? '✔' : '✗'}</font>" +
                    aircraft.registration +
                    ' - ' +
                    aircraft.aircraft_type.name +
@@ -114,7 +118,7 @@ class DailyPdfForm < Prawn::Document
           column_box([0,cursor], columns: 2, width: bounds.width, height: bounds.height - 25) do
             Ygg::Acao::Aircraft.where(club_owner: Ygg::Acao::Club.find_by!(symbol: 'ACAO'), is_towplane: true).
                                 order(registration: :asc).each do |aircraft|
-              text "<font size=\"14\">#{aircraft.available ? '✔' : '✗'}</font>" +
+              text "<font size=\"14\">#{aircraft.flyable ? '✔' : '✗'}</font>" +
                    aircraft.registration +
                    ' - ' +
                    aircraft.aircraft_type.name +

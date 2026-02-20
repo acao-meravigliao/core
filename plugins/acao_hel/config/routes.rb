@@ -84,9 +84,11 @@ Rails.application.routes.draw do
       end
 
       hel_resources :roster_days, controller: 'roster_day/rest' do
+      end
+
+      hel_resources :days, controller: 'day/rest' do
         member do
           get :daily_form
-          post :print_daily_form
         end
       end
 

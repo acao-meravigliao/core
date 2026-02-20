@@ -214,11 +214,12 @@ CREATE TABLE acao.aircrafts (
     arc_valid_to timestamp without time zone,
     insurance_valid_to timestamp without time zone,
     club_owner_id uuid,
-    available boolean DEFAULT true NOT NULL,
+    flyable boolean DEFAULT true NOT NULL,
     is_towplane boolean DEFAULT false NOT NULL,
     owner_id_old uuid,
     aircraft_type_id uuid,
-    source_id integer
+    source_id integer,
+    reserved boolean DEFAULT false NOT NULL
 );
 
 
@@ -311,6 +312,38 @@ CREATE TABLE acao.clubs (
     name character varying NOT NULL,
     symbol character varying(32) DEFAULT NULL::character varying,
     airfield_id uuid
+);
+
+
+--
+-- Name: days; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.days (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    date date NOT NULL,
+    pressure_msl_min double precision,
+    pressure_msl_min_fc double precision,
+    surface_pressure_min double precision,
+    surface_pressure_min_fc double precision,
+    temperature_2m_max double precision,
+    temperature_2m_max_fc double precision,
+    dew_point_2m_max double precision,
+    dew_point_2m_max_fc double precision,
+    relative_humidity_2m_max double precision,
+    relative_humidity_2m_max_fc double precision,
+    wind_speed_10m_max double precision,
+    wind_speed_10m_max_fc double precision,
+    wind_gusts_10m_max double precision,
+    wind_gusts_10m_max_fc double precision,
+    wind_speed_900hpa_max_fc double precision,
+    wind_speed_800hpa_max_fc double precision,
+    wind_speed_700hpa_max_fc double precision,
+    pressure_altitude_max double precision,
+    pressure_altitude_max_fc double precision,
+    density_altitude_max double precision,
+    density_altitude_max_fc double precision,
+    wind_day boolean DEFAULT false NOT NULL
 );
 
 
@@ -700,6 +733,28 @@ CREATE TABLE acao.memberships (
     reference_year_id uuid NOT NULL,
     member_id uuid NOT NULL,
     year integer NOT NULL
+);
+
+
+--
+-- Name: meteo_entries; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.meteo_entries (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    at timestamp without time zone,
+    pressure_msl double precision,
+    surface_pressure double precision,
+    temperature_2m double precision,
+    dew_point_2m double precision,
+    relative_humidity_2m double precision,
+    wind_speed_10m double precision,
+    wind_gusts_10m double precision,
+    wind_speed_900hpa double precision,
+    wind_speed_800hpa double precision,
+    wind_speed_700hpa double precision,
+    pressure_altitude double precision,
+    density_altitude double precision
 );
 
 
@@ -4526,6 +4581,14 @@ ALTER TABLE ONLY acao.clubs
 
 
 --
+-- Name: days days_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.days
+    ADD CONSTRAINT days_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: debt_details debt_details_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -4659,6 +4722,14 @@ ALTER TABLE ONLY acao.members
 
 ALTER TABLE ONLY acao.memberships
     ADD CONSTRAINT memberships_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: meteo_entries meteo_entries_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.meteo_entries
+    ADD CONSTRAINT meteo_entries_pkey PRIMARY KEY (id);
 
 
 --
@@ -5998,6 +6069,13 @@ CREATE UNIQUE INDEX index_clubs_on_name ON acao.clubs USING btree (name);
 
 
 --
+-- Name: index_days_on_date; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_days_on_date ON acao.days USING btree (date);
+
+
+--
 -- Name: index_debt_details_on_debt_id; Type: INDEX; Schema: acao; Owner: -
 --
 
@@ -6352,6 +6430,13 @@ CREATE INDEX index_memberships_on_member_id ON acao.memberships USING btree (mem
 --
 
 CREATE UNIQUE INDEX index_memberships_on_uuid ON acao.memberships USING btree (id);
+
+
+--
+-- Name: index_meteo_entries_on_at; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_meteo_entries_on_at ON acao.meteo_entries USING btree (at);
 
 
 --
@@ -9406,6 +9491,8 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260217210942'),
+('20260216233952'),
 ('20260114163602'),
 ('20251226210716'),
 ('20251226202159'),
