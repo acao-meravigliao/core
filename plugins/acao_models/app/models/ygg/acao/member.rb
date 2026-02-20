@@ -130,15 +130,6 @@ class Member < Ygg::PublicModel
            class_name: '::Ygg::Acao::AccessRemote',
            foreign_key: 'member_id'
 
-  has_many :ml_list_members,
-           class_name: '::Ygg::Ml::List::Member',
-           as: :owner
-
-  has_many :ml_lists,
-           class_name: '::Ygg::Ml::List',
-           source: 'list',
-           through: :ml_list_members
-
   has_many :skysight_codes,
            class_name: 'Ygg::Acao::SkysightCode',
            foreign_key: :assigned_to_id
@@ -218,52 +209,54 @@ class Member < Ygg::PublicModel
     completed_years
   end
 
-  def determine_required_ass_cav(time: Time.now)
+  def determine_required_ass_cav(renewal_year: nil, time: Time.now)
     ass_type = 'ASS_STANDARD'
 
     role_models = roles_at(time: time)
     roles = role_models.map(&:symbol)
-    year_model = Ygg::Acao::Year.find_by!(year: time.year)
 
-    if person.birth_date
-      age = compute_completed_years(person.birth_date.beginning_of_day, year_model.age_reference_date)
+    renewal_year ||= time.year
 
-      if roles.include?('SPL_INSTRUCTOR')
-        if age < 23
-          ass_type = 'ASS_23'
-          cav_type = nil
-        elsif age <= 26
-          ass_type = 'ASS_FI'
-          cav_type = 'CAV_26'
-        elsif age >= 75
-          ass_type = 'ASS_FI'
-          cav_type = 'CAV_75'
-        elsif has_disability
-          # This supposes CAV_DIS is always equal or more expensive than CAV_75 a CAV_26
-          ass_type = 'ASS_FI'
-          cav_type = 'CAV_DIS'
-        else
-          ass_type = 'ASS_FI'
-          cav_type = 'CAV_STANDARD'
-        end
+    raise "Missing birth date" if !person.birth_date
+
+    age_311 = compute_completed_years(person.birth_date.beginning_of_day, Date.new(renewal_year, 1, 31))
+    age = compute_completed_years(person.birth_date.beginning_of_day, time)
+
+    if roles.include?('SPL_INSTRUCTOR')
+      if age < 23
+        ass_type = 'ASS_23'
+        cav_type = nil
+      elsif age <= 26
+        ass_type = 'ASS_FI'
+        cav_type = 'CAV_26'
+      elsif age_311 >= 75
+        ass_type = 'ASS_FI'
+        cav_type = 'CAV_75'
+      elsif has_disability
+        # This supposes CAV_DIS is always equal or more expensive than CAV_75 a CAV_26
+        ass_type = 'ASS_FI'
+        cav_type = 'CAV_DIS'
       else
-        if age < 23
-          ass_type = 'ASS_23'
-          cav_type = nil
-        elsif age <= 26
-          ass_type = 'ASS_STANDARD'
-          cav_type = 'CAV_26'
-        elsif age >= 75
-          ass_type = 'ASS_STANDARD'
-          cav_type = 'CAV_75'
-        elsif has_disability
-          # This supposes CAV_DIS is always equal or more expensive than CAV_75 a CAV_26
-          ass_type = 'ASS_STANDARD'
-          cav_type = 'CAV_DIS'
-        else
-          ass_type = 'ASS_STANDARD'
-          cav_type = 'CAV_STANDARD'
-        end
+        ass_type = 'ASS_FI'
+        cav_type = 'CAV_STANDARD'
+      end
+    else
+      if age < 23
+        ass_type = 'ASS_23'
+        cav_type = nil
+      elsif age <= 26
+        ass_type = 'ASS_STANDARD'
+        cav_type = 'CAV_26'
+      elsif age_311 >= 75
+        ass_type = 'ASS_STANDARD'
+        cav_type = 'CAV_75'
+      elsif has_disability
+        # This supposes CAV_DIS is always equal or more expensive than CAV_75 a CAV_26
+        ass_type = 'ASS_STANDARD'
+        cav_type = 'CAV_DIS'
+      else
+        ass_type = 'ASS_STANDARD'
+        cav_type = 'CAV_STANDARD'
       end
     end
 
@@ -321,7 +314,7 @@ class Member < Ygg::PublicModel
       needed[:high_season] = 0
       needed[:reason] = 'nonpilot'
     else
-      if person.birth_date && compute_completed_years(person.birth_date, ym.age_reference_date) >= 65
+      if person.birth_date && compute_completed_years(person.birth_date, time) >= 65
         needed[:total] = 0
         needed[:high_season] = 0
         needed[:reason] = 'older_than_65'
@@ -442,7 +435,7 @@ class Member < Ygg::PublicModel
     end
   end
 
-  def self.sync_mailing_lists!
+  def self.sync_mailing_lists!(debug: 0, dry_run: Rails.application.config.acao.soci_ml_dry_run)
     transaction do
       act = active_members.to_a
       act << Ygg::Acao::Member.find_by!(code: 554) # Special entry for Fabio
@@ -451,25 +444,34 @@ class Member < Ygg::PublicModel
       act << Ygg::Acao::Member.find_by!(code: 7017) # Special entry for Matteo Negri
       act << Ygg::Acao::Member.find_by!(code: 7023) # Special entry for Clara
 
-      Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').sync_from_people!(people: act.compact.uniq)
+      Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').
+        sync_from_people!(people: act.compact.uniq.map(&:person), debug: debug)
 
       vot = voting_members.to_a
-      vot << Ygg::Acao::Member.find_by!(code: 7002)
+      vot << Ygg::Acao::Member.find_by!(code: 7002) # Special entry for Daniela
 
-      Ygg::Ml::List.find_by!(symbol: 'VOTING_MEMBERS').sync_from_people!(people: vot.compact.uniq)
-      Ygg::Ml::List.find_by!(symbol: 'STUDENTS').sync_from_people!(people: active_members.where(ml_students: true))
-      Ygg::Ml::List.find_by!(symbol: 'INSTRUCTORS').sync_from_people!(people: active_members.where(ml_instructors: true))
-      Ygg::Ml::List.find_by!(symbol: 'TUG_PILOTS').sync_from_people!(people: active_members.where(ml_tug_pilots: true))
-      Ygg::Ml::List.find_by!(symbol: 'BOARD_MEMBERS').sync_from_people!(people: board_members)
+      Ygg::Ml::List.find_by!(symbol: 'VOTING_MEMBERS').
+        sync_from_people!(people: vot.compact.uniq.map(&:person), debug: debug)
+
+      Ygg::Ml::List.find_by!(symbol: 'STUDENTS').
+        sync_from_people!(people: active_members.where(ml_students: true).map(&:person), debug: debug)
+
+      Ygg::Ml::List.find_by!(symbol: 'INSTRUCTORS').
+        sync_from_people!(people: active_members.where(ml_instructors: true).map(&:person), debug: debug)
+
+      Ygg::Ml::List.find_by!(symbol: 'TUG_PILOTS').
+        sync_from_people!(people: active_members.where(ml_tug_pilots: true).map(&:person), debug: debug)
+
+      Ygg::Ml::List.find_by!(symbol: 'BOARD_MEMBERS').
+        sync_from_people!(people: board_members.map(&:person), debug: debug)
     end
 
-    transaction do
-      Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').sync_to_mailman!(list_name: 'soci')
-#     Ygg::Ml::List.find_by!(symbol: 'STUDENTS'). sync_to_mailman!(list_name: 'scuola')
-      Ygg::Ml::List.find_by!(symbol: 'INSTRUCTORS').sync_to_mailman!(list_name: 'istruttori')
-#      Ygg::Ml::List.find_by!(symbol: 'BOARD_MEMBERS').sync_to_mailman!(list_name: 'consiglio')
-      Ygg::Ml::List.find_by!(symbol: 'TUG_PILOTS').sync_to_mailman!(list_name: 'trainatori')
-    end
+    Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').sync_to_mailman!(list_name: 'soci', dry_run: dry_run)
+#    Ygg::Ml::List.find_by!(symbol: 'STUDENTS'). sync_to_mailman!(list_name: 'scuola', dry_run: dry_run)
+#    Ygg::Ml::List.find_by!(symbol: 'SECONDOPERIODO'). sync_to_mailman!(list_name: 'secondoperiodo', dry_run: dry_run)
+    Ygg::Ml::List.find_by!(symbol: 'INSTRUCTORS').sync_to_mailman!(list_name: 'istruttori', dry_run: dry_run)
+    Ygg::Ml::List.find_by!(symbol: 'BOARD_MEMBERS').sync_to_mailman!(list_name: 'consiglio', dry_run: dry_run)
+    Ygg::Ml::List.find_by!(symbol: 'TUG_PILOTS').sync_to_mailman!(list_name: 'trainatori', dry_run: dry_run)
   end
 
   class Media

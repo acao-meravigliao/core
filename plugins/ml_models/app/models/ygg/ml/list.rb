@@ -39,25 +39,29 @@ class List < Ygg::PublicModel
     define_default_log_controller(self)
   end
 
-  def sync_from_people!(people:, time: Time.now)
-    current_members = members.where(owner_type: 'Ygg::Core::Person').order(owner_id: :asc)
+  def sync_from_people!(people:, time: Time.now, debug: 0)
+    puts "SYNCING LIST #{name}" if debug >= 1
 
-    self.class.merge(l: people, r: current_members,
+    current_members = members.where(owner_type: 'Ygg::Core::Person::Email').order(owner_id: :asc)
+
+    self.class.merge(l: people.map(&:emails).flatten.sort_by(&:id), r: current_members,
       l_cmp_r: lambda { |l,r| l.id <=> r.owner_id },
       l_to_r: lambda { |l|
-        l.person.emails.each do |email|
-          addr = Ygg::Ml::Address.find_or_create_by(addr: email.email, addr_type: 'EMAIL') do |addr|
-            addr.name = l.person.name
-          end
+        puts "ADD #{l.person.name}" if debug >= 1
 
-          members << Ygg::Ml::List::Member.new(
-            address: addr,
-            subscribed_on: Time.now,
-            owner: l,
-          )
+        addr = Ygg::Ml::Address.find_or_create_by(addr: l.email, addr_type: 'EMAIL') do |addr|
+          addr.name = l.person.name
         end
+
+        members << Ygg::Ml::List::Member.new(
+          address: addr,
+          subscribed_on: Time.now,
+          owner: l,
+        )
       },
       r_to_l: lambda { |r|
+        puts "DEL #{r.address.name}" if debug >= 1
+
         r.destroy
       },
       lr_update: lambda { |l,r|

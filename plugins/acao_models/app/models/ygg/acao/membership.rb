@@ -52,7 +52,7 @@ class Membership < Ygg::PublicModel
   end
 
   def self.determine_base_services(member:, year_model:, time: Time.now)
-    (ass_type, cav_type) = member.determine_required_ass_cav(time: time)
+    (ass_type, cav_type) = member.determine_required_ass_cav(renewal_year: year_model.year, time: time)
 
     services = []
 
