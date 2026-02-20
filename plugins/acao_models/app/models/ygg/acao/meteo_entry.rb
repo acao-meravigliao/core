@@ -17,7 +17,7 @@ class MeteoEntry < Ygg::PublicModel
 
   require 'tzinfo'
 
-  def self.update
+  def self.update!
     url = Rails.application.config.acao.openmeteo_url +
              "?latitude=45.8206&longitude=8.8251" +
                "&hourly=temperature_2m,dew_point_2m,relative_humidity_2m,pressure_msl,surface_pressure,wind_speed_10m," +

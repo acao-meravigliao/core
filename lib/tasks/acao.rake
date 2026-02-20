@@ -70,7 +70,7 @@ namespace :acao do
 
   task(update_meteo: :environment) do
     TimeoutActor.new(tout: 100).do do
-      Ygg::Acao::Day.meteo_update!
+      Ygg::Acao::MeteoEntry.update!
     end
   end
 
