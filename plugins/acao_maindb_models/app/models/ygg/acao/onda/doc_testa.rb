@@ -49,21 +49,25 @@ class DocTesta < ActiveRecord::Base
     end
   end
 
-  def trigger_replacement(dry_run: false, debug: 0)
+  def trigger_replacement(dry_run: false, forced_cutoff_date: nil, debug: 0)
     transaction do
       changed = false
 
       puts "-----------------------------------------------------------------------------------" if debug >= 1
 
-      year = nil
-      year_model = Ygg::Acao::Year.find_by(year: self.DataDocumento.year + 1)
-      if !year_model || self.DataDocumento < year_model.age_reference_date
-        year_model = Ygg::Acao::Year.find_by(year: self.DataDocumento.year)
+      puts "DOCUMENTO NUMERO=#{self.NumeroDocumento} TIPO=#{self.TipoDocumento} #{self.DataDocumento}" if debug >= 1
+
+      year_model = Ygg::Acao::Year.find_by(year: self.DataDocumento.year)
+      cutoff_date = forced_cutoff_date || year_model.age_reference_date
+
+      puts "  Year = #{self.DataDocumento.year} Cutoff date = #{cutoff_date}" if debug >= 3
+
+      if self.DataDocumento.year == cutoff_date.year && self.DataDocumento >= cutoff_date
+        puts "  Jumping to year #{self.DataDocumento.year + 1}" if debug >= 3
+        year_model = Ygg::Acao::Year.find_by(year: self.DataDocumento.year + 1)
       end
 
       year = year_model.year
-
-      puts "DOCUMENTO NUMERO=#{self.NumeroDocumento} TIPO=#{self.TipoDocumento} #{self.DataDocumento}" if debug >= 1
 
       anagrafica = Ygg::Acao::Onda::Anagrafica.find(self.IdAnagrafica)
       anagrafica_cliente = Ygg::Acao::Onda::AnagraficaCliente.find(self.IdAnagrafica)
