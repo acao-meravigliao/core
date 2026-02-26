@@ -79,7 +79,7 @@ loop do
       puts "Updating Ygg::Acao::Aircraft" if debug >= 1
 
       Ygg::Acao::Aircraft.transaction do
-        Ygg::Acao::Aircraft.sync_from_maindb!
+        Ygg::Acao::Aircraft.sync_from_maindb!(debug: 2)
         Ygg::Acao::MainDb::Mezzo.update_last_update!
       end
 
