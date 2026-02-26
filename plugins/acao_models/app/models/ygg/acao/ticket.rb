@@ -45,6 +45,7 @@ class Ticket < Ygg::PublicModel
     :towed_by_id,
   ]
 
+  gs_rel_map << { from: :ticket, to: :member, to_cls: 'Ygg::Acao::Member', from_key: 'member_id', }
   gs_rel_map << { from: :ticket, to: :pilot1, to_cls: 'Ygg::Acao::Member', from_key: 'pilot1_id', }
   gs_rel_map << { from: :ticket, to: :pilot2, to_cls: 'Ygg::Acao::Member', from_key: 'pilot2_id', }
   gs_rel_map << { from: :ticket, to: :aircraft, to_cls: 'Ygg::Acao::Aircraft', from_key: 'aircraft_id', }
