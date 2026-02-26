@@ -49,7 +49,7 @@ class DocTesta < ActiveRecord::Base
     end
   end
 
-  def trigger_replacement(dry_run: false, forced_cutoff_date: nil, debug: 0)
+  def trigger_replacement(dry_run: false, forced_cutoff_date: nil, force_socio: nil, debug: 0)
     transaction do
       changed = false
 
@@ -71,7 +71,7 @@ class DocTesta < ActiveRecord::Base
 
       anagrafica = Ygg::Acao::Onda::Anagrafica.find(self.IdAnagrafica)
       anagrafica_cliente = Ygg::Acao::Onda::AnagraficaCliente.find(self.IdAnagrafica)
-      mdb_socio = Ygg::Acao::MainDb::Socio.find_by(codice_socio_dati_generale: anagrafica_cliente.RifInterno)
+      mdb_socio = Ygg::Acao::MainDb::Socio.find_by(codice_socio_dati_generale: force_socio || anagrafica_cliente.RifInterno)
 
       if !mdb_socio
         puts "Socio #{anagrafica_cliente.RifInterno} non trovato" if debug >= 1
