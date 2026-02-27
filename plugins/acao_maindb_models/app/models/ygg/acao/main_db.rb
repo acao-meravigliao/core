@@ -21,7 +21,7 @@ module LastUpdateTracker
     # GO
     # GRANT VIEW SERVER STATE TO lino;
 
-    res = connection.exec_query("SELECT OBJECT_NAME(OBJECT_ID) AS DatabaseName, last_user_update,* " +
+    res = connection.exec_query("SELECT MAX(last_user_update) AS last_user_update " +
                                   "FROM sys.dm_db_index_usage_stats WHERE database_id = DB_ID('acao_pro') " +
                                   "AND OBJECT_ID=OBJECT_ID('#{table_name}')")
 
