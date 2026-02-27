@@ -34,28 +34,6 @@ class KeyFob < Ygg::PublicModel
     :person_id,
   ]
 
-  FAAC_ACTIVE = [
-    554,  # Fabio
-    7002, # Daniela
-    7024, # Chicca
-    7017, # Matteo Negri
-    1088, # Francois
-    7011, # Paola Bellora
-    113,  # Adriano Sandri
-    7023, # Clara Ridolfi
-    87,   # Nicolini
-    7013, # Castelnovo
-    6077, # Grinza
-    1141, # Elio Cresci
-    7014, # Michele Roberto Martignoni
-    7008, # Alessandra Caraffini
-    7010, # Luisa Clerici
-    7018, # Nuri Palomino Pulizie
-    500,  # Piera Bagnus
-    403,  # Antonio Zanini (docente)
-    942,  # Marco Gavazzi
-  ]
-
   def self.code_from_faac(code)
     code ? code.to_i(8).to_s(16).rjust(10, '0') : nil
   end
@@ -77,7 +55,15 @@ class KeyFob < Ygg::PublicModel
   end
 
   def always_valid
-    FAAC_ACTIVE.include?(member.code)
+    role_models = member.roles_at(time: Time.now)
+    roles = role_models.map(&:symbol)
+
+    res = roles.include?('PARKING_GUEST') ||
+          roles.include?('STAFF') ||
+          roles.include?('MAINTENANCE') ||
+          roles.include?('CSVVA')
+
+    res
   end
 
   def self.sync_from_maindb!(debug: 0)
