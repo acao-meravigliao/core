@@ -508,6 +508,18 @@ class Member < Ygg::PublicModel
     derive_uuid_from_data([ uuid.delete('-') ].pack('H*'))
   end
 
+  def access_always_valid
+    role_models = roles_at(time: Time.now)
+    roles = role_models.map(&:symbol)
+
+    res = roles.include?('PARKING_GUEST') ||
+          roles.include?('STAFF') ||
+          roles.include?('MAINTENANCE') ||
+          roles.include?('CSVVA')
+
+    res
+  end
+
   def access_validity_ranges(from: Time.now)
     ranges = RangeArray.new
 
@@ -628,7 +640,7 @@ class Member < Ygg::PublicModel
         member: users[x.member_id],
         member_id: x.member_id,
         code_for_faac: x.code_for_faac,
-        enabled: x.validity_ranges.any?,
+        enabled: x.always_valid || x.validity_ranges.any?,
         validity_start: x.validity_start,
         validity_end: x.validity_end,
       )
@@ -643,7 +655,7 @@ class Member < Ygg::PublicModel
           member_id: x.member_id,
           member: users[x.member_id],
           code_for_faac: x.ch1_code_for_faac,
-          enabled: x.validity_ranges.any?,
+          enabled: x.always_valid || x.validity_ranges.any?,
           validity_start: x.validity_start,
           validity_end: x.validity_end,
         )
@@ -657,7 +669,7 @@ class Member < Ygg::PublicModel
           member_id: x.member_id,
           member: users[x.member_id],
           code_for_faac: x.ch2_code_for_faac,
-          enabled: x.validity_ranges.any?,
+          enabled: x.always_valid || x.validity_ranges.any?,
           validity_start: x.validity_start,
           validity_end: x.validity_end,
         )
@@ -671,7 +683,7 @@ class Member < Ygg::PublicModel
           member_id: x.member_id,
           member: users[x.member_id],
           code_for_faac: x.ch3_code_for_faac,
-          enabled: x.validity_ranges.any?,
+          enabled: x.always_valid || x.validity_ranges.any?,
           validity_start: x.validity_start,
           validity_end: x.validity_end,
         )
@@ -685,7 +697,7 @@ class Member < Ygg::PublicModel
           member_id: x.member_id,
           member: users[x.member_id],
           code_for_faac: x.ch4_code_for_faac,
-          enabled: x.validity_ranges.any?,
+          enabled: x.always_valid || x.validity_ranges.any?,
           validity_start: x.validity_start,
           validity_end: x.validity_end,
         )
@@ -721,13 +733,6 @@ class Member < Ygg::PublicModel
       if r_records_hash[l.code_for_faac]
         puts "DUPLICATE MEDIA??? #{r_records_hash[l.code_for_faac]}"
       else
-        #ranges = l.member.access_validity_ranges
-        #range = ranges.first
-
-        #validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
-        #validity_end = range && range.end && (range.end.to_i * 1000) || 0
-        #always_valid = FAAC_ACTIVE.include?(l.member.code)
-
         faac.media_create(data: {
           uuid: l.id,
           identifier: l.code_for_faac,
@@ -754,13 +759,6 @@ class Member < Ygg::PublicModel
     },
     lr_update: lambda { |l,r|
       puts "Media update check #{l.id} #{l.code}" if debug > 1
-
-      #ranges = l.member.access_validity_ranges
-      #range = ranges.first
-
-      #validity_start = range && range.begin && (range.begin.to_i * 1000) || 0
-      #validity_end = range && range.end && (range.end.to_i * 1000) || 0
-      #always_valid = FAAC_ACTIVE.include?(l.member.code)
 
       intended = {
         identifier: l.code_for_faac,

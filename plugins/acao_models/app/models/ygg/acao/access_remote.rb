@@ -52,6 +52,9 @@ class AccessRemote < Ygg::PublicModel
     code_for_faac(ch4_code)
   end
 
+  def always_valid
+    member ? member.access_always_valid : false
+  end
 
   def validity_ranges
     member ? member.access_validity_ranges : []

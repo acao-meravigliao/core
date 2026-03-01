@@ -30,7 +30,11 @@ class Member::VosController < Ygg::Hel::VosBaseController
 
   def currency(obj:, **)
     ensure_authenticated!
-    raise AuthorizationError unless session.has_global_roles?(:superuser)
+    unless session.has_global_roles?(:superuser) ||
+           session.auth_person.acao_member.roles.map(&:symbol).include?('STAFF') ||
+           session.auth_person.acao_member.roles.map(&:symbol).include?('SPL_INSTRUCTOR')
+      raise AuthorizationError
+    end
 
     res = obj.compute_currency(time: Time.now)
 

@@ -55,15 +55,7 @@ class KeyFob < Ygg::PublicModel
   end
 
   def always_valid
-    role_models = member.roles_at(time: Time.now)
-    roles = role_models.map(&:symbol)
-
-    res = roles.include?('PARKING_GUEST') ||
-          roles.include?('STAFF') ||
-          roles.include?('MAINTENANCE') ||
-          roles.include?('CSVVA')
-
-    res
+    member ? member.access_always_valid : false
   end
 
   def self.sync_from_maindb!(debug: 0)
