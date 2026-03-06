@@ -9,6 +9,7 @@ RSpec.describe Ygg::Acao::Member, type: :model do
     Ygg::Core::Person.create!(
       first_name: 'Paolino',
       last_name: 'Paperino',
+      birth_date: Date.new(1975, 12, 7),
     )
   }
 

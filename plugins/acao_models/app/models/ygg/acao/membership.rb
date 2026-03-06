@@ -166,12 +166,12 @@ class Membership < Ygg::PublicModel
     services
   end
 
-  def self.renew(member:, year_model: Ygg::Acao::Year.renewal_year, services:, selected_roster_days:, force: false)
+  def self.renew(member:, year_model: Ygg::Acao::Year.renewal_year, time: Time.now, services:, selected_roster_days:, force: false)
     payment = nil
 
     person = member.person
 
-    base_services = determine_base_services(member: member, year_model: year_model)
+    base_services = determine_base_services(member: member, year_model: year_model, time: time)
 
     # Check that every non-removable service is still present, non toggable service has the previous state
 
