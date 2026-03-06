@@ -232,7 +232,6 @@ module Currency
 
     calendar_24_month_window = (time - 24.months).beginning_of_day
     currency_months_start_from = (time - 24.months).beginning_of_month
-    ninety_days_window = (time - 90.days).beginning_of_day
 
     # Select all the relevant flights
     p1_flights = flights.where(pilot1_role: [ 'PIC', 'PICUS', 'FI_PIC', 'DUAL', 'FI', 'FE' ])
@@ -269,6 +268,25 @@ module Currency
         x.aircraft_class == 'SEP'
       }
 
+    calendar_12_month_window = (time - 12.months).beginning_of_day
+
+    pic_or_dual_gld_flights_in_12_months = pic_or_dual_gld_flights_in_24_months.
+      select { |x|
+        x.takeoff_time > calendar_12_month_window
+      }
+
+    pic_or_dual_tmg_flights_in_12_months = pic_or_dual_tmg_flights_in_24_months.
+      select { |x|
+        x.takeoff_time > calendar_12_month_window
+      }
+
+    pic_or_dual_sep_flights_in_12_months = pic_or_dual_sep_flights_in_24_months.
+      select { |x|
+        x.takeoff_time > calendar_12_month_window
+      }
+
+    ninety_days_window = (time - 90.days).beginning_of_day
+
     pic_or_dual_gld_flights_in_90_days = pic_or_dual_gld_flights_in_24_months.
       select { |x|
         x.takeoff_time > ninety_days_window
@@ -284,9 +302,25 @@ module Currency
         x.takeoff_time > ninety_days_window
       }
 
+    spl_licenses = licenses.select { |x| x.type == 'SPL' }
+    ppl_licenses = licenses.select { |x| x.type == 'PPL' }
+
+    tmg_rating =
+      spl_licenses.any? { |license|
+        license.ratings.any? { |rating| rating.rating_type.symbol == 'TMG' }
+      }
+
     # Some stats
+
+    wants_gld = spl_licenses.any? # && member.wants_gld == true
+    wants_tmg = tmg_rating # && member.wants_tmg == true
+    wants_sep = ppl_licenses.any? # && member.wants_sep == true
+
     gld_hours_in_24_months = pic_or_dual_gld_flights_in_24_months.sum { |x| x.landing_time - x.takeoff_time }
     gld_launches_in_24_months = pic_or_dual_gld_flights_in_24_months.count
+
+    gld_hours_in_12_months = pic_or_dual_gld_flights_in_12_months.sum { |x| x.landing_time - x.takeoff_time }
+    gld_launches_in_12_months = pic_or_dual_gld_flights_in_12_months.count
 
     gld_hours_in_90_days = pic_or_dual_gld_flights_in_90_days.sum { |x| x.landing_time - x.takeoff_time }
     gld_launches_in_90_days = pic_or_dual_gld_flights_in_90_days.count
@@ -294,14 +328,41 @@ module Currency
     tmg_hours_in_24_months = pic_or_dual_tmg_flights_in_24_months.sum { |x| x.landing_time - x.takeoff_time }
     tmg_launches_in_24_months = pic_or_dual_tmg_flights_in_24_months.count
 
+    tmg_hours_in_12_months = pic_or_dual_tmg_flights_in_12_months.sum { |x| x.landing_time - x.takeoff_time }
+    tmg_launches_in_12_months = pic_or_dual_tmg_flights_in_12_months.count
+
     tmg_hours_in_90_days = pic_or_dual_tmg_flights_in_90_days.sum { |x| x.landing_time - x.takeoff_time }
     tmg_launches_in_90_days = pic_or_dual_tmg_flights_in_90_days.count
 
     sep_hours_in_24_months = pic_or_dual_sep_flights_in_24_months.sum { |x| x.landing_time - x.takeoff_time }
     sep_launches_in_24_months = pic_or_dual_sep_flights_in_24_months.count
 
+    sep_hours_in_12_months = pic_or_dual_sep_flights_in_12_months.sum { |x| x.landing_time - x.takeoff_time }
+    sep_launches_in_12_months = pic_or_dual_sep_flights_in_12_months.count
+
     sep_hours_in_90_days = pic_or_dual_sep_flights_in_90_days.sum { |x| x.landing_time - x.takeoff_time }
     sep_launches_in_90_days = pic_or_dual_sep_flights_in_90_days.count
+
+    gld_baro = ( [ [ ( (gld_hours_in_12_months / (33.0 * 3600)) +
+                       (gld_launches_in_12_months / 40.0) ) / 2.0, 0 ].max, 1 ].min +
+                 [ [ ( (gld_hours_in_90_days / (4.0*3600)) +
+                       (gld_launches_in_90_days / 8.0) ) / 2.0, 0 ].max, 1 ].min ) / 2.0
+
+    tmg_baro = ( [ [ ( (tmg_hours_in_12_months / (33.0 * 3600)) +
+                       (tmg_launches_in_12_months / 40.0) ) / 2.0, 0 ].max, 1 ].min +
+                 [ [ ( (tmg_hours_in_90_days / (4.0*3600)) +
+                       (tmg_launches_in_90_days / 8.0) ) / 2.0, 0 ].max, 1 ].min ) / 2.0
+
+    sep_baro = ( [ [ ( (sep_hours_in_12_months / (33.0 * 3600)) +
+                       (sep_launches_in_12_months / 40.0) ) / 2.0, 0 ].max, 1 ].min +
+                 [ [ ( (sep_hours_in_90_days / (4.0*3600)) +
+                       (sep_launches_in_90_days / 8.0) ) / 2.0, 0 ].max, 1 ].min ) / 2.0
+
+    baros = []
+    baros << gld_baro if wants_gld
+    baros << tmg_baro if wants_tmg
+    baros << sep_baro if wants_sep
+    baro = baros.sum / baros.size.to_f
 
     # SFCL.160(a)
     flights_amounting_5_gld_hours_in_24_months = []
@@ -518,15 +579,11 @@ module Currency
       value: thirty_launches_as_pic,
     )
 
-    spl_licenses = licenses.select { |x| x.type == 'SPL' }
-
     conds << Condition.new(
       name: :spl_license,
       value: spl_licenses.any? { |x| time < x.valid_to },
       to: lambda { spl_licenses.map(&:valid_to).max },
     )
-
-    ppl_licenses = licenses.select { |x| x.type == 'PPL' }
 
     conds << Condition.new(
       name: :ppl_license,
@@ -682,7 +739,7 @@ module Currency
     conds << Condition.new(
       name: :gld_tow_private_solo_picus,
       value: [
-        :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND,
+        :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND, :two_gld_training_flights_in_24_months, :AND,
         :tow_launch_endorsment,
       ],
     )
@@ -712,7 +769,7 @@ module Currency
       name: :gld_tow_club_solo_picus,
       value: [
         :membership, :AND, :cav, :AND, [ :caa, :OR, :cap ], :AND, :acao_recency, :AND,
-        :medical, :AND, :spl_license, :AND, :tow_launch_endorsment,
+        :medical, :AND, :spl_license, :AND, :tow_launch_endorsment, :AND, :two_gld_training_flights_in_24_months,
       ],
     )
 
@@ -743,7 +800,7 @@ module Currency
       name: :gld_sl_private_solo_picus,
       value: [
         :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND,
-        :sl_launch_endorsment,
+        :sl_launch_endorsment, :AND, :two_gld_training_flights_in_24_months,
       ],
     )
 
@@ -773,7 +830,7 @@ module Currency
       name: :gld_sl_club_solo_picus,
       value: [
         :membership, :AND, :cav, :AND, [ :caa, :OR, :cap ], :AND, :acao_recency, :AND,
-        :medical, :AND, :spl_license, :AND, :sl_launch_endorsment,
+        :medical, :AND, :spl_license, :AND, :sl_launch_endorsment, :AND, :two_gld_training_flights_in_24_months,
       ],
     )
 
@@ -804,7 +861,7 @@ module Currency
       name: :gld_winch_private_solo_picus,
       value: [
         :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND,
-        :winch_launch_endorsment,
+        :winch_launch_endorsment, :AND, :two_gld_training_flights_in_24_months,
       ],
     )
 
@@ -833,7 +890,7 @@ module Currency
       name: :gld_winch_club_solo_picus,
       value: [
         :membership, :AND, :cav, :AND, [ :caa, :OR, :cap ], :AND, :acao_recency, :AND,
-        :medical, :AND, :spl_license, :AND, :winch_launch_endorsment,
+        :medical, :AND, :spl_license, :AND, :winch_launch_endorsment, :AND, :two_gld_training_flights_in_24_months,
       ],
     )
 
@@ -944,18 +1001,31 @@ module Currency
     ]
 
     currency = {
+      wants_gld: wants_gld,
+      wants_tmg: wants_tmg,
+      wants_sep: wants_sep,
       gld_launches_in_24_months: gld_launches_in_24_months,
       gld_hours_in_24_months: gld_hours_in_24_months,
+      gld_launches_in_12_months: gld_launches_in_12_months,
+      gld_hours_in_12_months: gld_hours_in_12_months,
       gld_launches_in_90_days: gld_launches_in_90_days,
       gld_hours_in_90_days: gld_hours_in_90_days,
+      gld_baro: gld_baro,
       tmg_launches_in_24_months: tmg_launches_in_24_months,
       tmg_hours_in_24_months: tmg_hours_in_24_months,
+      tmg_launches_in_12_months: tmg_launches_in_12_months,
+      tmg_hours_in_12_months: tmg_hours_in_12_months,
       tmg_launches_in_90_days: tmg_launches_in_90_days,
       tmg_hours_in_90_days: tmg_hours_in_90_days,
+      tmg_baro: tmg_baro,
       sep_launches_in_24_months: sep_launches_in_24_months,
       sep_hours_in_24_months: sep_hours_in_24_months,
+      sep_launches_in_12_months: sep_launches_in_12_months,
+      sep_hours_in_12_months: sep_hours_in_12_months,
       sep_launches_in_90_days: sep_launches_in_90_days,
       sep_hours_in_90_days: sep_hours_in_90_days,
+      sep_baro: sep_baro,
+      baro: baro,
       conds: conds_json,
       matrix_conds: matrix_conds,
     }
