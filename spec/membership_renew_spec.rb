@@ -215,9 +215,9 @@ RSpec.describe Ygg::Acao::Membership, type: :model do
       end
     end
 
-    context 'with 22-year (at age_reference_date) person' do
+    context 'with 22-year (at date of renewal) person' do
       it 'returns ASS_23, no CAV, services' do
-        person.update(birth_date: Time.new(2002,12,7))
+        person.update(birth_date: Time.new(2002,12,11))
 
         bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, time: time)
 
@@ -229,7 +229,7 @@ RSpec.describe Ygg::Acao::Membership, type: :model do
       end
     end
 
-    context 'with 23-year (at age_reference_date) person' do
+    context 'with 23-year (at day of renewal) person' do
       it 'returns ASS_STANDARD, CAV_26, services' do
         person.update(birth_date: Time.new(2001,12,7))
 
@@ -246,7 +246,9 @@ RSpec.describe Ygg::Acao::Membership, type: :model do
 
     context 'with 25-year (at age_reference_date) person' do
       it 'returns ASS_STANDARD, CAV_26, services' do
-        person.update(birth_date: Time.new(1999,12,7))
+        person.update(birth_date: Time.new(2000,12,7))
+
+        expect(member.compute_completed_years(person.birth_date.beginning_of_day, time)).to eq(25)
 
         bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, time: time)
 
@@ -261,7 +263,7 @@ RSpec.describe Ygg::Acao::Membership, type: :model do
 
     context 'with 26-year (at age_reference_date) person' do
       it 'returns ASS_STANDARD, CAV_26, services' do
-        person.update(birth_date: Time.new(1998,12,7))
+        person.update(birth_date: Time.new(1999,12,7))
 
         bs = Ygg::Acao::Membership.determine_base_services(member: member, year_model: year_model, time: time)
 
@@ -341,6 +343,7 @@ RSpec.describe Ygg::Acao::Membership, type: :model do
       Ygg::Acao::Membership.renew(
         member: member,
         year_model: year_model,
+        time: time,
         services: [
           { service_type_id: service_type_ass_standard.id, enabled: true },
           { service_type_id: service_type_cav_standard.id, enabled: true },
