@@ -135,11 +135,11 @@ class Member < Ygg::PublicModel
            foreign_key: :assigned_to_id
 
   has_many :pm_notes,
-           class_name: 'Ygg::Acao:Member::PmNote',
+           class_name: 'Ygg::Acao::Member::PmNote',
            foreign_key: :member_id
 
   has_many :pm_notes_as_author,
-           class_name: 'Ygg::Acao:Member::PmNote',
+           class_name: 'Ygg::Acao::Member::PmNote',
            foreign_key: :author_id
 
   # Old DB
