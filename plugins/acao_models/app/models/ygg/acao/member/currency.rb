@@ -362,7 +362,7 @@ module Currency
     baros << gld_baro if wants_gld
     baros << tmg_baro if wants_tmg
     baros << sep_baro if wants_sep
-    baro = baros.sum / baros.size.to_f
+    baro = (baros.size > 0) ? (baros.sum / baros.size.to_f) : 0
 
     # SFCL.160(a)
     flights_amounting_5_gld_hours_in_24_months = []
