@@ -26,6 +26,8 @@ class KeyFob::VosController < Ygg::Hel::VosBaseController
 
     res = faac.media_get_by_code(code)
 
+    faac.destroy
+
     if res
      return {
        user_name: res[:userLastAndFirstName],

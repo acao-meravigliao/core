@@ -785,7 +785,8 @@ class Member < Ygg::PublicModel
         }.merge(intended))
       end
     })
-
+  ensure
+    faac.destroy
   end
 
 

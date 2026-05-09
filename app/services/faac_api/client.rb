@@ -208,6 +208,9 @@ class Client
 
     res
   end
+
+  def destroy
+    @http.exit
 end
 
 end
