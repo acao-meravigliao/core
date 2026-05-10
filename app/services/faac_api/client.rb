@@ -211,6 +211,7 @@ class Client
 
   def destroy
     @http.exit
+  end
 end
 
 end
