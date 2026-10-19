@@ -466,7 +466,7 @@ module Currency
 
     # SFCL.160(b)(2)
     last_tmg_proficiency_flight_in_24_months = pic_or_dual_tmg_flights_in_24_months.
-      select { |x| x.purpose == 'PROFICIENCY_CHECK' }.last
+      select { |x| x.purpose == 'SKILL_TEST' || x.purpose == 'PROFICIENCY_CHECK' }.last
 
     conds << Condition.new(
       name: :one_tmg_proficiency_flight_in_24_months,
@@ -739,7 +739,8 @@ module Currency
     conds << Condition.new(
       name: :gld_tow_private_solo_picus,
       value: [
-        :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND, :two_gld_training_flights_in_24_months, :AND,
+        :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND,
+          [ :two_gld_training_flights_in_24_months, :OR, :one_gld_proficiency_flight_in_24_months ], :AND,
         :tow_launch_endorsment,
       ],
     )
@@ -769,7 +770,8 @@ module Currency
       name: :gld_tow_club_solo_picus,
       value: [
         :membership, :AND, :cav, :AND, [ :caa, :OR, :cap ], :AND, :acao_recency, :AND,
-        :medical, :AND, :spl_license, :AND, :tow_launch_endorsment, :AND, :two_gld_training_flights_in_24_months,
+        :medical, :AND, :spl_license, :AND, :tow_launch_endorsment, :AND,
+          [ :two_gld_training_flights_in_24_months, :OR, :one_gld_proficiency_flight_in_24_months ],
       ],
     )
 
@@ -800,7 +802,8 @@ module Currency
       name: :gld_sl_private_solo_picus,
       value: [
         :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND,
-        :sl_launch_endorsment, :AND, :two_gld_training_flights_in_24_months,
+        :sl_launch_endorsment, :AND,
+          [ :two_gld_training_flights_in_24_months, :OR, :one_gld_proficiency_flight_in_24_months ],
       ],
     )
 
@@ -830,7 +833,8 @@ module Currency
       name: :gld_sl_club_solo_picus,
       value: [
         :membership, :AND, :cav, :AND, [ :caa, :OR, :cap ], :AND, :acao_recency, :AND,
-        :medical, :AND, :spl_license, :AND, :sl_launch_endorsment, :AND, :two_gld_training_flights_in_24_months,
+        :medical, :AND, :spl_license, :AND, :sl_launch_endorsment, :AND,
+          [ :two_gld_training_flights_in_24_months, :OR, :one_gld_proficiency_flight_in_24_months ],
       ],
     )
 
@@ -861,7 +865,8 @@ module Currency
       name: :gld_winch_private_solo_picus,
       value: [
         :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND,
-        :winch_launch_endorsment, :AND, :two_gld_training_flights_in_24_months,
+        :winch_launch_endorsment, :AND,
+          [ :two_gld_training_flights_in_24_months, :OR, :one_gld_proficiency_flight_in_24_months ],
       ],
     )
 
@@ -890,7 +895,8 @@ module Currency
       name: :gld_winch_club_solo_picus,
       value: [
         :membership, :AND, :cav, :AND, [ :caa, :OR, :cap ], :AND, :acao_recency, :AND,
-        :medical, :AND, :spl_license, :AND, :winch_launch_endorsment, :AND, :two_gld_training_flights_in_24_months,
+        :medical, :AND, :spl_license, :AND, :winch_launch_endorsment, :AND,
+          [ :two_gld_training_flights_in_24_months, :OR, :one_gld_proficiency_flight_in_24_months ],
       ],
     )
 
@@ -918,7 +924,9 @@ module Currency
 
     conds << Condition.new(
       name: :tmg_private_solo_picus,
-      value: [ :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND, :tmg_endorsment, ],
+      value: [ :membership, :AND, :cav, :AND, :medical, :AND, :spl_license, :AND, :tmg_endorsment, :AND,
+          [ :one_tmg_training_flight_in_24_months, :OR, :one_tmg_proficiency_flight_in_24_months ],
+      ]
     )
 
     conds << Condition.new(
@@ -946,7 +954,8 @@ module Currency
       name: :tmg_club_solo_picus,
       value: [
         :membership, :AND, :cav, :AND, :acao_recency, :AND, :medical, :AND, :spl_license, :AND,
-        :spl_license, :AND, :tmg_endorsment,
+        :spl_license, :AND, :tmg_endorsment, :AND,
+          [ :one_tmg_training_flight_in_24_months, :OR, :one_tmg_proficiency_flight_in_24_months ],
       ],
     )
 
