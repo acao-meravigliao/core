@@ -456,7 +456,7 @@ module Currency
 
     # SFCL.160(a)(2)
     last_gld_proficiency_flight_in_24_months = pic_or_dual_gld_flights_in_24_months.
-      select { |x| x.purpose == 'PROFICIENCY_CHECK' }.last
+      select { |x| x.purpose == 'SKILL_TEST' || x.purpose == 'PROFICIENCY_CHECK' }.last
 
     conds << Condition.new(
       name: :one_gld_proficiency_flight_in_24_months,
