@@ -461,7 +461,7 @@ module Currency
     conds << Condition.new(
       name: :one_gld_proficiency_flight_in_24_months,
       value: !!last_gld_proficiency_flight_in_24_months,
-      to: lambda { last_gld_proficiency_flight_in_24_months.last.takeoff_time.getlocal.end_of_day + 24.months },
+      to: lambda { last_gld_proficiency_flight_in_24_months.takeoff_time.getlocal.end_of_day + 24.months },
     )
 
     # SFCL.160(b)(2)
