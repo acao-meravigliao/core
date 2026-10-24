@@ -30,7 +30,7 @@ gem 'concurrent-ruby', '1.3.4'
 gem 'mime-types'
 gem 'rszr'
 
-gem 'airbrake'
+#gem 'airbrake'
 
 source 'https://gems.vihai.it/' do
   gem 'vihai-password', '>= 1.2.0'
