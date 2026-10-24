@@ -46,11 +46,13 @@ class Membership::VosController < Ygg::Hel::VosBaseController
 
           if update[:parking] == 'TRAILER_A'
             ac.trailer ||= Ygg::Acao::Trailer.new(
-              zone: 'A'
+              member: member,
+              zone: 'A',
             )
           elsif update[:parking] == 'TRAILER_BC'
             ac.trailer ||= Ygg::Acao::Trailer.new(
-              zone: 'B'
+              member: member,
+              zone: 'B',
             )
           end
 
@@ -77,10 +79,12 @@ class Membership::VosController < Ygg::Hel::VosBaseController
 
         if update[:parking] == 'TRAILER_A'
           ac.trailer ||= Ygg::Acao::Trailer.new(
+            member: member,
             zone: 'A'
           )
         elsif update[:parking] == 'TRAILER_BC'
           ac.trailer ||= Ygg::Acao::Trailer.new(
+            member: member,
             zone: 'B'
           )
         end
