@@ -1,6 +1,7 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -219,7 +220,8 @@ CREATE TABLE acao.aircrafts (
     owner_id_old uuid,
     aircraft_type_id uuid,
     source_id integer,
-    reserved boolean DEFAULT false NOT NULL
+    reserved boolean DEFAULT false NOT NULL,
+    parking character varying(32)
 );
 
 
@@ -517,7 +519,7 @@ CREATE TABLE acao.invoice_details (
 
 CREATE TABLE acao.invoices (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    identifier_full character varying DEFAULT NULL::character varying,
+    identifier_full character varying,
     address character varying(255) DEFAULT NULL::character varying,
     created_at timestamp without time zone,
     notes text,
@@ -598,6 +600,27 @@ CREATE TABLE acao.medicals (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
     identifier character varying(32),
     member_id uuid NOT NULL
+);
+
+
+--
+-- Name: member_consents; Type: TABLE; Schema: acao; Owner: -
+--
+
+CREATE TABLE acao.member_consents (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    member_id uuid NOT NULL,
+    at timestamp without time zone,
+    consent_association boolean,
+    consent_surveillance boolean,
+    consent_accessory boolean,
+    consent_profiling boolean,
+    consent_magazine boolean,
+    consent_fai boolean,
+    consent_marketing boolean,
+    consent_members boolean
 );
 
 
@@ -4685,6 +4708,14 @@ ALTER TABLE ONLY acao.medicals
 
 
 --
+-- Name: member_consents member_consents_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.member_consents
+    ADD CONSTRAINT member_consents_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: member_pm_notes member_pm_notes_pkey; Type: CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -6339,6 +6370,20 @@ CREATE UNIQUE INDEX index_medicals_on_type_and_identifier ON acao.medicals USING
 --
 
 CREATE UNIQUE INDEX index_medicals_on_uuid ON acao.medicals USING btree (id);
+
+
+--
+-- Name: index_member_consents_on_at; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_member_consents_on_at ON acao.member_consents USING btree (at);
+
+
+--
+-- Name: index_member_consents_on_member_id; Type: INDEX; Schema: acao; Owner: -
+--
+
+CREATE INDEX index_member_consents_on_member_id ON acao.member_consents USING btree (member_id);
 
 
 --
@@ -8925,6 +8970,14 @@ ALTER TABLE ONLY acao.memberships
 
 
 --
+-- Name: member_consents fk_rails_d8290c5e1f; Type: FK CONSTRAINT; Schema: acao; Owner: -
+--
+
+ALTER TABLE ONLY acao.member_consents
+    ADD CONSTRAINT fk_rails_d8290c5e1f FOREIGN KEY (member_id) REFERENCES acao.members(id) ON DELETE CASCADE;
+
+
+--
 -- Name: aircrafts fk_rails_dafd03fedf; Type: FK CONSTRAINT; Schema: acao; Owner: -
 --
 
@@ -9491,6 +9544,8 @@ ALTER TABLE ONLY public.str_channel_variants
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261023223854'),
+('20261016202845'),
 ('20260217210942'),
 ('20260216233952'),
 ('20260114163602'),

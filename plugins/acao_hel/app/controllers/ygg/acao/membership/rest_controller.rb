@@ -143,12 +143,23 @@ class Membership::RestController < Ygg::Hel::RestController
         consent_marketing: json_request[:consent_marketing],
       )
 
-      if json_request[:email_allowed]
-        member.email_allowed_at = Time.now
-      end
-
       if json_request[:privacy_accepted]
         member.privacy_accepted_at = Time.now
+      end
+
+      member.consents.create(
+        at: Time.now,
+        consent_association: json_request[:consent_association],
+        consent_surveillance: json_request[:consent_surveillance],
+        consent_accessory: json_request[:consent_accessory],
+        consent_profiling: json_request[:consent_profiling],
+        consent_magazine: json_request[:consent_magazine],
+        consent_fai: json_request[:consent_fai],
+        consent_marketing: json_request[:consent_marketing],
+      )
+
+      if json_request[:email_allowed]
+        member.email_allowed_at = Time.now
       end
 
       member.save!

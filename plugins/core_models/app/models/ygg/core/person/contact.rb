@@ -18,6 +18,8 @@ class Contact < Ygg::PublicModel
              class_name: '::Ygg::Core::Person',
              embedded_in: true
 
+  gs_rel_map << { from: :contact, to: :person, to_cls: '::Ygg::Core::Person', from_key: 'person_id' }
+
   define_default_log_controller(self)
 end
 

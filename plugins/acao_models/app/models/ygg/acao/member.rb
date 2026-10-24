@@ -142,6 +142,10 @@ class Member < Ygg::PublicModel
            class_name: 'Ygg::Acao::Member::PmNote',
            foreign_key: :author_id
 
+  has_many :consents,
+           class_name: 'Ygg::Acao::Member::Consent',
+           foreign_key: :member_id
+
   # Old DB
   belongs_to :socio,
              class_name: '::Ygg::Acao::MainDb::Socio',
@@ -171,6 +175,7 @@ class Member < Ygg::PublicModel
   gs_rel_map << { from: :member, to: :access_remote, to_cls: 'Ygg::Acao::AccessRemote', to_key: 'member_id', }
   gs_rel_map << { from: :member, to: :pm_note, to_cls: 'Ygg::Acao::Member::PmNote', to_key: 'member_id', }
   gs_rel_map << { from: :author, to: :pm_note, to_cls: 'Ygg::Acao::Member::PmNote', to_key: 'author_id', }
+  gs_rel_map << { from: :member, to: :consent, to_cls: 'Ygg::Acao::Member::Consent', to_key: 'member_id', }
 
   def self.alive_pilots
     where.not('sleeping')

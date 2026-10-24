@@ -95,6 +95,12 @@ class Membership < Ygg::PublicModel
       enabled: false,
     }
 
+    services
+  end
+
+  def self.determine_extra_services(member:, year_model:, time: Time.now)
+    services = []
+
 #    services << {
 #      service_type_id: Ygg::Acao::ServiceType.find_by!(symbol: 'SKYSIGHT').id,
 #      removable: false,
@@ -110,31 +116,35 @@ class Membership < Ygg::PublicModel
 #    }
 
     member.aircrafts.each do |x|
-      srvt = if x.hangar
-        if x.aircraft_type.is_vintage
-          'HANGAR_VNT'
-        elsif x.aircraft_type.aircraft_class == 'GLD'
-          if x.aircraft_type.wingspan && x.aircraft_type.wingspan <= 15
-            'HANGAR_STD'
-          elsif x.aircraft_type.wingspan && x.aircraft_type.wingspan <= 18
-            'HANGAR_18M'
-          elsif x.aircraft_type.wingspan && x.aircraft_type.wingspan <= 20
-            'HANGAR_20M'
-          elsif x.aircraft_type.wingspan && x.aircraft_type.wingspan <= 25
-            'HANGAR_25M'
+      if x.hangar
+        srvt = if x.aircraft_type
+          if x.aircraft_type.is_vintage
+            'HANGAR_VNT'
+          elsif x.aircraft_type.aircraft_class == 'GLD'
+            if x.aircraft_type.wingspan && x.aircraft_type.wingspan <= 15
+              'HANGAR_STD'
+            elsif x.aircraft_type.wingspan && x.aircraft_type.wingspan <= 18
+              'HANGAR_18M'
+            elsif x.aircraft_type.wingspan && x.aircraft_type.wingspan <= 20
+              'HANGAR_20M'
+            elsif x.aircraft_type.wingspan && x.aircraft_type.wingspan <= 25
+              'HANGAR_25M'
+            else
+              'HANGAR_BIG'
+            end
+          elsif x.aircraft_type.aircraft_class == 'TMG'
+            'HANGAR_TMG'
           else
-            'HANGAR_BIG'
+            if x.aircraft_type.foldable_wings
+              'HANGAR_ENG_FLD'
+            elsif x.aircraft_type.wingspan && x.aircraft_type.wingspan <= 10
+              'HANGAR_ENG_10M'
+            else
+              'HANGAR_ENG_BIG'
+            end
           end
-        elsif x.aircraft_type.aircraft_class == 'TMG'
-          'HANGAR_TMG'
         else
-          if x.aircraft_type.foldable_wings
-            'HANGAR_ENG_FLD'
-          elsif x.aircraft_type.wingspan && x.aircraft_type.wingspan <= 10
-            'HANGAR_ENG_10M'
-          else
-            'HANGAR_ENG_BIG'
-          end
+          'HANGAR_STD'
         end
 
         services << {

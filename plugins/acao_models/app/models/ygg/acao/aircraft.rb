@@ -255,14 +255,14 @@ class Aircraft < Ygg::PublicModel
         )
       end
 
-      if !l.codice_proprietario.blank? &&
-          l.codice_proprietario != 0
-        owner = Ygg::Acao::Member.find_by(code: l.codice_proprietario)
+      #if !l.codice_proprietario.blank? &&
+      #    l.codice_proprietario != 0
+      #  owner = Ygg::Acao::Member.find_by(code: l.codice_proprietario)
 
-        ac.owners.find_or_create_by(member: owner) do |o|
-          o.is_referent = true
-        end
-      end
+      #  ac.owners.find_or_create_by(member: owner) do |o|
+      #    o.is_referent = true
+      #  end
+      #end
 
       ac.save!
     },
