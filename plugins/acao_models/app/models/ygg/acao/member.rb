@@ -448,6 +448,7 @@ class Member < Ygg::PublicModel
       act << Ygg::Acao::Member.find_by!(code: 7024) # Special entry for Kicca
       act << Ygg::Acao::Member.find_by!(code: 7017) # Special entry for Matteo Negri
       act << Ygg::Acao::Member.find_by!(code: 7023) # Special entry for Clara
+      act << Ygg::Acao::Member.find_by!(code: 7030) # Special entry for Iryna
 
       Ygg::Ml::List.find_by!(symbol: 'ACTIVE_MEMBERS').
         sync_from_people!(people: act.compact.uniq.map(&:person), debug: debug)
