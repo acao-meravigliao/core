@@ -191,6 +191,51 @@ class Aircraft < Ygg::PublicModel
     end
   end
 
+  def self.heuristically_assign_type_if_missing(dry_run: false)
+    self.where(aircraft_type_id: nil).each do |ac|
+
+      fne = ac.flarmnet_entries.first.try(:aircraft_model)
+
+      if fne && fne.downcase != 'unknown'
+        fne_cand = Ygg::Acao::AircraftType.connection.execute(Ygg::Acao::AircraftType.
+               sanitize_sql(['select * from acao.aircraft_types, similarity(name, ?) AS simil WHERE simil > 0.8 ORDER BY simil DESC LIMIT 1', fne ])).first
+      else
+        fne_cand = nil
+      end
+
+      ddbe = ac.ogn_ddb_entries.first.try(:aircraft_model)
+
+      if ddbe && ddbe.downcase != 'unknown'
+        ddbe_cand = Ygg::Acao::AircraftType.connection.execute(Ygg::Acao::AircraftType.
+               sanitize_sql(['select * from acao.aircraft_types, similarity(name, ?) AS simil WHERE simil > 0.8 ORDER BY simil DESC LIMIT 1', ddbe ])).first
+      else
+        ddbe_cand = nil
+      end
+
+      act = nil
+
+      if fne_cand && ddbe_cand
+#        if fne_cand['id'] == ddbe_cand['id']
+          act = fne_cand
+#        else
+#          puts "#{ac.registration} CONFLICT: #{fne} => #{fne_cand['name']} != #{ddbe} => #{ddbe_cand['name']}]"
+#        end
+      elsif fne_cand
+        act = fne_cand
+      elsif ddbe_cand
+        act = ddbe_cand
+      end
+
+      if act
+        ac.aircraft_type_id = act['id']
+
+        puts "#{ac.registration} ASSIGN: #{act['name']}"
+
+        ac.save! if !dry_run
+      end
+    end
+  end
+
   def self.destroy_unreferenced
     self.where(club_id: nil, club_owner_id: nil).each do |x|
       if x.owners.empty? && x.flights.empty? && x.token_transactions.empty?
